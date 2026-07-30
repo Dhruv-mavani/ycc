@@ -111,6 +111,7 @@ export function SiteFooter() {
           <Link href="/" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Home</Link>
           <Link href="/#events" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Championships</Link>
           <Link href="/receipt" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Download Receipt</Link>
+          <Link href="/faq" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">FAQs</Link>
         </div>
         
         <div className="flex flex-col gap-5">
