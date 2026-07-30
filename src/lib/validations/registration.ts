@@ -1,0 +1,44 @@
+import { z } from "zod";
+
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number");
+
+export const playerSchema = z.object({
+  name: z.string().trim().min(2, "Name is too short").max(100),
+  phone: phoneSchema,
+});
+
+export const teamRegistrationSchema = z.object({
+  type: z.literal("team"),
+  eventId: z.string().uuid(),
+  collegeId: z.string().uuid({ message: "Select your college" }),
+  teamName: z.string().trim().min(2, "Team name is too short").max(100),
+  players: z
+    .array(playerSchema)
+    .min(1, "Add at least one player")
+    .max(30, "Too many players"),
+});
+
+export const individualRegistrationSchema = z.object({
+  type: z.literal("individual"),
+  eventId: z.string().uuid(),
+  collegeId: z.string().uuid({ message: "Select your college" }),
+  name: z.string().trim().min(2, "Name is too short").max(100),
+  phone: phoneSchema,
+});
+
+export const registrationRequestSchema = z.discriminatedUnion("type", [
+  teamRegistrationSchema,
+  individualRegistrationSchema,
+]);
+
+export type PlayerInput = z.infer<typeof playerSchema>;
+export type TeamRegistrationInput = z.infer<typeof teamRegistrationSchema>;
+export type IndividualRegistrationInput = z.infer<
+  typeof individualRegistrationSchema
+>;
+export type RegistrationRequestInput = z.infer<
+  typeof registrationRequestSchema
+>;
