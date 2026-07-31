@@ -75,12 +75,12 @@ export default async function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background to-transparent -z-10"></div>
         
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-6 px-4">
-          <h1 className="mt-16 -mb-6 sm:-mb-2 md:mb-0 w-full max-w-[340px] sm:max-w-lg md:max-w-3xl lg:max-w-5xl flex justify-center">
+          <h1 className="mt-6 mb-2 w-full max-w-[340px] sm:max-w-lg md:max-w-3xl lg:max-w-5xl flex justify-center">
             <Image 
-              src="/brand/hero-image-v2.png" 
+              src="/brand/hero-image-v5.png" 
               alt="Yuva Champions Cricket" 
-              width={1408} 
-              height={768} 
+              width={1641} 
+              height={620} 
               className="w-full h-auto object-contain drop-shadow-xl"
               priority 
             />
