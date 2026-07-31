@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import {
   Card,
@@ -74,10 +75,17 @@ export default async function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background to-transparent -z-10"></div>
         
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-6 px-4">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-cyan-400 pb-2 drop-shadow-sm mt-8">
-            Yuva Champions Cricket
+          <h1 className="mt-16 -mb-6 sm:-mb-2 md:mb-0 w-full max-w-[340px] sm:max-w-lg md:max-w-3xl lg:max-w-5xl flex justify-center">
+            <Image 
+              src="/brand/hero-image-v2.png" 
+              alt="Yuva Champions Cricket" 
+              width={1408} 
+              height={768} 
+              className="w-full h-auto object-contain drop-shadow-xl"
+              priority 
+            />
           </h1>
-          <p className="text-muted-foreground font-medium max-w-2xl text-lg sm:text-xl md:text-2xl leading-relaxed backdrop-blur-sm rounded-xl py-1 px-4">
+          <p className="text-muted-foreground font-medium max-w-2xl text-base sm:text-lg md:text-2xl leading-relaxed backdrop-blur-sm rounded-xl py-1 px-4 text-center">
             Register your college team for the cricket championship, or enter
             solo for the quiz competition. Fast registration, instant QR-coded
             receipt.

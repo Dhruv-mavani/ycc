@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,6 +19,53 @@ export function SiteHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const mobileMenu = mobileOpen && mounted ? createPortal(
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center sm:hidden">
+      <div 
+        className="absolute inset-0 bg-background/90 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-md animate-fade-in" 
+        onClick={() => setMobileOpen(false)} 
+      />
+      <nav className="animate-modal-enter relative z-10 flex w-[85%] max-w-sm flex-col items-stretch gap-2 rounded-3xl bg-background/95 supports-[backdrop-filter]:bg-background/80 supports-[backdrop-filter]:backdrop-blur-xl border p-6 text-lg font-medium shadow-2xl">
+        <div className="flex w-full items-center justify-between mb-4 pb-4 border-b">
+          <Image
+             src="/brand/ycc-logo-bgless.png"
+             alt="Yuva Champions Cricket"
+             width={130}
+             height={46}
+             className="object-contain"
+          />
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close menu"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground shrink-0 rounded-full p-2 transition-colors"
+          >
+            <XIcon className="size-6" />
+          </button>
+        </div>
+        {NAV_LINKS.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            onClick={() => setMobileOpen(false)}
+            className="text-primary hover:bg-muted rounded-xl px-4 py-3 text-center transition-colors"
+          >
+            {link.label}
+          </Link>
+        ))}
+        <div className="mt-4 px-2 flex justify-center w-full">
+          <ContactModal />
+        </div>
+      </nav>
+    </div>,
+    document.body
+  ) : null;
 
   // Close the mobile menu on navigation (this component persists across
   // route changes since it lives in the shared public layout). Adjusting
@@ -75,23 +123,7 @@ export function SiteHeader() {
             <ContactModal />
           </nav>
 
-          {mobileOpen ? (
-            <nav className="bg-background/95 mt-3 flex w-full flex-col items-stretch gap-1 rounded-xl border p-2 text-base font-medium shadow-lg backdrop-blur sm:hidden">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="text-primary hover:bg-muted rounded-lg px-3 py-2 text-center transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="px-3 py-2 text-center">
-                <ContactModal />
-              </div>
-            </nav>
-          ) : null}
+          {mobileMenu}
         </div>
       </header>
     );
@@ -142,23 +174,7 @@ export function SiteHeader() {
         </button>
       </div>
 
-      {mobileOpen ? (
-        <nav className="flex flex-col items-stretch gap-1 border-t px-2 py-2 text-sm font-medium sm:hidden">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="text-primary hover:bg-muted rounded-lg px-3 py-2 transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="px-3 py-2">
-            <ContactModal />
-          </div>
-        </nav>
-      ) : null}
+      {mobileMenu}
     </header>
   );
 }
