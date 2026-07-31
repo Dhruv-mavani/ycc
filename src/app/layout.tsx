@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.ycct10.in"),
   title: "Yuva Champions Cricket | YCC",
   description:
     "YCC ~ Yuva Champions Cricket is a modern youth-first cricket platform. Register your college team for the cricket championship, or enter solo for the quiz competition.",
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Yuva Champions Cricket | YCC",
     description: "Join the ultimate youth-first cricket platform. Register your team today!",
-    url: "https://yccricket.com",
+    url: "https://www.ycct10.in",
     siteName: "Yuva Champions Cricket",
     images: [
       {

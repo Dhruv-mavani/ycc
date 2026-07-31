@@ -125,11 +125,11 @@ export function SiteFooter() {
         
         <div className="flex flex-col gap-5">
           <h4 className="text-blue-500 font-bold uppercase tracking-[0.15em] text-xs mb-1">Social</h4>
-          <a href="https://instagram.com/ycct10" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm transition-colors flex items-center justify-between group">
-            Instagram <span className="text-slate-600 group-hover:text-white transition-colors">↗</span>
+          <a href="https://instagram.com/ycct10" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">
+            Instagram
           </a>
-          <a href="https://wa.me/918487832810" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm transition-colors flex items-center justify-between group">
-            WhatsApp <span className="text-slate-600 group-hover:text-white transition-colors">↗</span>
+          <a href="https://wa.me/918487832810" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">
+            WhatsApp
           </a>
         </div>
       </div>
