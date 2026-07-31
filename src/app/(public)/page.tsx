@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Banknote, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   Card,
@@ -18,10 +17,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
-function formatRupees(paise: number) {
-  return `₹${(paise / 100).toLocaleString("en-IN")}`;
-}
 
 const FAQS = [
   {
@@ -108,58 +103,24 @@ export default async function HomePage() {
               </div>
             )}
             {events?.map((event) => (
-              <Card key={event.id} className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 transition-all duration-500 flex flex-col">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                <CardHeader className="relative">
+              <Card key={event.id} className="overflow-hidden border-dashed border-border/70 bg-card/30 flex flex-col opacity-80">
+                <CardHeader>
                   <div className="flex items-start justify-between gap-4">
-                    <CardTitle className="text-2xl font-bold group-hover:text-primary transition-colors">{event.name}</CardTitle>
-                    <Badge variant="default" className="capitalize bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 whitespace-nowrap">
-                      {event.type}
+                    <CardTitle className="text-2xl font-bold text-muted-foreground">{event.name}</CardTitle>
+                    <Badge
+                      variant="secondary"
+                      className="whitespace-nowrap bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300"
+                    >
+                      Coming Soon
                     </Badge>
                   </div>
                   <CardDescription className="text-base mt-2">{event.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="relative flex-1">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 border border-secondary/50">
-                    <div className="text-primary bg-primary/10 p-2 rounded-md">
-                      <Banknote className="size-5" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Entry Fee</span>
-                      <span className="font-bold text-lg text-foreground">
-                        {formatRupees(event.fee_paise)}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        + 18% GST at payment
-                      </span>
-                    </div>
-                  </div>
-                  {event.type === "cricket" && event.min_team_size && event.max_team_size ? (
-                    <div className="flex items-center gap-3 p-3 mt-3 rounded-lg bg-secondary/30 border border-secondary/50">
-                      <div className="text-primary bg-primary/10 p-2 rounded-md">
-                        <Users className="size-5" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Team Size</span>
-                        <span className="font-bold text-foreground">
-                          {event.min_team_size === event.max_team_size
-                            ? `Exactly ${event.min_team_size}`
-                            : `${event.min_team_size} - ${event.max_team_size}`}{" "}
-                          players
-                        </span>
-                      </div>
-                    </div>
-                  ) : null}
-                </CardContent>
-                <CardFooter className="relative pt-6 border-t border-border/50 bg-muted/10 group-hover:bg-muted/30 transition-colors">
-                  <Button
-                    className="w-full shadow-sm hover:shadow-md transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
-                    variant="outline"
-                    nativeButton={false}
-                    render={
-                      <Link href={`/events/${event.slug}`}>View details</Link>
-                    }
-                  />
+                <CardContent className="flex-1" />
+                <CardFooter className="pt-6 border-t border-border/50">
+                  <Button className="w-full" variant="outline" disabled>
+                    View details
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
