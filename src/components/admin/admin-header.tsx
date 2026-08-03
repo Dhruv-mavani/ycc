@@ -16,7 +16,7 @@ export function AdminHeader({ adminName }: { adminName: string }) {
             height={36}
             className="rounded-md"
           />
-          <span className="text-sm font-semibold">Admin Dashboard</span>
+          <span className="hidden min-[360px]:inline text-sm font-semibold">Admin Dashboard</span>
         </Link>
       </div>
       <div className="flex items-center gap-2">

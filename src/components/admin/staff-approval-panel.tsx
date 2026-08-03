@@ -63,7 +63,7 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
           </h2>
           {pending.map((s) => (
             <Card key={s.user_id}>
-              <CardContent className="flex items-center justify-between gap-3 p-3">
+              <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3">
                 <div>
                   <p className="text-sm font-medium">{s.name ?? "(no name)"}</p>
                   <p className="text-muted-foreground text-xs">{s.email}</p>
@@ -96,12 +96,12 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
           <h2 className="text-sm font-semibold">All staff</h2>
           {reviewed.map((s) => (
             <Card key={s.user_id}>
-              <CardContent className="flex items-center justify-between gap-3 p-3">
+              <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3">
                 <div>
                   <p className="text-sm font-medium">{s.name ?? "(no name)"}</p>
                   <p className="text-muted-foreground text-xs">{s.email}</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge
                     variant="secondary"
                     className={s.status === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize" : "capitalize"}

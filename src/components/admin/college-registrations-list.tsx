@@ -84,25 +84,27 @@ export function CollegeRegistrationsList({
                   <CalendarDays className="size-3.5" />
                   {new Date(reg.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                 </span>
-                <span className="flex items-center gap-1.5 mt-1">
-                  <Phone className="size-3.5" /> {reg.captainPhone}
+                <span className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <span className="flex items-center gap-1">
+                    <Phone className="size-3.5" /> {reg.captainPhone}
+                  </span>
                   {reg.captainEmail ? (
-                    <>
-                      <span className="mx-1">•</span>
+                    <span className="flex items-center gap-1">
                       <Mail className="size-3.5" /> {reg.captainEmail}
-                    </>
+                    </span>
                   ) : null}
                 </span>
+
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               {reg.participants.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between border-b pb-2 text-sm last:border-b-0 last:pb-0"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-2 text-sm last:border-b-0 last:pb-0 gap-2"
                 >
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-base">{p.name}</span>
                       {p.isCaptain ? (
                         <Badge variant="secondary" className="px-1.5 py-0 text-[10px] uppercase tracking-wider bg-amber-50 text-amber-700 border-amber-200">Captain</Badge>

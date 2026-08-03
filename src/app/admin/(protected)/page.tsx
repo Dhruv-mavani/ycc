@@ -85,7 +85,7 @@ export default async function AdminDashboardPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard 
           label="Registrations" 
           value={overview.overall.registrations} 
@@ -138,8 +138,8 @@ export default async function AdminDashboardPage({
           <CardTitle>Colleges Overview</CardTitle>
           <CardDescription>Click a college name to view full registration details</CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table className="min-w-[600px]">
             <TableHeader className="bg-muted/10">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-semibold text-foreground/80 pl-6">College Name</TableHead>
@@ -216,7 +216,7 @@ function StatCard({
           </div>
         </div>
         <div>
-          <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">{value}</p>
+          <p className="text-xl min-[360px]:text-2xl sm:text-3xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">{value}</p>
           <p className="text-muted-foreground text-[11px] sm:text-xs font-semibold uppercase tracking-wider mt-1">{label}</p>
         </div>
       </CardContent>

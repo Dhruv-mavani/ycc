@@ -27,7 +27,7 @@ export function EventFilter({
 
   return (
     <Select value={current} onValueChange={handleChange}>
-      <SelectTrigger className="w-[220px]">
+      <SelectTrigger className="w-full sm:w-[220px]">
         <SelectValue placeholder="All events">
           {(value: string | null) =>
             events.find((e) => e.id === value)?.name ?? "All events"

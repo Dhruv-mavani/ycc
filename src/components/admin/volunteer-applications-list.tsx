@@ -77,15 +77,19 @@ export function VolunteerApplicationsList({
                     timeStyle: "short",
                   })}
                 </span>
-                <span className="flex items-center gap-1.5 mt-1">
-                  <Phone className="size-3.5" /> {app.mobile}
-                  <span className="mx-1">•</span>
-                  <Mail className="size-3.5" /> {app.email}
+                <span className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 mt-1">
+                  <span className="flex items-center gap-1">
+                    <Phone className="size-3.5" /> {app.mobile}
+                  </span>
+                  <span className="hidden sm:inline mx-1">•</span>
+                  <span className="flex items-center gap-1">
+                    <Mail className="size-3.5" /> {app.email}
+                  </span>
                 </span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:grid-cols-4">
                 <div>
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Stream
