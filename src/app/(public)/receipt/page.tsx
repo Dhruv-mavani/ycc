@@ -29,14 +29,17 @@ export default function ReceiptLookupPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: query.trim() }),
       });
-      const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error ?? "Could not find that registration");
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(errorData.error ?? "Could not find that registration");
         return;
       }
 
+      const data = await res.json();
       window.location.href = `/api/registrations/${data.registrationId}/receipt`;
+    } catch {
+      toast.error("Network error — please check your connection and try again");
     } finally {
       setLoading(false);
     }

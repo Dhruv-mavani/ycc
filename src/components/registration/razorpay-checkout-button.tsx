@@ -36,14 +36,15 @@ export function RazorpayCheckoutButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ registrationId }),
       });
-      const order = await res.json();
 
       if (!res.ok) {
-        toast.error(order.error ?? "Could not start payment");
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(errorData.error ?? "Could not start payment");
         setLoading(false);
         return;
       }
 
+      const order = await res.json();
       const rzp = new window.Razorpay({
         key: order.keyId,
         amount: order.amountPaise,

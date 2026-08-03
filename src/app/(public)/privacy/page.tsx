@@ -1,12 +1,14 @@
 import { BackButton } from "@/components/site/back-button";
 
+const LAST_UPDATED = "August 3, 2026";
+
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <BackButton className="mb-4" />
       <h1 className="mb-1 text-2xl font-bold sm:text-3xl">Privacy Policy</h1>
       <p className="text-muted-foreground mb-8 text-sm">
-        Last updated: {new Date().toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}
+        Last updated: {LAST_UPDATED}
       </p>
 
       <div className="space-y-6 text-sm leading-relaxed sm:text-base">

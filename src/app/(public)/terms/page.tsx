@@ -1,5 +1,7 @@
 import { BackButton } from "@/components/site/back-button";
 
+const LAST_UPDATED = "August 3, 2026";
+
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -8,7 +10,7 @@ export default function TermsPage() {
         Terms & Conditions
       </h1>
       <p className="text-muted-foreground mb-8 text-sm">
-        Last updated: {new Date().toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}
+        Last updated: {LAST_UPDATED}
       </p>
 
       <div className="space-y-6 text-sm leading-relaxed sm:text-base">

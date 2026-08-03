@@ -34,6 +34,11 @@ export function ContactModal({ trigger }: { trigger?: ReactElement }) {
         body: formData,
       });
 
+      if (!response.ok) {
+        setResult("Something went wrong. Please try again.");
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {

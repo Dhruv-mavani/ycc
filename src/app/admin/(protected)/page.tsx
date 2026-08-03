@@ -51,7 +51,9 @@ export default async function AdminDashboardPage({
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
-        <EventFilter events={events ?? []} />
+        <Suspense fallback={<div className="h-8 w-full rounded-lg bg-muted animate-pulse sm:w-[220px]" />}>
+          <EventFilter events={events ?? []} />
+        </Suspense>
         <AdminNavButtons initialPendingStaffCount={pendingStaffCount ?? 0} />
       </div>
 

@@ -63,24 +63,29 @@ export function IndividualRegistrationForm({
   });
 
   async function onSubmit(values: IndividualRegistrationInput) {
-    const res = await fetch("/api/registrations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-    if (!res.ok) {
-      toast.error(data.error ?? "Could not submit registration");
-      return;
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(errorData.error ?? "Could not submit registration");
+        return;
+      }
+
+      const data = await res.json();
+      setSubmitted({
+        registrationId: data.registrationId,
+        amountPaise: data.amountPaise,
+        name: values.name,
+        phone: values.phone,
+      });
+    } catch {
+      toast.error("Network error — please check your connection and try again");
     }
-
-    setSubmitted({
-      registrationId: data.registrationId,
-      amountPaise: data.amountPaise,
-      name: values.name,
-      phone: values.phone,
-    });
   }
 
   if (submitted) {

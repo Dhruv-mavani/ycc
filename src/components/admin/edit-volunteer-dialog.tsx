@@ -86,24 +86,29 @@ export function EditVolunteerDialog({
 
   async function onSubmit(values: VolunteerApplicationInput) {
     if (!application) return;
-    const res = await fetch(`/api/admin/volunteers/${application.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch(`/api/admin/volunteers/${application.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-    if (!res.ok) {
-      toast.error(data.error ?? "Could not update application");
-      return;
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(errorData.error ?? "Could not update application");
+        return;
+      }
+
+      const data = await res.json();
+      const collegeName =
+        colleges.find((c) => c.id === data.application.college_id)?.name ??
+        "Unknown college";
+      onSaved({ ...data.application, collegeName });
+      toast.success("Application updated");
+      onOpenChange(false);
+    } catch {
+      toast.error("Network error — please check your connection and try again");
     }
-
-    const collegeName =
-      colleges.find((c) => c.id === data.application.college_id)?.name ??
-      "Unknown college";
-    onSaved({ ...data.application, collegeName });
-    toast.success("Application updated");
-    onOpenChange(false);
   }
 
   return (

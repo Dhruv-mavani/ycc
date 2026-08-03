@@ -61,16 +61,19 @@ export function StaffLookupPanel({
       if (cId && cId !== "all") url.searchParams.set("collegeId", cId);
 
       const res = await fetch(url.toString());
-      const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Search failed");
+        const errorData = await res.json().catch(() => ({}));
+        toast.error(errorData.error ?? "Search failed");
         return;
       }
+      const data = await res.json();
       setResults(data.results);
       setSearched(true);
       if (data.results.length === 0) {
         toast.error("No matching registration found");
       }
+    } catch {
+      toast.error("Network error — please check your connection and try again");
     } finally {
       setLoading(false);
     }
