@@ -56,7 +56,7 @@ export function PaymentStatusPoller({
     poll();
     return () => {
       cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
     };
   }, [registrationId]);
 
