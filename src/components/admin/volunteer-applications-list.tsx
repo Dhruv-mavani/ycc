@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Mail, Phone, Search, Trash2Icon } from "lucide-react";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
+import { ConfirmDialog } from "@/components/site/confirm-dialog";
 
 interface VolunteerApplication {
   id: string;
@@ -42,6 +43,7 @@ export function VolunteerApplicationsList({
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<VolunteerApplication | null>(null);
 
   useEffect(() => {
     localStorage.setItem("lastSeenVolunteersAt", new Date().toISOString());
@@ -58,10 +60,9 @@ export function VolunteerApplicationsList({
     },
   });
 
-  async function deleteApplication(id: string, name: string) {
-    if (!window.confirm(`Permanently delete ${name}'s application? This cannot be undone.`)) {
-      return;
-    }
+  async function confirmDeleteApplication() {
+    if (!deleteTarget) return;
+    const id = deleteTarget.id;
     setDeletingId(id);
     try {
       const res = await fetch(`/api/admin/volunteers/${id}`, { method: "DELETE" });
@@ -71,6 +72,7 @@ export function VolunteerApplicationsList({
       }
       setItems((prev) => prev.filter((a) => a.id !== id));
       toast.success("Application deleted");
+      setDeleteTarget(null);
     } finally {
       setDeletingId(null);
     }
@@ -114,7 +116,7 @@ export function VolunteerApplicationsList({
                     variant="outline"
                     className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
                     disabled={deletingId === app.id}
-                    onClick={() => deleteApplication(app.id, app.name)}
+                    onClick={() => setDeleteTarget(app)}
                     aria-label="Delete application"
                   >
                     <Trash2Icon className="size-3.5" />
@@ -190,6 +192,17 @@ export function VolunteerApplicationsList({
           </p>
         ) : null}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete application?"
+        description={`Permanently delete ${deleteTarget?.name ?? "this"}'s volunteer application. This cannot be undone.`}
+        loading={deletingId === deleteTarget?.id}
+        onConfirm={confirmDeleteApplication}
+      />
     </div>
   );
 }

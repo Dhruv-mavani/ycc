@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import type { StaffStatus } from "@/lib/supabase/types";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
+import { ConfirmDialog } from "@/components/site/confirm-dialog";
 
 interface StaffRow {
   user_id: string;
@@ -25,6 +26,7 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
   const [rows, setRows] = useState(staff);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<StaffRow | null>(null);
 
   useAdminRealtime({
     onNewStaff: (row) => {
@@ -55,14 +57,9 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
     }
   }
 
-  async function deleteStaff(userId: string, name: string | null) {
-    if (
-      !window.confirm(
-        `Permanently delete ${name ?? "this person"}'s staff record? This cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+  async function confirmDeleteStaff() {
+    if (!deleteTarget) return;
+    const userId = deleteTarget.user_id;
     setLoadingId(userId);
     try {
       const res = await fetch(`/api/admin/staff/${userId}`, { method: "DELETE" });
@@ -72,6 +69,7 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
       }
       setRows((prev) => prev.filter((r) => r.user_id !== userId));
       toast.success("Staff record deleted");
+      setDeleteTarget(null);
     } finally {
       setLoadingId(null);
     }
@@ -148,7 +146,7 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
                     variant="outline"
                     className="text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
                     disabled={loadingId === s.user_id}
-                    onClick={() => deleteStaff(s.user_id, s.name)}
+                    onClick={() => setDeleteTarget(s)}
                     aria-label="Delete staff record"
                   >
                     <Trash2Icon className="size-3.5" />
@@ -203,7 +201,7 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
                     variant="outline"
                     className="h-7 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
                     disabled={loadingId === s.user_id}
-                    onClick={() => deleteStaff(s.user_id, s.name)}
+                    onClick={() => setDeleteTarget(s)}
                     aria-label="Delete staff record"
                   >
                     <Trash2Icon className="size-3.5" />
@@ -214,6 +212,17 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
           ))}
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete staff record?"
+        description={`Permanently delete ${deleteTarget?.name ?? "this person"}'s staff record (${deleteTarget?.email ?? ""}). This cannot be undone.`}
+        loading={loadingId === deleteTarget?.user_id}
+        onConfirm={confirmDeleteStaff}
+      />
     </div>
   );
 }
