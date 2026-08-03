@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -10,7 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { CalendarDays, Mail, Phone, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CalendarDays, Mail, Phone, Search, Trash2Icon } from "lucide-react";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 
 interface VolunteerApplication {
@@ -39,6 +41,7 @@ export function VolunteerApplicationsList({
 }) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem("lastSeenVolunteersAt", new Date().toISOString());
@@ -54,6 +57,24 @@ export function VolunteerApplicationsList({
       });
     },
   });
+
+  async function deleteApplication(id: string, name: string) {
+    if (!window.confirm(`Permanently delete ${name}'s application? This cannot be undone.`)) {
+      return;
+    }
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/volunteers/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        toast.error("Could not delete application");
+        return;
+      }
+      setItems((prev) => prev.filter((a) => a.id !== id));
+      toast.success("Application deleted");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   const filteredApplications = items.filter((app) => {
     if (!query.trim()) return true;
@@ -86,7 +107,19 @@ export function VolunteerApplicationsList({
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <CardTitle className="text-xl">{app.name}</CardTitle>
-                <Badge variant="secondary">{app.collegeName}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{app.collegeName}</Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                    disabled={deletingId === app.id}
+                    onClick={() => deleteApplication(app.id, app.name)}
+                    aria-label="Delete application"
+                  >
+                    <Trash2Icon className="size-3.5" />
+                  </Button>
+                </div>
               </div>
               <CardDescription className="flex flex-col gap-1 mt-2">
                 <span className="flex items-center gap-1.5 text-foreground/80">
