@@ -1,5 +1,9 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/lib/supabase/types";
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+type RegistrationRow = Database["public"]["Tables"]["registrations"]["Row"];
 
 export interface LookupParticipant {
   id: string;
@@ -30,16 +34,22 @@ export async function searchParticipants(
   collegeId?: string,
 ): Promise<LookupRegistration[]> {
   const admin = createAdminClient();
-  let registrationIds: string[] = [];
 
+  // College-filter path fetches full rows directly — no need to gather
+  // ids first and re-fetch, that's just a redundant round-trip here.
   if (collegeId && collegeId !== "all") {
-    const { data: regs } = await admin
+    const { data: registrations } = await admin
       .from("registrations")
-      .select("id")
+      .select("*")
       .eq("college_id", collegeId)
       .eq("status", "confirmed");
-    registrationIds = (regs ?? []).map((r) => r.id);
-  } else {
+
+    if (!registrations || registrations.length === 0) return [];
+    return buildLookupResults(admin, registrations);
+  }
+
+  let registrationIds: string[] = [];
+  {
     const trimmed = query.trim();
     if (!trimmed) {
       const { data: regs } = await admin
@@ -117,6 +127,14 @@ export async function searchParticipants(
 
   if (!registrations || registrations.length === 0) return [];
 
+  return buildLookupResults(admin, registrations);
+}
+
+/** Shared tail: joins events/colleges/participants/attendance onto an already-fetched set of registrations. */
+async function buildLookupResults(
+  admin: AdminClient,
+  registrations: RegistrationRow[],
+): Promise<LookupRegistration[]> {
   const eventIds = [...new Set(registrations.map((r) => r.event_id))];
   const collegeIds = [...new Set(registrations.map((r) => r.college_id))];
 
@@ -146,7 +164,7 @@ export async function searchParticipants(
 
   return registrations.map((reg) => ({
     registrationId: reg.id,
-    type: reg.type,
+    type: reg.type as "team" | "individual",
     eventName: eventById.get(reg.event_id) ?? "",
     collegeName: collegeById.get(reg.college_id) ?? "",
     teamName: reg.team_name,

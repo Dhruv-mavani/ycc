@@ -33,17 +33,16 @@ export async function getEventOverview(
 ): Promise<EventOverview> {
   const admin = createAdminClient();
 
-  const { data: events } = await admin
-    .from("events")
-    .select("id, name, type")
-    .order("created_at");
-
   let registrationsQuery = admin
     .from("registrations")
     .select("*")
     .eq("status", "confirmed");
   if (eventId) registrationsQuery = registrationsQuery.eq("event_id", eventId);
-  const { data: registrations } = await registrationsQuery;
+
+  const [{ data: events }, { data: registrations }] = await Promise.all([
+    admin.from("events").select("id, name, type").order("created_at"),
+    registrationsQuery,
+  ]);
 
   const registrationIds = (registrations ?? []).map((r) => r.id);
   const collegeIds = [...new Set((registrations ?? []).map((r) => r.college_id))];
