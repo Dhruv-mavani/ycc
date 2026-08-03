@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeftIcon } from "lucide-react";
 import { getCollegeDetail } from "@/lib/admin-stats";
 import { CollegeRegistrationsList } from "@/components/admin/college-registrations-list";
 import { Button } from "@/components/ui/button";
@@ -20,12 +21,13 @@ export default async function CollegeDetailPage({
   return (
     <div className="mx-auto max-w-4xl space-y-4 px-4">
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         nativeButton={false}
         render={
           <Link href={`/admin${eventId ? `?event=${eventId}` : ""}`}>
-            ← Back to overview
+            <ArrowLeftIcon className="size-4" />
+            Back to overview
           </Link>
         }
       />

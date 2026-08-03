@@ -26,7 +26,7 @@ export function BackButton({
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant="outline"
       size="sm"
       className={className}
       onClick={handleClick}
