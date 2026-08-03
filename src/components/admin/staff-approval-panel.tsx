@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { Search, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -22,6 +24,7 @@ interface StaffRow {
 export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
   const [rows, setRows] = useState(staff);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   useAdminRealtime({
     onNewStaff: (row) => {
@@ -52,8 +55,39 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
     }
   }
 
-  const pending = rows.filter((r) => r.status === "pending");
-  const reviewed = rows.filter((r) => r.status !== "pending");
+  async function deleteStaff(userId: string, name: string | null) {
+    if (
+      !window.confirm(
+        `Permanently delete ${name ?? "this person"}'s staff record? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    setLoadingId(userId);
+    try {
+      const res = await fetch(`/api/admin/staff/${userId}`, { method: "DELETE" });
+      if (!res.ok) {
+        toast.error("Could not delete staff record");
+        return;
+      }
+      setRows((prev) => prev.filter((r) => r.user_id !== userId));
+      toast.success("Staff record deleted");
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  const filteredRows = rows.filter((r) => {
+    if (!query.trim()) return true;
+    const lowerQuery = query.toLowerCase();
+    return (
+      (r.name ?? "").toLowerCase().includes(lowerQuery) ||
+      r.email.toLowerCase().includes(lowerQuery)
+    );
+  });
+
+  const pending = filteredRows.filter((r) => r.status === "pending");
+  const reviewed = filteredRows.filter((r) => r.status !== "pending");
 
   if (rows.length === 0) {
     return (
@@ -65,6 +99,22 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
 
   return (
     <div className="space-y-6">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground size-5" />
+        <Input
+          placeholder="Search by name or email..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-10 h-11 bg-card border-border/50 shadow-sm"
+        />
+      </div>
+
+      {pending.length === 0 && reviewed.length === 0 ? (
+        <p className="text-muted-foreground text-sm">
+          No staff match your search.
+        </p>
+      ) : null}
+
       {pending.length > 0 ? (
         <div className="space-y-2">
           <h2 className="text-sm font-semibold">
@@ -92,6 +142,16 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
                     onClick={() => review(s.user_id, "rejected")}
                   >
                     Reject
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                    disabled={loadingId === s.user_id}
+                    onClick={() => deleteStaff(s.user_id, s.name)}
+                    aria-label="Delete staff record"
+                  >
+                    <Trash2Icon className="size-3.5" />
                   </Button>
                 </div>
               </CardContent>
@@ -138,6 +198,16 @@ export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
                       Approve Access
                     </Button>
                   )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                    disabled={loadingId === s.user_id}
+                    onClick={() => deleteStaff(s.user_id, s.name)}
+                    aria-label="Delete staff record"
+                  >
+                    <Trash2Icon className="size-3.5" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
