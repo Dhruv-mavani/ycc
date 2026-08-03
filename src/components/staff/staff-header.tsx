@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ScanLine } from "lucide-react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { BackButton } from "@/components/site/back-button";
 
 export function StaffHeader({ staffName }: { staffName: string }) {
   const initials = staffName
@@ -14,13 +13,8 @@ export function StaffHeader({ staffName }: { staffName: string }) {
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/80 supports-[backdrop-filter]:backdrop-blur-xl sticky top-0 z-10 border-b border-border/50 shadow-sm">
       <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 gap-2">
-        {/* Left: Back + Logo + Title */}
+        {/* Left: Logo + Title */}
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-          <BackButton
-            fallbackHref="/staff"
-            label=""
-            className="shrink-0 h-8 w-8 p-0 rounded-lg border-border/50 hover:bg-primary/5 hover:border-primary/20 transition-all"
-          />
           <Link
             href="/staff"
             className="flex items-center gap-2 min-w-0 group"
