@@ -168,7 +168,7 @@ export function StaffLookupPanel({
               </div>
             )}
             <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 shrink-0 sm:ml-auto w-full sm:w-auto">
-              <Button onClick={() => runSearch(query)} disabled={loading} className="h-12 px-4 sm:px-6 rounded-lg text-base font-semibold w-full sm:w-auto shadow-sm shadow-primary/20 hover:shadow-md transition-all">
+              <Button onClick={() => runSearch(query)} disabled={loading} className="h-12 px-4 sm:px-6 rounded-lg text-base font-semibold w-full sm:w-auto shadow-sm shadow-primary/20 hover:shadow-md transition-shadow">
                 Search
               </Button>
               <Button variant="secondary" onClick={() => setScannerOpen(true)} className="h-12 px-4 sm:px-6 rounded-lg text-base font-semibold border border-border/50 hover:bg-secondary/80 w-full sm:w-auto">

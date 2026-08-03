@@ -118,7 +118,7 @@ export function PaymentStatusPoller({
             <div className="space-y-2">
               {data.participants.map((p, index) => (
                 <div
-                  key={index}
+                  key={p.uniqueId || `${p.name}-${index}`}
                   className="flex items-center justify-between text-sm"
                 >
                   <span>{p.name}</span>

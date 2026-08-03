@@ -34,19 +34,19 @@ export default async function AdminDashboardPage({
 }: {
   searchParams: Promise<{ event?: string }>;
 }) {
-  const { event: eventId } = await searchParams;
-
   // Filter-independent data — fetched once, outside the Suspense boundary
   // below, so the dropdown and nav buttons never unmount/reload when the
   // selected event changes. Only the data that actually depends on eventId
   // suspends.
-  const [{ data: events }, { count: pendingStaffCount }] = await Promise.all([
-    createAdminClient().from("events").select("id, name, type").order("created_at"),
-    createAdminClient()
-      .from("staff")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "pending"),
-  ]);
+  const [{ event: eventId }, { data: events }, { count: pendingStaffCount }] =
+    await Promise.all([
+      searchParams,
+      createAdminClient().from("events").select("id, name, type").order("created_at"),
+      createAdminClient()
+        .from("staff")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+    ]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-6">
@@ -190,7 +190,7 @@ function StatCard({
   bgClass?: string;
 }) {
   return (
-    <Card className="overflow-hidden group hover:shadow-md transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm p-0 gap-0">
+    <Card className="overflow-hidden group hover:shadow-md transition-shadow duration-300 border-border/50 bg-card/50 backdrop-blur-sm p-0 gap-0">
       <CardContent className="p-4 sm:p-5 flex flex-col gap-4">
         <div className="flex justify-between items-start">
           <div className={cn("p-2.5 rounded-xl transition-colors", bgClass, colorClass)}>

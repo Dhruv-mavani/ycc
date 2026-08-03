@@ -15,8 +15,7 @@ export default async function EventDetailPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
-  const supabase = await createClient();
+  const [{ slug }, supabase] = await Promise.all([params, createClient()]);
   const { data: event } = await supabase
     .from("events")
     .select("*")

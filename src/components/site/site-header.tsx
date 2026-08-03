@@ -80,7 +80,7 @@ export function SiteHeader() {
 
   if (isHome) {
     return (
-      <header className="absolute top-0 sm:-top-14 w-full z-50 px-4 pt-4 sm:pt-0 pb-2 flex justify-center transition-all duration-300">
+      <header className="absolute top-0 sm:-top-14 w-full z-50 px-4 pt-4 sm:pt-0 pb-2 flex justify-center">
         <div className="w-full max-w-2xl px-4 sm:px-6 pb-4 flex flex-col items-center justify-center gap-0">
           <div className="flex w-full items-center justify-between sm:justify-center">
             <Link href="/" className="flex shrink-0 items-center justify-center group z-10">
@@ -118,7 +118,7 @@ export function SiteHeader() {
                 className="relative group text-primary hover:text-blue-500 transition-colors py-0.5"
               >
                 {link.label}
-                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-500 transition-[width] duration-300 group-hover:w-full"></span>
               </Link>
             ))}
             <ContactModal />
@@ -155,7 +155,7 @@ export function SiteHeader() {
               )}
             >
               {link.label}
-              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-500 transition-[width] duration-300 group-hover:w-full"></span>
             </Link>
           ))}
           <ContactModal />

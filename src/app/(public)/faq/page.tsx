@@ -60,7 +60,7 @@ export default function FaqPage() {
       </p>
       <Accordion>
         {FAQS.map((faq, i) => (
-          <AccordionItem key={i} value={`item-${i}`}>
+          <AccordionItem key={faq.question} value={`item-${i}`}>
             <AccordionTrigger>{faq.question}</AccordionTrigger>
             <AccordionContent>{faq.answer}</AccordionContent>
           </AccordionItem>

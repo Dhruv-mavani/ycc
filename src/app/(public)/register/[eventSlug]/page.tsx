@@ -9,8 +9,7 @@ export default async function RegisterPage({
 }: {
   params: Promise<{ eventSlug: string }>;
 }) {
-  const { eventSlug } = await params;
-  const supabase = await createClient();
+  const [{ eventSlug }, supabase] = await Promise.all([params, createClient()]);
   const [{ data: event }, { data: colleges }] = await Promise.all([
     supabase
       .from("events")

@@ -108,7 +108,7 @@ export default async function HomePage() {
             receipt.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
-            <Button size="lg" className="rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 hover:scale-105 transition-all duration-300 font-bold text-lg px-10 py-7" nativeButton={false} render={<Link href="#events">Register Now</Link>} />
+            <Button size="lg" className="rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 hover:scale-105 transition duration-300 font-bold text-lg px-10 py-7" nativeButton={false} render={<Link href="#events">Register Now</Link>} />
             <Button size="lg" variant="outline" className="rounded-full font-bold text-lg px-10 py-7" nativeButton={false} render={<Link href="/receipt">Download Your Receipt</Link>} />
           </div>
         </div>
@@ -183,7 +183,7 @@ export default async function HomePage() {
         <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 sm:p-8 shadow-sm">
           <Accordion className="w-full">
             {FAQS.map((faq, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border-b-border/40">
+              <AccordionItem key={faq.question} value={`item-${i}`} className="border-b-border/40">
                 <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors text-base sm:text-lg">
                   {faq.question}
                 </AccordionTrigger>

@@ -27,7 +27,7 @@ export function AdminHeader({ adminName }: { adminName: string }) {
                 alt="YCC"
                 width={32}
                 height={32}
-                className="rounded-lg ring-1 ring-border/50 group-hover:ring-primary/30 transition-all"
+                className="rounded-lg ring-1 ring-border/50 group-hover:ring-primary/30 transition-shadow"
               />
               <div className="absolute -bottom-0.5 -right-0.5 bg-emerald-500 rounded-full p-[3px] ring-2 ring-background">
                 <Shield className="size-2 text-white" />
