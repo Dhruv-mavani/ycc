@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Select,
@@ -16,22 +17,33 @@ export function EventFilter({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const current = searchParams.get("event") ?? "all";
+  const paramValue = searchParams.get("event") ?? "all";
 
-  function handleChange(value: string | null) {
+  // Local state so the dropdown reflects the pick instantly — the
+  // underlying data section suspends and shows a loader separately, but
+  // the control itself shouldn't wait on that round-trip. Synced from the
+  // URL during render (not an effect) when it changes via another path,
+  // e.g. browser back/forward.
+  const [value, setValue] = useState(paramValue);
+  const [prevParamValue, setPrevParamValue] = useState(paramValue);
+  if (paramValue !== prevParamValue) {
+    setPrevParamValue(paramValue);
+    setValue(paramValue);
+  }
+
+  function handleChange(next: string | null) {
+    setValue(next ?? "all");
     const params = new URLSearchParams(searchParams);
-    if (!value || value === "all") params.delete("event");
-    else params.set("event", value);
+    if (!next || next === "all") params.delete("event");
+    else params.set("event", next);
     router.push(`/admin?${params.toString()}`);
   }
 
   return (
-    <Select value={current} onValueChange={handleChange}>
+    <Select value={value} onValueChange={handleChange}>
       <SelectTrigger className="w-full sm:w-[220px]">
         <SelectValue placeholder="All events">
-          {(value: string | null) =>
-            events.find((e) => e.id === value)?.name ?? "All events"
-          }
+          {(v: string | null) => events.find((e) => e.id === v)?.name ?? "All events"}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

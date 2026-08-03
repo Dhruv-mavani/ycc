@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Users, Banknote, CalendarCheck, UserCheck, UserX, type LucideIcon } from "lucide-react";
 import { getEventOverview } from "@/lib/admin-stats";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { EventFilter } from "@/components/admin/event-filter";
 import { CollegeRevenueChart } from "@/components/admin/college-revenue-chart";
 import { AdminNavButtons } from "@/components/admin/admin-nav-buttons";
+import { PageSpinner } from "@/components/site/page-spinner";
 import {
   Card,
   CardContent,
@@ -33,8 +35,13 @@ export default async function AdminDashboardPage({
   searchParams: Promise<{ event?: string }>;
 }) {
   const { event: eventId } = await searchParams;
-  const [overview, { count: pendingStaffCount }] = await Promise.all([
-    getEventOverview(eventId || undefined),
+
+  // Filter-independent data — fetched once, outside the Suspense boundary
+  // below, so the dropdown and nav buttons never unmount/reload when the
+  // selected event changes. Only the data that actually depends on eventId
+  // suspends.
+  const [{ data: events }, { count: pendingStaffCount }] = await Promise.all([
+    createAdminClient().from("events").select("id, name, type").order("created_at"),
     createAdminClient()
       .from("staff")
       .select("*", { count: "exact", head: true })
@@ -44,23 +51,35 @@ export default async function AdminDashboardPage({
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
-        <EventFilter events={overview.events} />
+        <EventFilter events={events ?? []} />
         <AdminNavButtons initialPendingStaffCount={pendingStaffCount ?? 0} />
       </div>
 
+      <Suspense key={eventId ?? "all"} fallback={<PageSpinner className="min-h-[50vh]" />}>
+        <DashboardData eventId={eventId} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function DashboardData({ eventId }: { eventId?: string }) {
+  const overview = await getEventOverview(eventId || undefined);
+
+  return (
+    <div className="space-y-8">
       <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard 
-          label="Registrations" 
-          value={overview.overall.registrations} 
-          icon={CalendarCheck} 
-          colorClass="text-blue-500" 
+        <StatCard
+          label="Registrations"
+          value={overview.overall.registrations}
+          icon={CalendarCheck}
+          colorClass="text-blue-500"
           bgClass="bg-blue-500/10"
         />
-        <StatCard 
-          label="Participants" 
-          value={overview.overall.participants} 
-          icon={Users} 
-          colorClass="text-indigo-500" 
+        <StatCard
+          label="Participants"
+          value={overview.overall.participants}
+          icon={Users}
+          colorClass="text-indigo-500"
           bgClass="bg-indigo-500/10"
         />
         <StatCard
@@ -70,18 +89,18 @@ export default async function AdminDashboardPage({
           colorClass="text-emerald-500"
           bgClass="bg-emerald-500/10"
         />
-        <StatCard 
-          label="Present" 
-          value={overview.overall.present} 
-          icon={UserCheck} 
-          colorClass="text-amber-500" 
+        <StatCard
+          label="Present"
+          value={overview.overall.present}
+          icon={UserCheck}
+          colorClass="text-amber-500"
           bgClass="bg-amber-500/10"
         />
-        <StatCard 
-          label="Absent" 
-          value={overview.overall.absent} 
-          icon={UserX} 
-          colorClass="text-rose-500" 
+        <StatCard
+          label="Absent"
+          value={overview.overall.absent}
+          icon={UserX}
+          colorClass="text-rose-500"
           bgClass="bg-rose-500/10"
         />
       </div>
