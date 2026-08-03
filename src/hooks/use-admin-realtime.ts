@@ -43,22 +43,41 @@ export function useAdminRealtime({
 }) {
   useEffect(() => {
     const supabase = createClient();
-    const channel = supabase
-      .channel(`admin-notifications-${Math.random().toString(36).slice(2)}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "staff", filter: "status=eq.pending" },
-        (payload) => onNewStaff?.(payload.new as RealtimeStaffRow),
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "volunteer_applications" },
-        (payload) => onNewVolunteer?.(payload.new as RealtimeVolunteerRow),
-      )
-      .subscribe();
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    // Postgres Changes are RLS-gated: the Realtime connection needs the
+    // current session's access token explicitly synced before the channel
+    // joins, otherwise it authorizes as anon (which has no SELECT policy
+    // on these tables) and silently receives nothing — no error, no event.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      if (session) {
+        supabase.realtime.setAuth(session.access_token);
+      }
+
+      channel = supabase
+        .channel(`admin-notifications-${Math.random().toString(36).slice(2)}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "staff", filter: "status=eq.pending" },
+          (payload) => onNewStaff?.(payload.new as RealtimeStaffRow),
+        )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "volunteer_applications" },
+          (payload) => onNewVolunteer?.(payload.new as RealtimeVolunteerRow),
+        )
+        .subscribe((status, err) => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            console.error("[admin-realtime] subscription failed:", status, err);
+          }
+        });
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
