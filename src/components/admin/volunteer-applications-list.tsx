@@ -12,9 +12,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Mail, Phone, Search, Trash2Icon } from "lucide-react";
+import { CalendarDays, Mail, Phone, PencilIcon, Search, Trash2Icon } from "lucide-react";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 import { ConfirmDialog } from "@/components/site/confirm-dialog";
+import { EditVolunteerDialog } from "@/components/admin/edit-volunteer-dialog";
 
 interface VolunteerApplication {
   id: string;
@@ -44,6 +45,7 @@ export function VolunteerApplicationsList({
   const [items, setItems] = useState(applications);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<VolunteerApplication | null>(null);
+  const [editTarget, setEditTarget] = useState<VolunteerApplication | null>(null);
 
   useEffect(() => {
     localStorage.setItem("lastSeenVolunteersAt", new Date().toISOString());
@@ -111,6 +113,15 @@ export function VolunteerApplicationsList({
                 <CardTitle className="text-xl">{app.name}</CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{app.collegeName}</Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 w-7 p-0"
+                    onClick={() => setEditTarget(app)}
+                    aria-label="Edit application"
+                  >
+                    <PencilIcon className="size-3.5" />
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -202,6 +213,18 @@ export function VolunteerApplicationsList({
         description={`Permanently delete ${deleteTarget?.name ?? "this"}'s volunteer application. This cannot be undone.`}
         loading={deletingId === deleteTarget?.id}
         onConfirm={confirmDeleteApplication}
+      />
+
+      <EditVolunteerDialog
+        application={editTarget}
+        colleges={colleges}
+        open={editTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditTarget(null);
+        }}
+        onSaved={(updated) => {
+          setItems((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+        }}
       />
     </div>
   );
