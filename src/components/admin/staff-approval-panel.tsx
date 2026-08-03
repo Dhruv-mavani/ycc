@@ -9,6 +9,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import type { StaffStatus } from "@/lib/supabase/types";
+import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 
 interface StaffRow {
   user_id: string;
@@ -21,6 +22,14 @@ interface StaffRow {
 export function StaffApprovalPanel({ staff }: { staff: StaffRow[] }) {
   const [rows, setRows] = useState(staff);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  useAdminRealtime({
+    onNewStaff: (row) => {
+      setRows((prev) =>
+        prev.some((r) => r.user_id === row.user_id) ? prev : [row, ...prev],
+      );
+    },
+  });
 
   async function review(userId: string, status: "approved" | "rejected") {
     setLoadingId(userId);

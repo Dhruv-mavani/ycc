@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { CalendarDays, Mail, Phone, Search } from "lucide-react";
+import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 
 interface VolunteerApplication {
   id: string;
@@ -31,12 +32,30 @@ interface VolunteerApplication {
 
 export function VolunteerApplicationsList({
   applications,
+  colleges,
 }: {
   applications: VolunteerApplication[];
+  colleges: { id: string; name: string }[];
 }) {
   const [query, setQuery] = useState("");
+  const [items, setItems] = useState(applications);
 
-  const filteredApplications = applications.filter((app) => {
+  useEffect(() => {
+    localStorage.setItem("lastSeenVolunteersAt", new Date().toISOString());
+  }, []);
+
+  useAdminRealtime({
+    onNewVolunteer: (row) => {
+      setItems((prev) => {
+        if (prev.some((a) => a.id === row.id)) return prev;
+        const collegeName =
+          colleges.find((c) => c.id === row.college_id)?.name ?? "Unknown college";
+        return [{ ...row, collegeName }, ...prev];
+      });
+    },
+  });
+
+  const filteredApplications = items.filter((app) => {
     if (!query.trim()) return true;
 
     const lowerQuery = query.toLowerCase();
@@ -49,7 +68,7 @@ export function VolunteerApplicationsList({
 
   return (
     <div className="space-y-4">
-      {applications.length > 0 && (
+      {items.length > 0 && (
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground size-5" />
           <Input
@@ -124,7 +143,7 @@ export function VolunteerApplicationsList({
           </Card>
         ))}
 
-        {filteredApplications.length === 0 && applications.length > 0 ? (
+        {filteredApplications.length === 0 && items.length > 0 ? (
           <div className="text-center py-8 bg-card rounded-lg border border-border/50 border-dashed">
             <p className="text-muted-foreground text-sm">
               No applications match your search.
@@ -132,7 +151,7 @@ export function VolunteerApplicationsList({
           </div>
         ) : null}
 
-        {applications.length === 0 ? (
+        {items.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             No volunteer applications yet.
           </p>

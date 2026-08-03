@@ -29,7 +29,10 @@ export default async function AdminVolunteersPage() {
           the public form.
         </p>
       </div>
-      <VolunteerApplicationsList applications={applicationsWithCollege} />
+      <VolunteerApplicationsList
+        applications={applicationsWithCollege}
+        colleges={colleges ?? []}
+      />
     </div>
   );
 }
