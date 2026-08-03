@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const phoneSchema = z
+export const phoneSchema = z
   .string()
   .trim()
   .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number");

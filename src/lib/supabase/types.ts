@@ -1,4 +1,4 @@
-// Hand-written to match supabase/migrations/0001_init.sql.
+// Hand-written to match supabase/migrations/0001_init.sql through 0005_volunteer_applications.sql.
 // Once the project is linked to a live Supabase instance, regenerate with:
 //   npx supabase gen types typescript --project-id <id> > src/lib/supabase/types.ts
 
@@ -12,6 +12,8 @@ export type RegistrationStatus =
 export type PaymentStatus = "created" | "paid" | "failed";
 export type AttendanceStatus = "present" | "absent";
 export type StaffStatus = "pending" | "approved" | "rejected";
+export type AgreementYesNo = "Yes" | "No";
+export type AgreementYesAbsolutelyNo = "Yes, Absolutely" | "No";
 
 export interface Database {
   public: {
@@ -226,6 +228,42 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["admins"]["Insert"]>;
+        Relationships: [];
+      };
+      volunteer_applications: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          college_id: string;
+          stream: string;
+          semester: string;
+          mobile: string;
+          instagram_handle: string;
+          referred_by: string | null;
+          agreement_q1: AgreementYesNo;
+          agreement_q2: AgreementYesNo;
+          agreement_q3: AgreementYesAbsolutelyNo;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          email: string;
+          college_id: string;
+          stream: string;
+          semester: string;
+          mobile: string;
+          instagram_handle: string;
+          referred_by?: string | null;
+          agreement_q1: AgreementYesNo;
+          agreement_q2: AgreementYesNo;
+          agreement_q3: AgreementYesAbsolutelyNo;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["volunteer_applications"]["Insert"]
+        >;
         Relationships: [];
       };
     };

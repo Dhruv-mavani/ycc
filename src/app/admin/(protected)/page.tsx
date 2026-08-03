@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, Banknote, CalendarCheck, UserCheck, UserX, Download, ShieldAlert, type LucideIcon } from "lucide-react";
+import { Users, Banknote, CalendarCheck, UserCheck, UserX, Download, ShieldAlert, HeartHandshake, type LucideIcon } from "lucide-react";
 import { getEventOverview } from "@/lib/admin-stats";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { EventFilter } from "@/components/admin/event-filter";
@@ -69,6 +69,17 @@ export default async function AdminDashboardPage({
                 <Download className="size-4" />
                 Export CSV
               </a>
+            }
+          />
+          <Button
+            variant="outline"
+            className="hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 transition-colors"
+            nativeButton={false}
+            render={
+              <Link href="/admin/volunteers">
+                <HeartHandshake className="size-4" />
+                Volunteers
+              </Link>
             }
           />
         </div>

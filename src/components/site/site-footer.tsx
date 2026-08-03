@@ -117,6 +117,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-5">
           <h4 className="text-blue-500 font-bold uppercase tracking-[0.15em] text-xs mb-1">Company</h4>
           <Link href="/about" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">About YCC</Link>
+          <Link href="/volunteer" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Volunteering</Link>
           <Link href="/staff/login" className="text-slate-300 hover:text-white text-sm transition-colors w-fit flex items-center gap-2">
             Staff Login <span className="bg-slate-800 text-[9px] px-1.5 py-0.5 rounded tracking-wider text-slate-300">SECURE</span>
           </Link>

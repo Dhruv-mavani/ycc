@@ -12,6 +12,7 @@ import { ContactModal } from "./contact-modal";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/#events", label: "Events" },
+  { href: "/volunteer", label: "Volunteering" },
   { href: "/about", label: "About Us" },
 ];
 
@@ -109,7 +110,7 @@ export function SiteHeader() {
             </button>
           </div>
 
-          <nav className="relative z-20 hidden sm:flex items-center flex-wrap justify-center gap-16 sm:gap-24 text-base font-medium -mt-14">
+          <nav className="relative z-20 hidden sm:flex items-center flex-wrap justify-center gap-6 sm:gap-8 md:gap-12 text-base font-medium -mt-14">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
