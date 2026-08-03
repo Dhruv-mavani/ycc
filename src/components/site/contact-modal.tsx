@@ -61,7 +61,7 @@ export function ContactModal({ trigger }: { trigger?: ReactElement }) {
       <DialogTrigger
         render={
           trigger || (
-            <button className="relative group text-primary hover:text-blue-500 transition-colors font-medium py-0.5">
+            <button type="button" className="relative group text-primary hover:text-blue-500 transition-colors font-medium py-0.5">
               Contact Us
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-500 transition-[width] duration-300 group-hover:w-full"></span>
             </button>
