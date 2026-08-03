@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Users, Banknote, CalendarCheck, UserCheck, UserX, Download, ShieldAlert, HeartHandshake, type LucideIcon } from "lucide-react";
+import { Users, Banknote, CalendarCheck, UserCheck, UserX, type LucideIcon } from "lucide-react";
 import { getEventOverview } from "@/lib/admin-stats";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { EventFilter } from "@/components/admin/event-filter";
 import { CollegeRevenueChart } from "@/components/admin/college-revenue-chart";
+import { AdminNavButtons } from "@/components/admin/admin-nav-buttons";
 import {
   Card,
   CardContent,
@@ -11,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
@@ -45,44 +45,7 @@ export default async function AdminDashboardPage({
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
         <EventFilter events={overview.events} />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            variant="outline"
-            className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
-            nativeButton={false}
-            render={
-              <Link href="/admin/staff">
-                <ShieldAlert className="size-4" />
-                Staff access
-                {pendingStaffCount ? (
-                  <Badge variant="destructive" className="ml-1 px-1.5 py-0 min-w-[20px] text-center">{pendingStaffCount}</Badge>
-                ) : null}
-              </Link>
-            }
-          />
-          <Button
-            variant="outline"
-            className="hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-colors"
-            nativeButton={false}
-            render={
-              <a href="/api/admin/export/payments">
-                <Download className="size-4" />
-                Export CSV
-              </a>
-            }
-          />
-          <Button
-            variant="outline"
-            className="hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 transition-colors"
-            nativeButton={false}
-            render={
-              <Link href="/admin/volunteers">
-                <HeartHandshake className="size-4" />
-                Volunteers
-              </Link>
-            }
-          />
-        </div>
+        <AdminNavButtons initialPendingStaffCount={pendingStaffCount ?? 0} />
       </div>
 
       <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
