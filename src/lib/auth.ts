@@ -98,10 +98,29 @@ export async function getAdminSession() {
   return { user, admin };
 }
 
-export async function requireAdmin() {
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
-  return session;
+/**
+ * Used by the /admin protected layout. Unlike getAdminSession (which just
+ * returns null for any non-admin), this distinguishes "never signed in" from
+ * "signed in with a Google account that isn't in the admins table" so the
+ * latter can show an explicit "not authorized" warning instead of silently
+ * bouncing back to the login page. Admins are granted manually (no
+ * self-service request flow like staff has), so there's no "pending" state.
+ */
+export async function getAdminAccessStatus() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { state: "unauthenticated" as const };
+
+  const { data: admin } = await supabase
+    .from("admins")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!admin) return { state: "unauthorized" as const, user };
+  return { state: "authorized" as const, user, admin };
 }
 
 /** For API routes: no redirect, just tells you whether the caller may scan/verify. */

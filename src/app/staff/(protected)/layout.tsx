@@ -1,14 +1,7 @@
 import { redirect } from "next/navigation";
 import { getStaffAccessStatus } from "@/lib/auth";
 import { StaffHeader } from "@/components/staff/staff-header";
-import { SignOutButton } from "@/components/auth/sign-out-button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { StatusScreen } from "@/components/site/status-screen";
 
 export default async function StaffProtectedLayout({
   children,
@@ -45,35 +38,6 @@ export default async function StaffProtectedLayout({
     <div className="flex min-h-screen flex-col">
       <StaffHeader staffName={access.staffName ?? access.user.email ?? ""} />
       <main className="flex-1 px-4 py-4">{children}</main>
-    </div>
-  );
-}
-
-function StatusScreen({
-  title,
-  description,
-  email,
-}: {
-  title: string;
-  description: string;
-  email?: string;
-}) {
-  return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {email ? (
-            <p className="text-muted-foreground text-sm">
-              Signed in as <span className="font-medium">{email}</span>
-            </p>
-          ) : null}
-          <SignOutButton />
-        </CardContent>
-      </Card>
     </div>
   );
 }
