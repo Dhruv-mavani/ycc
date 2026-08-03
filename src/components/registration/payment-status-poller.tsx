@@ -33,6 +33,7 @@ export function PaymentStatusPoller({
 
   useEffect(() => {
     let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let attempts = 0;
 
     async function poll() {
@@ -45,7 +46,7 @@ export function PaymentStatusPoller({
 
         attempts += 1;
         if (json.status === "pending_payment" && attempts < 20) {
-          setTimeout(poll, 3000);
+          timeoutId = setTimeout(poll, 3000);
         }
       } catch {
         if (!cancelled) setError(true);
@@ -55,6 +56,7 @@ export function PaymentStatusPoller({
     poll();
     return () => {
       cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [registrationId]);
 
