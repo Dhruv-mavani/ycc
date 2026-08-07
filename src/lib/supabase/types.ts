@@ -14,6 +14,7 @@ export type AttendanceStatus = "present" | "absent";
 export type StaffStatus = "pending" | "approved" | "rejected";
 export type PartnerType = "campus" | "class" | "classmate";
 export type PartnerApplicationStatus = "pending" | "approved" | "rejected";
+export type PartnerTeam = "A" | "B";
 export type AgreementYesNo = "Yes" | "No";
 export type AgreementYesAbsolutelyNo = "Yes, Absolutely" | "No";
 
@@ -249,6 +250,7 @@ export interface Database {
           reviewed_by: string | null;
           referred_by: string | null;
           referred_by_id: string | null;
+          team: PartnerTeam | null;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
@@ -270,6 +272,7 @@ export interface Database {
           reviewed_by?: string | null;
           referred_by?: string | null;
           referred_by_id?: string | null;
+          team?: PartnerTeam | null;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
