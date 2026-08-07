@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { PartnerProgramApplicationsList } from "@/components/admin/partner-program-applications-list";
+import { PartnerProgramAdminTabs } from "@/components/admin/partner-program-admin-tabs";
 import { Button } from "@/components/ui/button";
 
 export default async function AdminPartnerProgramPage() {
@@ -36,14 +36,7 @@ export default async function AdminPartnerProgramPage() {
           </Link>
         }
       />
-      <div>
-        <h1 className="text-xl font-bold">Partner program applications</h1>
-        <p className="text-muted-foreground text-sm">
-          Campus Partner / Class Partner / Classmate Partner applications
-          submitted through the public form.
-        </p>
-      </div>
-      <PartnerProgramApplicationsList
+      <PartnerProgramAdminTabs
         applications={applicationsWithCollege}
         colleges={colleges ?? []}
       />
