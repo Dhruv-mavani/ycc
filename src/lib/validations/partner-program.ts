@@ -47,6 +47,20 @@ export const partnerLoginSchema = z.object({
   password: z.string().min(1, "Enter your password"),
 });
 
+export const partnerForgotPasswordSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address"),
+});
+
+export const partnerResetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters").max(72),
+    confirmPassword: z.string().min(1, "Please re-enter your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
 export type PartnerProgramApplicationInput = z.infer<
   typeof partnerProgramApplicationSchema
 >;
@@ -56,3 +70,7 @@ export type PartnerProgramApplicationUpdateInput = z.infer<
 >;
 
 export type PartnerLoginInput = z.infer<typeof partnerLoginSchema>;
+
+export type PartnerForgotPasswordInput = z.infer<typeof partnerForgotPasswordSchema>;
+
+export type PartnerResetPasswordInput = z.infer<typeof partnerResetPasswordSchema>;

@@ -1,15 +1,6 @@
 import { redirect } from "next/navigation";
 import { getPartnerAccessStatus } from "@/lib/auth";
 import { StatusScreen } from "@/components/site/status-screen";
-import { PartnerReviewPanel } from "@/components/registration/partner-review-panel";
-import { SignOutButton } from "@/components/auth/sign-out-button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import type { PartnerType } from "@/lib/supabase/types";
 
 const REVIEWER_TEXT: Record<PartnerType, string> = {
@@ -18,9 +9,10 @@ const REVIEWER_TEXT: Record<PartnerType, string> = {
   classmate: "the Class Partner who referred you",
 };
 
-const CHILD_LABEL: Partial<Record<PartnerType, string>> = {
-  campus: "Class Partner",
-  class: "Classmate Partner",
+const DASHBOARD_PATH: Record<PartnerType, string> = {
+  campus: "/campus-partner",
+  class: "/class-partner",
+  classmate: "/classmate-partner",
 };
 
 export default async function PartnerProgramStatusPage() {
@@ -60,36 +52,5 @@ export default async function PartnerProgramStatusPage() {
     );
   }
 
-  const childLabel = CHILD_LABEL[access.application.partnerType];
-
-  return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-10">
-      <Card>
-        <CardHeader>
-          <CardTitle>You&apos;re approved!</CardTitle>
-          <CardDescription>
-            Welcome, {access.application.name} — you&apos;re an approved YCC{" "}
-            {access.application.partnerType === "campus"
-              ? "Campus Partner"
-              : access.application.partnerType === "class"
-                ? "Class Partner"
-                : "Classmate Partner"}
-            .
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SignOutButton />
-        </CardContent>
-      </Card>
-
-      {childLabel ? (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">
-            {childLabel} applications referred by you
-          </h2>
-          <PartnerReviewPanel childLabel={childLabel} />
-        </div>
-      ) : null}
-    </div>
-  );
+  redirect(DASHBOARD_PATH[access.application.partnerType]);
 }

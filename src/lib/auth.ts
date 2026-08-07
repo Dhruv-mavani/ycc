@@ -125,6 +125,28 @@ export async function getPartnerAccessStatus(): Promise<
   };
 }
 
+/**
+ * Used by the dedicated per-type dashboard pages (/campus-partner,
+ * /class-partner, /classmate-partner). Redirects anyone who isn't an
+ * approved partner of exactly this type back to the shared status page
+ * (or the apply/login page if not signed in at all).
+ */
+export async function requirePartnerOfType(expectedType: PartnerType) {
+  const access = await getPartnerAccessStatus();
+
+  if (access.state === "unauthenticated") {
+    redirect("/partner-program");
+  }
+  if (access.state === "no_application") {
+    redirect("/partner-program/status");
+  }
+  if (access.state !== "approved" || access.application.partnerType !== expectedType) {
+    redirect("/partner-program/status");
+  }
+
+  return access;
+}
+
 export async function getAdminSession() {
   const supabase = await createClient();
   const {
