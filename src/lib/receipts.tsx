@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   orgSubtitle: { fontSize: 8, color: "#555" },
   metaBlock: { alignItems: "flex-end" },
   metaLabel: { fontSize: 8, color: "#555" },
-  metaValue: { fontSize: 12, fontWeight: 700, color: "#1d4ed8" },
+  metaValue: { fontSize: 12, fontWeight: 700, color: "#000" },
   metaValueSmall: { fontSize: 9, fontWeight: 700, color: "#333" },
   infoRow: {
     flexDirection: "row",
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   qr: { width: 140, height: 140, marginRight: 16 },
   participantInfo: { flexDirection: "column" },
   participantName: { fontSize: 13, fontWeight: 700 },
-  uniqueId: { fontSize: 16, fontWeight: 700, color: "#000", marginTop: 4 },
+  uniqueId: { fontSize: 16, fontWeight: 700, color: "#1d4ed8", marginTop: 4 },
   footer: {
     marginTop: 20,
     fontSize: 8,
