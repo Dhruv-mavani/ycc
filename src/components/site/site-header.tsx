@@ -12,7 +12,7 @@ import { ContactModal } from "./contact-modal";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/#events", label: "Events" },
-  { href: "/volunteer", label: "Volunteering" },
+  { href: "/partner-program", label: "Partner Program" },
   { href: "/about", label: "About Us" },
 ];
 

@@ -23,11 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  volunteerApplicationSchema,
-  type VolunteerApplicationInput,
-} from "@/lib/validations/volunteer";
+  partnerProgramApplicationSchema,
+  type PartnerProgramApplicationInput,
+} from "@/lib/validations/partner-program";
 
-interface VolunteerApplication {
+interface PartnerProgramApplication {
   id: string;
   name: string;
   email: string;
@@ -44,18 +44,18 @@ interface VolunteerApplication {
   created_at: string;
 }
 
-export function EditVolunteerDialog({
+export function EditPartnerProgramDialog({
   application,
   colleges,
   open,
   onOpenChange,
   onSaved,
 }: {
-  application: VolunteerApplication | null;
+  application: PartnerProgramApplication | null;
   colleges: { id: string; name: string }[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaved: (updated: VolunteerApplication) => void;
+  onSaved: (updated: PartnerProgramApplication) => void;
 }) {
   const {
     register,
@@ -63,8 +63,8 @@ export function EditVolunteerDialog({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<VolunteerApplicationInput>({
-    resolver: zodResolver(volunteerApplicationSchema),
+  } = useForm<PartnerProgramApplicationInput>({
+    resolver: zodResolver(partnerProgramApplicationSchema),
   });
 
   useEffect(() => {
@@ -78,16 +78,16 @@ export function EditVolunteerDialog({
       mobile: application.mobile,
       instagramHandle: application.instagram_handle,
       referredBy: application.referred_by ?? "",
-      agreementQ1: application.agreement_q1 as VolunteerApplicationInput["agreementQ1"],
-      agreementQ2: application.agreement_q2 as VolunteerApplicationInput["agreementQ2"],
-      agreementQ3: application.agreement_q3 as VolunteerApplicationInput["agreementQ3"],
+      agreementQ1: application.agreement_q1 as PartnerProgramApplicationInput["agreementQ1"],
+      agreementQ2: application.agreement_q2 as PartnerProgramApplicationInput["agreementQ2"],
+      agreementQ3: application.agreement_q3 as PartnerProgramApplicationInput["agreementQ3"],
     });
   }, [application, reset]);
 
-  async function onSubmit(values: VolunteerApplicationInput) {
+  async function onSubmit(values: PartnerProgramApplicationInput) {
     if (!application) return;
     try {
-      const res = await fetch(`/api/admin/volunteers/${application.id}`, {
+      const res = await fetch(`/api/admin/partner-program/${application.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
@@ -115,7 +115,7 @@ export function EditVolunteerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit volunteer application</DialogTitle>
+          <DialogTitle>Edit partner program application</DialogTitle>
           <DialogDescription>Update this applicant&apos;s details.</DialogDescription>
         </DialogHeader>
 

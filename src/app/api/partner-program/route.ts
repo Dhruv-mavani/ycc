@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { volunteerApplicationSchema } from "@/lib/validations/volunteer";
+import { partnerProgramApplicationSchema } from "@/lib/validations/partner-program";
 import { isRateLimited } from "@/lib/rate-limit";
 
 function getClientIp(request: Request) {
@@ -13,7 +13,7 @@ function getClientIp(request: Request) {
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  if (isRateLimited(`volunteer-apply:${ip}`, { max: 5, windowMs: 60_000 })) {
+  if (isRateLimited(`partner-program-apply:${ip}`, { max: 5, windowMs: 60_000 })) {
     return NextResponse.json(
       { error: "Too many attempts — please try again in a minute" },
       { status: 429 },
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = volunteerApplicationSchema.safeParse(body);
+  const parsed = partnerProgramApplicationSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   }
 
   const { data: application, error } = await admin
-    .from("volunteer_applications")
+    .from("partner_program_applications")
     .insert({
       name: input.name,
       email: input.email,

@@ -120,7 +120,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-5">
           <h4 className="text-blue-500 font-bold uppercase tracking-[0.15em] text-xs mb-1">Company</h4>
           <Link href="/about" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">About YCC</Link>
-          <Link href="/volunteer" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Volunteering</Link>
+          <Link href="/partner-program" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Partner Program</Link>
           <Link href="/staff/login" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Staff Login</Link>
           <Link href="/admin/login" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Admin Login</Link>
         </div>

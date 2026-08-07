@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { VolunteerApplicationsList } from "@/components/admin/volunteer-applications-list";
+import { PartnerProgramApplicationsList } from "@/components/admin/partner-program-applications-list";
 import { Button } from "@/components/ui/button";
 
-export default async function AdminVolunteersPage() {
+export default async function AdminPartnerProgramPage() {
   const admin = createAdminClient();
   const [{ data: applications }, { data: colleges }] = await Promise.all([
     admin
-      .from("volunteer_applications")
+      .from("partner_program_applications")
       .select("*")
       .order("created_at", { ascending: false }),
     admin.from("colleges").select("id, name"),
@@ -37,13 +37,13 @@ export default async function AdminVolunteersPage() {
         }
       />
       <div>
-        <h1 className="text-xl font-bold">Volunteer applications</h1>
+        <h1 className="text-xl font-bold">Partner program applications</h1>
         <p className="text-muted-foreground text-sm">
-          Campus Partner / volunteer program applications submitted through
-          the public form.
+          Campus Partner / Class Partner / Classmate Partner applications
+          submitted through the public form.
         </p>
       </div>
-      <VolunteerApplicationsList
+      <PartnerProgramApplicationsList
         applications={applicationsWithCollege}
         colleges={colleges ?? []}
       />

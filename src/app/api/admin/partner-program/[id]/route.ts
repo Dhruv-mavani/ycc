@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { volunteerApplicationSchema } from "@/lib/validations/volunteer";
+import { partnerProgramApplicationSchema } from "@/lib/validations/partner-program";
 
 export async function PATCH(
   request: Request,
@@ -16,7 +16,7 @@ export async function PATCH(
     params,
     request.json().catch(() => null),
   ]);
-  const parsed = volunteerApplicationSchema.safeParse(body);
+  const parsed = partnerProgramApplicationSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -39,7 +39,7 @@ export async function PATCH(
   }
 
   const { data: application, error } = await admin
-    .from("volunteer_applications")
+    .from("partner_program_applications")
     .update({
       name: input.name,
       email: input.email,
@@ -78,11 +78,11 @@ export async function DELETE(
 
   const { id } = await params;
   const admin = createAdminClient();
-  const { error } = await admin.from("volunteer_applications").delete().eq("id", id);
+  const { error } = await admin.from("partner_program_applications").delete().eq("id", id);
 
   if (error) {
     return NextResponse.json(
-      { error: "Could not delete volunteer application" },
+      { error: "Could not delete partner program application" },
       { status: 500 },
     );
   }

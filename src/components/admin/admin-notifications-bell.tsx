@@ -59,8 +59,8 @@ export function AdminNotificationsBell() {
       toast.info(`New staff request: ${row.name ?? row.email}`);
       playSound();
     },
-    onNewVolunteer: (row) => {
-      toast.info(`New volunteer application: ${row.name}`);
+    onNewPartnerApplication: (row) => {
+      toast.info(`New partner program application: ${row.name}`);
       playSound();
     },
   });

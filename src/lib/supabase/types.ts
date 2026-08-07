@@ -1,4 +1,4 @@
-// Hand-written to match supabase/migrations/0001_init.sql through 0005_volunteer_applications.sql.
+// Hand-written to match supabase/migrations/0001_init.sql through 0007_rename_volunteer_to_partner_program.sql.
 // Once the project is linked to a live Supabase instance, regenerate with:
 //   npx supabase gen types typescript --project-id <id> > src/lib/supabase/types.ts
 
@@ -230,7 +230,7 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["admins"]["Insert"]>;
         Relationships: [];
       };
-      volunteer_applications: {
+      partner_program_applications: {
         Row: {
           id: string;
           name: string;
@@ -262,7 +262,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<
-          Database["public"]["Tables"]["volunteer_applications"]["Insert"]
+          Database["public"]["Tables"]["partner_program_applications"]["Insert"]
         >;
         Relationships: [];
       };

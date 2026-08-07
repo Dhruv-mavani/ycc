@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { phoneSchema } from "@/lib/validations/registration";
 
-export const volunteerApplicationSchema = z.object({
+export const partnerProgramApplicationSchema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(100),
   email: z.string().trim().email("Enter a valid email address").max(200),
   collegeId: z.string().uuid({ message: "Select your college" }),
@@ -17,6 +17,6 @@ export const volunteerApplicationSchema = z.object({
   }),
 });
 
-export type VolunteerApplicationInput = z.infer<
-  typeof volunteerApplicationSchema
+export type PartnerProgramApplicationInput = z.infer<
+  typeof partnerProgramApplicationSchema
 >;

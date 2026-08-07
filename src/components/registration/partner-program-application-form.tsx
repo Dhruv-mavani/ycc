@@ -22,11 +22,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  volunteerApplicationSchema,
-  type VolunteerApplicationInput,
-} from "@/lib/validations/volunteer";
+  partnerProgramApplicationSchema,
+  type PartnerProgramApplicationInput,
+} from "@/lib/validations/partner-program";
 
-export function VolunteerApplicationForm({
+export function PartnerProgramApplicationForm({
   colleges,
 }: {
   colleges: { id: string; name: string }[];
@@ -38,8 +38,8 @@ export function VolunteerApplicationForm({
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<VolunteerApplicationInput>({
-    resolver: zodResolver(volunteerApplicationSchema),
+  } = useForm<PartnerProgramApplicationInput>({
+    resolver: zodResolver(partnerProgramApplicationSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -49,15 +49,15 @@ export function VolunteerApplicationForm({
       mobile: "",
       instagramHandle: "",
       referredBy: "",
-      agreementQ1: "" as VolunteerApplicationInput["agreementQ1"],
-      agreementQ2: "" as VolunteerApplicationInput["agreementQ2"],
-      agreementQ3: "" as VolunteerApplicationInput["agreementQ3"],
+      agreementQ1: "" as PartnerProgramApplicationInput["agreementQ1"],
+      agreementQ2: "" as PartnerProgramApplicationInput["agreementQ2"],
+      agreementQ3: "" as PartnerProgramApplicationInput["agreementQ3"],
     },
   });
 
-  async function onSubmit(values: VolunteerApplicationInput) {
+  async function onSubmit(values: PartnerProgramApplicationInput) {
     try {
-      const res = await fetch("/api/volunteers", {
+      const res = await fetch("/api/partner-program", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),

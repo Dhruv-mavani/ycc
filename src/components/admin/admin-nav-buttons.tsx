@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 
-const LAST_SEEN_VOLUNTEERS_KEY = "lastSeenVolunteersAt";
+const LAST_SEEN_PARTNER_PROGRAM_KEY = "lastSeenPartnerProgramAt";
 
 export function AdminNavButtons({
   initialPendingStaffCount,
@@ -17,23 +17,23 @@ export function AdminNavButtons({
   const [pendingStaffCount, setPendingStaffCount] = useState(
     initialPendingStaffCount,
   );
-  const [newVolunteerCount, setNewVolunteerCount] = useState(0);
+  const [newPartnerApplicationCount, setNewPartnerApplicationCount] = useState(0);
 
   useEffect(() => {
     const since =
-      localStorage.getItem(LAST_SEEN_VOLUNTEERS_KEY) ?? new Date(0).toISOString();
+      localStorage.getItem(LAST_SEEN_PARTNER_PROGRAM_KEY) ?? new Date(0).toISOString();
     fetch(`/api/admin/notifications/summary?since=${encodeURIComponent(since)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data) return;
-        setNewVolunteerCount(data.newVolunteerCount ?? 0);
+        setNewPartnerApplicationCount(data.newPartnerApplicationCount ?? 0);
       })
       .catch(() => {});
   }, []);
 
   useAdminRealtime({
     onNewStaff: () => setPendingStaffCount((c) => c + 1),
-    onNewVolunteer: () => setNewVolunteerCount((c) => c + 1),
+    onNewPartnerApplication: () => setNewPartnerApplicationCount((c) => c + 1),
   });
 
   return (
@@ -70,12 +70,12 @@ export function AdminNavButtons({
         className="hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 transition-colors"
         nativeButton={false}
         render={
-          <Link href="/admin/volunteers">
+          <Link href="/admin/partner-program">
             <HeartHandshake className="size-4" />
-            Volunteers
-            {newVolunteerCount > 0 ? (
+            Partner Program
+            {newPartnerApplicationCount > 0 ? (
               <Badge variant="destructive" className="ml-1 px-1.5 py-0 min-w-[20px] text-center">
-                {newVolunteerCount}
+                {newPartnerApplicationCount}
               </Badge>
             ) : null}
           </Link>

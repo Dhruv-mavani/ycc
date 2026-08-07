@@ -12,7 +12,7 @@ export interface RealtimeStaffRow {
   requested_at: string;
 }
 
-export interface RealtimeVolunteerRow {
+export interface RealtimePartnerProgramRow {
   id: string;
   name: string;
   email: string;
@@ -29,17 +29,17 @@ export interface RealtimeVolunteerRow {
 }
 
 /**
- * Subscribes to new pending staff requests and new volunteer applications
- * via Supabase Realtime. Each caller gets its own channel — safe to use
- * from multiple components at once (e.g. the header bell plus whichever
- * list page is currently open).
+ * Subscribes to new pending staff requests and new partner program
+ * applications via Supabase Realtime. Each caller gets its own channel —
+ * safe to use from multiple components at once (e.g. the header bell plus
+ * whichever list page is currently open).
  */
 export function useAdminRealtime({
   onNewStaff,
-  onNewVolunteer,
+  onNewPartnerApplication,
 }: {
   onNewStaff?: (row: RealtimeStaffRow) => void;
-  onNewVolunteer?: (row: RealtimeVolunteerRow) => void;
+  onNewPartnerApplication?: (row: RealtimePartnerProgramRow) => void;
 }) {
   useEffect(() => {
     const supabase = createClient();
@@ -65,8 +65,8 @@ export function useAdminRealtime({
         )
         .on(
           "postgres_changes",
-          { event: "INSERT", schema: "public", table: "volunteer_applications" },
-          (payload) => onNewVolunteer?.(payload.new as RealtimeVolunteerRow),
+          { event: "INSERT", schema: "public", table: "partner_program_applications" },
+          (payload) => onNewPartnerApplication?.(payload.new as RealtimePartnerProgramRow),
         )
         .subscribe((status, err) => {
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {

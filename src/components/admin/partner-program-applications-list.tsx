@@ -15,9 +15,9 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays, Mail, Phone, PencilIcon, Search, Trash2Icon } from "lucide-react";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 import { ConfirmDialog } from "@/components/site/confirm-dialog";
-import { EditVolunteerDialog } from "@/components/admin/edit-volunteer-dialog";
+import { EditPartnerProgramDialog } from "@/components/admin/edit-partner-program-dialog";
 
-interface VolunteerApplication {
+interface PartnerProgramApplication {
   id: string;
   name: string;
   email: string;
@@ -34,25 +34,25 @@ interface VolunteerApplication {
   created_at: string;
 }
 
-export function VolunteerApplicationsList({
+export function PartnerProgramApplicationsList({
   applications,
   colleges,
 }: {
-  applications: VolunteerApplication[];
+  applications: PartnerProgramApplication[];
   colleges: { id: string; name: string }[];
 }) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<VolunteerApplication | null>(null);
-  const [editTarget, setEditTarget] = useState<VolunteerApplication | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PartnerProgramApplication | null>(null);
+  const [editTarget, setEditTarget] = useState<PartnerProgramApplication | null>(null);
 
   useEffect(() => {
-    localStorage.setItem("lastSeenVolunteersAt", new Date().toISOString());
+    localStorage.setItem("lastSeenPartnerProgramAt", new Date().toISOString());
   }, []);
 
   useAdminRealtime({
-    onNewVolunteer: (row) => {
+    onNewPartnerApplication: (row) => {
       setItems((prev) => {
         if (prev.some((a) => a.id === row.id)) return prev;
         const collegeName =
@@ -67,7 +67,7 @@ export function VolunteerApplicationsList({
     const id = deleteTarget.id;
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/admin/volunteers/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/partner-program/${id}`, { method: "DELETE" });
       if (!res.ok) {
         toast.error("Could not delete application");
         return;
@@ -199,7 +199,7 @@ export function VolunteerApplicationsList({
 
         {items.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            No volunteer applications yet.
+            No partner program applications yet.
           </p>
         ) : null}
       </div>
@@ -210,12 +210,12 @@ export function VolunteerApplicationsList({
           if (!open) setDeleteTarget(null);
         }}
         title="Delete application?"
-        description={`Permanently delete ${deleteTarget?.name ?? "this"}'s volunteer application. This cannot be undone.`}
+        description={`Permanently delete ${deleteTarget?.name ?? "this"}'s partner program application. This cannot be undone.`}
         loading={deletingId === deleteTarget?.id}
         onConfirm={confirmDeleteApplication}
       />
 
-      <EditVolunteerDialog
+      <EditPartnerProgramDialog
         application={editTarget}
         colleges={colleges}
         open={editTarget !== null}
