@@ -2,7 +2,13 @@
 
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { AgreementYesAbsolutelyNo, AgreementYesNo, StaffStatus } from "@/lib/supabase/types";
+import type {
+  AgreementYesAbsolutelyNo,
+  AgreementYesNo,
+  PartnerApplicationStatus,
+  PartnerType,
+  StaffStatus,
+} from "@/lib/supabase/types";
 
 export interface RealtimeStaffRow {
   user_id: string;
@@ -22,9 +28,12 @@ export interface RealtimePartnerProgramRow {
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;
+  referred_by_id: string | null;
   agreement_q1: AgreementYesNo;
   agreement_q2: AgreementYesNo;
   agreement_q3: AgreementYesAbsolutelyNo;
+  partner_type: PartnerType;
+  status: PartnerApplicationStatus;
   created_at: string;
 }
 

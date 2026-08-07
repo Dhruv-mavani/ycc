@@ -2,7 +2,11 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { StaffStatus } from "@/lib/supabase/types";
+import type {
+  PartnerApplicationStatus,
+  PartnerType,
+  StaffStatus,
+} from "@/lib/supabase/types";
 
 export async function getStaffSession() {
   const supabase = await createClient();
@@ -79,6 +83,46 @@ export async function getStaffAccessStatus(): Promise<
     .single();
 
   return { state: "pending", user, staffName: created?.name ?? name };
+}
+
+/**
+ * Used by the /partner-program/status page. A partner's Supabase Auth
+ * account is created up front at application time (unlike staff, there's
+ * no self-service "first sign-in creates a pending row" step), so this
+ * just looks up their existing application by user_id.
+ */
+export async function getPartnerAccessStatus(): Promise<
+  | { state: "unauthenticated" }
+  | { state: "no_application"; user: { id: string; email?: string } }
+  | {
+      state: PartnerApplicationStatus;
+      user: { id: string; email?: string };
+      application: { id: string; name: string; partnerType: PartnerType };
+    }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { state: "unauthenticated" };
+
+  const { data: application } = await supabase
+    .from("partner_program_applications")
+    .select("id, name, partner_type, status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!application) return { state: "no_application", user };
+
+  return {
+    state: application.status,
+    user,
+    application: {
+      id: application.id,
+      name: application.name,
+      partnerType: application.partner_type,
+    },
+  };
 }
 
 export async function getAdminSession() {

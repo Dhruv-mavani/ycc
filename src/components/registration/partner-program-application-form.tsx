@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,13 +26,30 @@ import {
   partnerProgramApplicationSchema,
   type PartnerProgramApplicationInput,
 } from "@/lib/validations/partner-program";
+import type { PartnerType } from "@/lib/supabase/types";
+
+interface ReferrerOption {
+  id: string;
+  name: string;
+  college_id: string;
+  stream: string;
+  semester: string;
+}
 
 export function PartnerProgramApplicationForm({
+  partnerType,
   colleges,
+  referrerOptions,
+  referrerLabel,
 }: {
+  partnerType: PartnerType;
   colleges: { id: string; name: string }[];
+  referrerOptions: ReferrerOption[];
+  referrerLabel: string;
 }) {
   const [submitted, setSubmitted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -41,19 +59,41 @@ export function PartnerProgramApplicationForm({
   } = useForm<PartnerProgramApplicationInput>({
     resolver: zodResolver(partnerProgramApplicationSchema),
     defaultValues: {
+      partnerType,
       name: "",
       email: "",
+      password: "",
+      confirmPassword: "",
       collegeId: "",
       stream: "",
       semester: "",
       mobile: "",
       instagramHandle: "",
       referredBy: "",
+      referredById: undefined,
       agreementQ1: "" as PartnerProgramApplicationInput["agreementQ1"],
       agreementQ2: "" as PartnerProgramApplicationInput["agreementQ2"],
       agreementQ3: "" as PartnerProgramApplicationInput["agreementQ3"],
     },
   });
+
+  const selectedCollegeId = useWatch({ control, name: "collegeId" });
+  const filteredReferrerOptions = referrerOptions.filter(
+    (r) => r.college_id === selectedCollegeId,
+  );
+
+  const typeLabel =
+    partnerType === "campus"
+      ? "Campus Partner"
+      : partnerType === "class"
+        ? "Class Partner"
+        : "Classmate Partner";
+  const scopeText =
+    partnerType === "campus"
+      ? "on your college campus"
+      : partnerType === "class"
+        ? "in your class"
+        : "among your classmates";
 
   async function onSubmit(values: PartnerProgramApplicationInput) {
     try {
@@ -102,6 +142,53 @@ export function PartnerProgramApplicationForm({
           <Field label="Email" error={errors.email?.message}>
             <Input type="email" {...register("email")} />
           </Field>
+          <Field label="Password" error={errors.password?.message}>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                className="pr-10"
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
+              </button>
+            </div>
+          </Field>
+          <Field
+            label="Re-enter password"
+            error={errors.confirmPassword?.message}
+          >
+            <div className="relative">
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                className="pr-10"
+                {...register("confirmPassword")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
+              </button>
+            </div>
+          </Field>
           <Field label="College" error={errors.collegeId?.message}>
             <Controller
               control={control}
@@ -149,12 +236,59 @@ export function PartnerProgramApplicationForm({
           >
             <Input {...register("instagramHandle")} placeholder="yourhandle" />
           </Field>
-          <Field
-            label="Name of YCC Campus Partner (referred you) — optional"
-            error={errors.referredBy?.message}
-          >
-            <Input {...register("referredBy")} />
-          </Field>
+          {partnerType === "campus" ? (
+            <Field
+              label="Name of YCC Campus Partner (referred you) — optional"
+              error={errors.referredBy?.message}
+            >
+              <Input {...register("referredBy")} />
+            </Field>
+          ) : (
+            <Field
+              label={`Which ${referrerLabel} referred you?`}
+              error={errors.referredById?.message}
+            >
+              <Controller
+                control={control}
+                name="referredById"
+                render={({ field }) => (
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={
+                          selectedCollegeId
+                            ? `Select your ${referrerLabel}`
+                            : "Select your college first"
+                        }
+                      >
+                        {(value: string | null) => {
+                          const r = referrerOptions.find((o) => o.id === value);
+                          if (!r) return null;
+                          return partnerType === "classmate"
+                            ? `${r.name} — ${r.stream}, Sem ${r.semester}`
+                            : r.name;
+                        }}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredReferrerOptions.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {partnerType === "classmate"
+                            ? `${r.name} — ${r.stream}, Sem ${r.semester}`
+                            : r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {selectedCollegeId && filteredReferrerOptions.length === 0 ? (
+                <p className="text-muted-foreground text-xs">
+                  No approved {referrerLabel}s found for your college yet.
+                </p>
+              ) : null}
+            </Field>
+          )}
         </CardContent>
       </Card>
 
@@ -164,7 +298,7 @@ export function PartnerProgramApplicationForm({
         </CardHeader>
         <CardContent className="space-y-5">
           <AgreementField
-            label="Selected Campus Partners will receive exclusive benefits, incentives, and commission & partner program opportunities based on their work and performance."
+            label={`Selected ${typeLabel}s will receive exclusive benefits, incentives, and commission & partner program opportunities based on their work and performance.`}
             error={errors.agreementQ1?.message}
           >
             <Controller
@@ -185,7 +319,7 @@ export function PartnerProgramApplicationForm({
           </AgreementField>
 
           <AgreementField
-            label="Do you agree to work with YCC as a campus partner and assisting with all the requirements to promote our campaigns and events on your college campus?"
+            label={`Do you agree to work with YCC as a ${typeLabel.toLowerCase()} and assisting with all the requirements to promote our campaigns and events ${scopeText}?`}
             error={errors.agreementQ2?.message}
           >
             <Controller
@@ -206,9 +340,7 @@ export function PartnerProgramApplicationForm({
           </AgreementField>
 
           <AgreementField
-            label={
-              'We believe every YCC Campus Partner should actively participate in YCC events and support our initiatives. Quote: Great leaders lead by example, We believe every Founder and Partner should support, use, and represent our services before encouraging others to join.'
-            }
+            label={`We believe every YCC ${typeLabel} should actively participate in YCC events and support our initiatives. Quote: Great leaders lead by example, We believe every Founder and Partner should support, use, and represent our services before encouraging others to join.`}
             error={errors.agreementQ3?.message}
           >
             <Controller

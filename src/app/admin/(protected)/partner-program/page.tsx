@@ -9,7 +9,9 @@ export default async function AdminPartnerProgramPage() {
   const [{ data: applications }, { data: colleges }] = await Promise.all([
     admin
       .from("partner_program_applications")
-      .select("*")
+      .select(
+        "id, name, email, college_id, stream, semester, mobile, instagram_handle, referred_by, referred_by_id, agreement_q1, agreement_q2, agreement_q3, partner_type, status, created_at",
+      )
       .order("created_at", { ascending: false }),
     admin.from("colleges").select("id, name"),
   ]);
@@ -17,10 +19,12 @@ export default async function AdminPartnerProgramPage() {
   const collegeNameById = new Map(
     (colleges ?? []).map((c) => [c.id, c.name]),
   );
+  const nameById = new Map((applications ?? []).map((a) => [a.id, a.name]));
 
   const applicationsWithCollege = (applications ?? []).map((a) => ({
     ...a,
     collegeName: collegeNameById.get(a.college_id) ?? "Unknown college",
+    referredByName: a.referred_by_id ? (nameById.get(a.referred_by_id) ?? null) : null,
   }));
 
   return (

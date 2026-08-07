@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { partnerProgramApplicationSchema } from "@/lib/validations/partner-program";
+import { partnerProgramApplicationUpdateSchema } from "@/lib/validations/partner-program";
 
 export async function PATCH(
   request: Request,
@@ -16,7 +16,7 @@ export async function PATCH(
     params,
     request.json().catch(() => null),
   ]);
-  const parsed = partnerProgramApplicationSchema.safeParse(body);
+  const parsed = partnerProgramApplicationUpdateSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -54,7 +54,9 @@ export async function PATCH(
       agreement_q3: input.agreementQ3,
     })
     .eq("id", id)
-    .select("*")
+    .select(
+      "id, name, email, college_id, stream, semester, mobile, instagram_handle, referred_by, agreement_q1, agreement_q2, agreement_q3, partner_type, status, created_at",
+    )
     .single();
 
   if (error || !application) {

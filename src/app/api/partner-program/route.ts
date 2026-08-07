@@ -43,17 +43,51 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
   }
 
+  if (input.partnerType !== "campus") {
+    const parentType = input.partnerType === "class" ? "campus" : "class";
+    const { data: referrer } = input.referredById
+      ? await admin
+          .from("partner_program_applications")
+          .select("id")
+          .eq("id", input.referredById)
+          .eq("partner_type", parentType)
+          .eq("status", "approved")
+          .maybeSingle()
+      : { data: null };
+
+    if (!referrer) {
+      return NextResponse.json({ error: "Select a valid referrer" }, { status: 400 });
+    }
+  }
+
+  const { data: authUser, error: authError } = await admin.auth.admin.createUser({
+    email: input.email,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: { name: input.name },
+  });
+
+  if (authError || !authUser.user) {
+    const message = authError?.message.includes("already been registered")
+      ? "An account with this email already exists — try logging in instead"
+      : "Could not create your account";
+    return NextResponse.json({ error: message }, { status: 409 });
+  }
+
   const { data: application, error } = await admin
     .from("partner_program_applications")
     .insert({
       name: input.name,
       email: input.email,
+      user_id: authUser.user.id,
+      partner_type: input.partnerType,
       college_id: college.id,
       stream: input.stream,
       semester: input.semester,
       mobile: input.mobile,
       instagram_handle: input.instagramHandle,
-      referred_by: input.referredBy || null,
+      referred_by: input.partnerType === "campus" ? input.referredBy || null : null,
+      referred_by_id: input.partnerType === "campus" ? null : input.referredById,
       agreement_q1: input.agreementQ1,
       agreement_q2: input.agreementQ2,
       agreement_q3: input.agreementQ3,
@@ -62,6 +96,8 @@ export async function POST(request: Request) {
     .single();
 
   if (error || !application) {
+    // Don't leave an orphaned login with no application behind.
+    await admin.auth.admin.deleteUser(authUser.user.id);
     return NextResponse.json(
       { error: "Could not submit application" },
       { status: 500 },

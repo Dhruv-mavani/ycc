@@ -23,9 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  partnerProgramApplicationSchema,
-  type PartnerProgramApplicationInput,
+  partnerProgramApplicationUpdateSchema,
+  type PartnerProgramApplicationUpdateInput,
 } from "@/lib/validations/partner-program";
+import type { PartnerApplicationStatus, PartnerType } from "@/lib/supabase/types";
 
 interface PartnerProgramApplication {
   id: string;
@@ -41,6 +42,8 @@ interface PartnerProgramApplication {
   agreement_q1: string;
   agreement_q2: string;
   agreement_q3: string;
+  partner_type: PartnerType;
+  status: PartnerApplicationStatus;
   created_at: string;
 }
 
@@ -63,8 +66,8 @@ export function EditPartnerProgramDialog({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<PartnerProgramApplicationInput>({
-    resolver: zodResolver(partnerProgramApplicationSchema),
+  } = useForm<PartnerProgramApplicationUpdateInput>({
+    resolver: zodResolver(partnerProgramApplicationUpdateSchema),
   });
 
   useEffect(() => {
@@ -78,13 +81,13 @@ export function EditPartnerProgramDialog({
       mobile: application.mobile,
       instagramHandle: application.instagram_handle,
       referredBy: application.referred_by ?? "",
-      agreementQ1: application.agreement_q1 as PartnerProgramApplicationInput["agreementQ1"],
-      agreementQ2: application.agreement_q2 as PartnerProgramApplicationInput["agreementQ2"],
-      agreementQ3: application.agreement_q3 as PartnerProgramApplicationInput["agreementQ3"],
+      agreementQ1: application.agreement_q1 as PartnerProgramApplicationUpdateInput["agreementQ1"],
+      agreementQ2: application.agreement_q2 as PartnerProgramApplicationUpdateInput["agreementQ2"],
+      agreementQ3: application.agreement_q3 as PartnerProgramApplicationUpdateInput["agreementQ3"],
     });
   }, [application, reset]);
 
-  async function onSubmit(values: PartnerProgramApplicationInput) {
+  async function onSubmit(values: PartnerProgramApplicationUpdateInput) {
     if (!application) return;
     try {
       const res = await fetch(`/api/admin/partner-program/${application.id}`, {

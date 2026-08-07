@@ -12,6 +12,8 @@ export type RegistrationStatus =
 export type PaymentStatus = "created" | "paid" | "failed";
 export type AttendanceStatus = "present" | "absent";
 export type StaffStatus = "pending" | "approved" | "rejected";
+export type PartnerType = "campus" | "class" | "classmate";
+export type PartnerApplicationStatus = "pending" | "approved" | "rejected";
 export type AgreementYesNo = "Yes" | "No";
 export type AgreementYesAbsolutelyNo = "Yes, Absolutely" | "No";
 
@@ -240,7 +242,13 @@ export interface Database {
           semester: string;
           mobile: string;
           instagram_handle: string;
+          user_id: string | null;
+          partner_type: PartnerType;
+          status: PartnerApplicationStatus;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
           referred_by: string | null;
+          referred_by_id: string | null;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
@@ -255,7 +263,13 @@ export interface Database {
           semester: string;
           mobile: string;
           instagram_handle: string;
+          user_id?: string | null;
+          partner_type?: PartnerType;
+          status?: PartnerApplicationStatus;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
           referred_by?: string | null;
+          referred_by_id?: string | null;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
