@@ -1,15 +1,18 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getPartnerAccessStatus } from "@/lib/auth";
 import { PartnerResetPasswordForm } from "@/components/registration/partner-reset-password-form";
 
 export default async function PartnerResetPasswordPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const access = await getPartnerAccessStatus();
 
-  if (!user) {
+  if (access.state === "unauthenticated") {
     redirect("/partner-program");
+  }
+
+  // An auth account exists (the recovery link worked) but it isn't linked to
+  // any partner program application — nothing here for them to reset into.
+  if (access.state === "no_application") {
+    redirect("/partner-program/status");
   }
 
   return (

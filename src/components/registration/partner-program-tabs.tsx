@@ -49,7 +49,7 @@ export function PartnerProgramTabs({
 }) {
   const [activeId, setActiveId] =
     useState<(typeof PARTNER_TYPES)[number]["id"]>("campus");
-  const [mode, setMode] = useState<"apply" | "login" | "forgot">("apply");
+  const [mode, setMode] = useState<"apply" | "login" | "forgot">("login");
   const active = PARTNER_TYPES.find((t) => t.id === activeId)!;
 
   const referrerOptions =
@@ -115,18 +115,7 @@ export function PartnerProgramTabs({
 
   return (
     <div>
-      <p className="mb-4 text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <button
-          type="button"
-          className="text-primary underline underline-offset-2"
-          onClick={() => setMode("login")}
-        >
-          Login here
-        </button>
-      </p>
-
-      <div className="mb-6 inline-flex rounded-lg border border-border/50 bg-muted p-1">
+      <div className="mb-4 inline-flex rounded-lg border border-border/50 bg-muted p-1">
         {PARTNER_TYPES.map((type) => (
           <Button
             key={type.id}
@@ -140,6 +129,17 @@ export function PartnerProgramTabs({
           </Button>
         ))}
       </div>
+
+      <p className="mb-6 text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <button
+          type="button"
+          className="text-primary underline underline-offset-2"
+          onClick={() => setMode("login")}
+        >
+          Login here
+        </button>
+      </p>
 
       <h1 className="mb-1 text-xl font-bold">{active.heading}</h1>
       <p className="text-muted-foreground mb-6 text-sm">{active.description}</p>
