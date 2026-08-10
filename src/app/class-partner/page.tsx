@@ -2,8 +2,12 @@ import { requirePartnerOfType } from "@/lib/auth";
 import { PartnerHeader } from "@/components/registration/partner-header";
 import { PartnerReviewPanel } from "@/components/registration/partner-review-panel";
 import { TeamManagementPanel } from "@/components/registration/team-management-panel";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Download } from "lucide-react";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -24,6 +28,36 @@ export default async function ClassPartnerPage() {
                 You&apos;re an approved YCC Class Partner.
               </CardDescription>
             </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                    Your team code
+                  </p>
+                  <Badge variant="secondary" className="mt-1 font-mono text-sm">
+                    {access.application.teamCode ?? "Generating…"}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                    Your entry ID
+                  </p>
+                  <Badge variant="secondary" className="mt-1 font-mono text-sm">
+                    {access.application.uniqueId ?? "Generating…"}
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Share your team code with your Classmate Partners — they&apos;ll
+                enter it on their application to join your team.
+              </p>
+              <Button nativeButton={false} render={
+                <a href="/api/partner-program/certificate">
+                  <Download className="size-4" />
+                  Download certificate
+                </a>
+              } />
+            </CardContent>
           </Card>
 
           <div className="space-y-3">

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStaffOrAdminSession } from "@/lib/auth";
 import { searchParticipants } from "@/lib/lookup";
+import { searchClassPartners } from "@/lib/partner-lookup";
 
 export async function GET(request: Request) {
   const session = await getStaffOrAdminSession();
@@ -12,6 +13,9 @@ export async function GET(request: Request) {
   const q = searchParams.get("q") ?? "";
   const collegeId = searchParams.get("collegeId") ?? undefined;
 
-  const results = await searchParticipants(q, collegeId);
-  return NextResponse.json({ results });
+  const [results, partnerResults] = await Promise.all([
+    searchParticipants(q, collegeId),
+    searchClassPartners(q, collegeId),
+  ]);
+  return NextResponse.json({ results, partnerResults });
 }

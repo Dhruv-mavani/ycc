@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPartnerAccessStatus } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { finalizeClassPartnerApproval } from "@/lib/partner-approval";
 import type { PartnerType } from "@/lib/supabase/types";
 
 const CHILD_TYPE: Partial<Record<PartnerType, PartnerType>> = {
@@ -64,6 +65,10 @@ export async function POST(
       { error: "Could not update application status" },
       { status: 500 },
     );
+  }
+
+  if (status === "approved" && target.partner_type === "class") {
+    await finalizeClassPartnerApproval(admin, id);
   }
 
   return NextResponse.json({ ok: true });

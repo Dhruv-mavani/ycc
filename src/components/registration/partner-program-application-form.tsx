@@ -34,6 +34,7 @@ interface ReferrerOption {
   college_id: string;
   stream: string;
   semester: string;
+  team_code?: string | null;
 }
 
 export function PartnerProgramApplicationForm({
@@ -243,7 +244,7 @@ export function PartnerProgramApplicationForm({
             >
               <Input {...register("referredBy")} />
             </Field>
-          ) : (
+          ) : partnerType === "class" ? (
             <Field
               label={`Which ${referrerLabel} referred you?`}
               error={errors.referredById?.message}
@@ -261,21 +262,15 @@ export function PartnerProgramApplicationForm({
                             : "Select your college first"
                         }
                       >
-                        {(value: string | null) => {
-                          const r = referrerOptions.find((o) => o.id === value);
-                          if (!r) return null;
-                          return partnerType === "classmate"
-                            ? `${r.name} — ${r.stream}, Sem ${r.semester}`
-                            : r.name;
-                        }}
+                        {(value: string | null) =>
+                          referrerOptions.find((o) => o.id === value)?.name ?? null
+                        }
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {filteredReferrerOptions.map((r) => (
                         <SelectItem key={r.id} value={r.id}>
-                          {partnerType === "classmate"
-                            ? `${r.name} — ${r.stream}, Sem ${r.semester}`
-                            : r.name}
+                          {r.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -287,6 +282,23 @@ export function PartnerProgramApplicationForm({
                   No approved {referrerLabel}s found for your college yet.
                 </p>
               ) : null}
+            </Field>
+          ) : (
+            <Field
+              label="Your Class Partner's team code"
+              error={errors.referredById?.message}
+            >
+              <Controller
+                control={control}
+                name="referredById"
+                render={({ field }) => (
+                  <TeamCodeField
+                    value={field.value}
+                    options={referrerOptions}
+                    onResolve={field.onChange}
+                  />
+                )}
+              />
             </Field>
           )}
         </CardContent>
@@ -385,6 +397,47 @@ function Field({
       <Label>{label}</Label>
       {children}
       {error ? <p className="text-destructive text-xs">{error}</p> : null}
+    </div>
+  );
+}
+
+function TeamCodeField({
+  value,
+  options,
+  onResolve,
+}: {
+  value: string | undefined;
+  options: ReferrerOption[];
+  onResolve: (id: string | undefined) => void;
+}) {
+  const matched = options.find((o) => o.id === value);
+  const [text, setText] = useState(matched?.team_code ?? "");
+  const [touched, setTouched] = useState(false);
+
+  return (
+    <div className="space-y-1.5">
+      <Input
+        placeholder="e.g. ABHI9864"
+        value={text}
+        onChange={(e) => {
+          const raw = e.target.value.toUpperCase();
+          setText(raw);
+          setTouched(true);
+          const found = options.find((o) => o.team_code === raw.trim());
+          onResolve(found?.id);
+        }}
+      />
+      {touched && text.trim() ? (
+        matched ? (
+          <p className="text-xs text-emerald-600">
+            Referred by {matched.name} — {matched.stream}, Sem {matched.semester}
+          </p>
+        ) : (
+          <p className="text-destructive text-xs">
+            No Class Partner found with that code.
+          </p>
+        )
+      ) : null}
     </div>
   );
 }

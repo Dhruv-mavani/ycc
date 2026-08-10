@@ -97,7 +97,13 @@ export async function getPartnerAccessStatus(): Promise<
   | {
       state: PartnerApplicationStatus;
       user: { id: string; email?: string };
-      application: { id: string; name: string; partnerType: PartnerType };
+      application: {
+        id: string;
+        name: string;
+        partnerType: PartnerType;
+        teamCode: string | null;
+        uniqueId: string | null;
+      };
     }
 > {
   const supabase = await createClient();
@@ -108,7 +114,7 @@ export async function getPartnerAccessStatus(): Promise<
 
   const { data: application } = await supabase
     .from("partner_program_applications")
-    .select("id, name, partner_type, status")
+    .select("id, name, partner_type, status, team_code, unique_id")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -121,6 +127,8 @@ export async function getPartnerAccessStatus(): Promise<
       id: application.id,
       name: application.name,
       partnerType: application.partner_type,
+      teamCode: application.team_code,
+      uniqueId: application.unique_id,
     },
   };
 }

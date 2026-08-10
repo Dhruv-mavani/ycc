@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { finalizeClassPartnerApproval } from "@/lib/partner-approval";
 
 export async function POST(
   request: Request,
@@ -22,20 +23,26 @@ export async function POST(
   }
 
   const admin = createAdminClient();
-  const { error } = await admin
+  const { data: updated, error } = await admin
     .from("partner_program_applications")
     .update({
       status,
       reviewed_at: new Date().toISOString(),
       reviewed_by: session.user.id,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("partner_type")
+    .single();
 
   if (error) {
     return NextResponse.json(
       { error: "Could not update application status" },
       { status: 500 },
     );
+  }
+
+  if (status === "approved" && updated.partner_type === "class") {
+    await finalizeClassPartnerApproval(admin, id);
   }
 
   return NextResponse.json({ ok: true });

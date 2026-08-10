@@ -251,6 +251,11 @@ export interface Database {
           referred_by: string | null;
           referred_by_id: string | null;
           team: PartnerTeam | null;
+          team_code: string | null;
+          unique_id: string | null;
+          attendance_status: AttendanceStatus | null;
+          attendance_marked_by: string | null;
+          attendance_marked_at: string | null;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
@@ -273,6 +278,11 @@ export interface Database {
           referred_by?: string | null;
           referred_by_id?: string | null;
           team?: PartnerTeam | null;
+          team_code?: string | null;
+          unique_id?: string | null;
+          attendance_status?: AttendanceStatus | null;
+          attendance_marked_by?: string | null;
+          attendance_marked_at?: string | null;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
@@ -289,6 +299,10 @@ export interface Database {
       allocate_unique_ids: {
         Args: { p_registration_id: string };
         Returns: void;
+      };
+      allocate_partner_unique_id: {
+        Args: { p_application_id: string };
+        Returns: string;
       };
     };
   };

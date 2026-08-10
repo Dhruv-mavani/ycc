@@ -15,7 +15,7 @@ export default async function PartnerProgramPage() {
         .order("name"),
       supabase
         .from("partner_program_applications")
-        .select("id, name, college_id, stream, semester")
+        .select("id, name, college_id, stream, semester, team_code")
         .eq("partner_type", "class")
         .eq("status", "approved")
         .order("name"),
