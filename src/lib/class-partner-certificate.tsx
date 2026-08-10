@@ -18,11 +18,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import path from "node:path";
-import {
-  TROPHY_WORDMARK_PATH,
-  BATSMAN_FLOODLIGHTS_PATH,
-  WAVE_PATH,
-} from "@/lib/class-partner-certificate-art";
+import { LEFT_ILLUSTRATION_PATHS } from "@/lib/class-partner-certificate-art";
 
 // Statically analyzable path so Next's file tracing bundles the font into
 // the serverless function on Vercel; react-pdf's own file resolution isn't
@@ -230,14 +226,6 @@ function CertificateArt() {
           <Stop offset="0%" stopColor={NAVY_LIGHT} />
           <Stop offset="100%" stopColor={NAVY_DARK} />
         </LinearGradient>
-        <LinearGradient id="trophyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <Stop offset="0%" stopColor="#4f8cf0" />
-          <Stop offset="100%" stopColor={BLUE_DEEP} />
-        </LinearGradient>
-        <LinearGradient id="waveGradBack" x1="0%" y1="0%" x2="100%" y2="0%">
-          <Stop offset="0%" stopColor={BLUE_DEEP} />
-          <Stop offset="100%" stopColor={BLUE} />
-        </LinearGradient>
       </Defs>
 
       {/* Outer ticket card */}
@@ -253,36 +241,18 @@ function CertificateArt() {
       />
 
       {/* Decorative artwork traced from the original certificate template
-          (see class-partner-certificate-art.ts) and recolored here — the
-          trophy/wordmark, batsman/floodlights and wave are real vector
-          paths lifted from the source design rather than hand-drawn
-          approximations. Coordinates already sit in this page's 1600x753
-          space, clear of the card's rounded corners, so no clipPath or
-          extra transform is needed (react-pdf's clipPath, when the clip
-          rect's origin isn't (0,0), corrupts rotate-transform math on
-          descendants). */}
-      <Path d={WAVE_PATH} fill="url(#waveGradBack)" />
-      <Path d={BATSMAN_FLOODLIGHTS_PATH} fill={BLUE_DEEP} />
-
-      {/* Cricket ball with motion lines, centered under the paragraph */}
-      <Line x1={798} y1={399} x2={834} y2={387} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
-      <Line x1={802} y1={413} x2={840} y2={405} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
-      <Line x1={798} y1={427} x2={834} y2={423} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
-      <Circle cx={860} cy={407} r={11} fill={NAVY_DARK} />
-      <Path
-        d="M851,400 C856,405 856,410 851,415"
-        fill="none"
-        stroke={WHITE}
-        strokeWidth={1.5}
-      />
-      <Path
-        d="M869,400 C864,405 864,410 869,415"
-        fill="none"
-        stroke={WHITE}
-        strokeWidth={1.5}
-      />
-
-      <Path d={TROPHY_WORDMARK_PATH} fill="url(#trophyGrad)" />
+          (see class-partner-certificate-art.ts) — trophy/wordmark,
+          batsman/floodlights/dust, the wave and the ball-with-motion-
+          streak are real vector paths lifted from the source design, each
+          keeping its own native fill color (shading/highlights included)
+          rather than being flattened to one blue. Coordinates already sit
+          in this page's 1600x753 space, clear of the card's rounded
+          corners, so no clipPath or extra transform is needed (react-pdf's
+          clipPath, when the clip rect's origin isn't (0,0), corrupts
+          rotate-transform math on descendants). */}
+      {LEFT_ILLUSTRATION_PATHS.map((p, i) => (
+        <Path key={i} d={p.d} fill={p.fill} />
+      ))}
 
       {/* Greeting ornament: short line - diamond - line, plus a full
           divider underneath, framing the recipient name. */}
