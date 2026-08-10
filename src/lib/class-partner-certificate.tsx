@@ -10,7 +10,6 @@ import {
   Defs,
   LinearGradient,
   Stop,
-  G,
   Rect,
   Circle,
   Line,
@@ -19,6 +18,11 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import path from "node:path";
+import {
+  TROPHY_WORDMARK_PATH,
+  BATSMAN_FLOODLIGHTS_PATH,
+  WAVE_PATH,
+} from "@/lib/class-partner-certificate-art";
 
 // Statically analyzable path so Next's file tracing bundles the font into
 // the serverless function on Vercel; react-pdf's own file resolution isn't
@@ -93,7 +97,7 @@ const styles = StyleSheet.create({
   },
   body: {
     position: "absolute",
-    top: 246,
+    top: 320,
     left: 460,
     width: 770,
     textAlign: "center",
@@ -104,7 +108,7 @@ const styles = StyleSheet.create({
   },
   codeLabel: {
     position: "absolute",
-    top: 372,
+    top: 440,
     left: 460,
     width: 770,
     textAlign: "center",
@@ -114,7 +118,7 @@ const styles = StyleSheet.create({
   },
   codeValue: {
     position: "absolute",
-    top: 392,
+    top: 460,
     left: 460,
     width: 770,
     textAlign: "center",
@@ -122,24 +126,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     letterSpacing: 2,
     color: TEXT_DARK,
-  },
-  wordmark: {
-    position: "absolute",
-    top: 44,
-    left: 142,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 44,
-    letterSpacing: 1,
-    color: BLUE,
-  },
-  wordmarkSub: {
-    position: "absolute",
-    top: 100,
-    left: 142,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 10.5,
-    letterSpacing: 2.5,
-    color: BLUE_DEEP,
   },
   stubYcc: {
     position: "absolute",
@@ -266,145 +252,37 @@ function CertificateArt() {
         strokeWidth={2.5}
       />
 
-      {/* Decorative artwork. Coordinates are chosen to stay clear of the
-          card's rounded corners rather than relying on an SVG clipPath —
-          react-pdf's clipPath (when the clip rect's origin isn't (0,0))
-          corrupts the rotate-transform math on descendants, which silently
-          collapses any rotated child (e.g. the batsman's bat) to a stub. */}
-      <G>
-        {/* Bottom-left wave ribbon */}
-        <Path
-          d={`M${CARD_X + CARD_RX},520
-              C ${CARD_X + 120},470 ${CARD_X + 220},560 ${CARD_X + 340},540
-              C ${CARD_X + 460},520 ${CARD_X + 520},600 ${CARD_X + 660},640
-              C ${CARD_X + 780},672 ${CARD_X + 900},668 ${SEAM_X},700
-              L ${SEAM_X},${CARD_Y + CARD_H}
-              L ${CARD_X + CARD_RX},${CARD_Y + CARD_H} Z`}
-          fill="url(#waveGradBack)"
-          opacity={0.9}
-        />
-        <Path
-          d={`M${CARD_X + CARD_RX},560
-              C ${CARD_X + 110},520 ${CARD_X + 210},600 ${CARD_X + 330},585
-              C ${CARD_X + 450},570 ${CARD_X + 500},630 ${CARD_X + 620},665
-              C ${CARD_X + 720},694 ${CARD_X + 820},690 ${CARD_X + 940},715
-              L ${CARD_X + 940},${CARD_Y + CARD_H}
-              L ${CARD_X + CARD_RX},${CARD_Y + CARD_H} Z`}
-          fill={BLUE}
-          opacity={0.55}
-        />
-        <Path
-          d={`M${CARD_X + CARD_RX},520
-              C ${CARD_X + 120},470 ${CARD_X + 220},560 ${CARD_X + 340},540
-              C ${CARD_X + 460},520 ${CARD_X + 520},600 ${CARD_X + 660},640
-              C ${CARD_X + 780},672 ${CARD_X + 900},668 ${SEAM_X},700`}
-          fill="none"
-          stroke="#bfdbfe"
-          strokeWidth={2}
-          opacity={0.8}
-        />
+      {/* Decorative artwork traced from the original certificate template
+          (see class-partner-certificate-art.ts) and recolored here — the
+          trophy/wordmark, batsman/floodlights and wave are real vector
+          paths lifted from the source design rather than hand-drawn
+          approximations. Coordinates already sit in this page's 1600x753
+          space, clear of the card's rounded corners, so no clipPath or
+          extra transform is needed (react-pdf's clipPath, when the clip
+          rect's origin isn't (0,0), corrupts rotate-transform math on
+          descendants). */}
+      <Path d={WAVE_PATH} fill="url(#waveGradBack)" />
+      <Path d={BATSMAN_FLOODLIGHTS_PATH} fill={BLUE_DEEP} />
 
-        {/* Floodlights */}
-        <G opacity={0.65}>
-          <Rect x={77} y={355} width={6} height={285} fill={BLUE_DEEP} />
-          <Rect x={159} y={322} width={6} height={318} fill={BLUE_DEEP} />
-          {[-26, -13, 0, 13, 26].map((dx) => (
-            <Line
-              key={`fl1-${dx}`}
-              x1={80}
-              y1={355}
-              x2={80 + dx}
-              y2={323}
-              stroke={BLUE_DEEP}
-              strokeWidth={3}
-            />
-          ))}
-          {[-26, -13, 0, 13, 26].map((dx) => (
-            <Line
-              key={`fl2-${dx}`}
-              x1={162}
-              y1={322}
-              x2={162 + dx}
-              y2={290}
-              stroke={BLUE_DEEP}
-              strokeWidth={3}
-            />
-          ))}
-        </G>
+      {/* Cricket ball with motion lines, centered under the paragraph */}
+      <Line x1={798} y1={399} x2={834} y2={387} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
+      <Line x1={802} y1={413} x2={840} y2={405} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
+      <Line x1={798} y1={427} x2={834} y2={423} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
+      <Circle cx={860} cy={407} r={11} fill={NAVY_DARK} />
+      <Path
+        d="M851,400 C856,405 856,410 851,415"
+        fill="none"
+        stroke={WHITE}
+        strokeWidth={1.5}
+      />
+      <Path
+        d="M869,400 C864,405 864,410 869,415"
+        fill="none"
+        stroke={WHITE}
+        strokeWidth={1.5}
+      />
 
-        {/* Batsman silhouette, bat raised — built from rotated stick
-            shapes (each rect pivots around its joint) rather than
-            freehand polygons, so the pose stays legible at small size.
-            react-pdf's rotate() is clockwise, so a positive angle on a
-            rect drawn pointing down (+y) swings its free end left, and a
-            negative angle swings it right. */}
-        <G transform="translate(60,340)">
-          <G fill={BLUE_DEEP} opacity={0.85}>
-            <Circle cx={148} cy={20} r={15} />
-            <Rect x={-15} y={0} width={30} height={80} rx={13} transform="translate(148,35) rotate(-6)" />
-            <Rect x={-9} y={0} width={18} height={92} rx={9} transform="translate(140,111) rotate(16)" />
-            <Rect x={-9} y={0} width={18} height={100} rx={9} transform="translate(157,111) rotate(-24)" />
-            <Rect x={-8} y={0} width={16} height={64} rx={8} transform="translate(163,42) rotate(208)" />
-          </G>
-          <Rect
-            x={-7.5}
-            y={0}
-            width={15}
-            height={130}
-            rx={6}
-            fill={GOLD}
-            opacity={0.9}
-            transform="translate(163,42) rotate(196)"
-          />
-          <Circle cx={163} cy={42} r={7.5} fill={BLUE_DEEP} opacity={0.85} />
-        </G>
-
-        {/* Cricket ball with motion lines */}
-        <Line x1={330} y1={330} x2={366} y2={318} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
-        <Line x1={334} y1={344} x2={372} y2={336} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
-        <Line x1={330} y1={358} x2={366} y2={354} stroke={BLUE_DEEP} strokeWidth={3} opacity={0.5} />
-        <Circle cx={392} cy={338} r={11} fill={NAVY_DARK} />
-        <Path
-          d="M383,331 C388,336 388,341 383,346"
-          fill="none"
-          stroke={WHITE}
-          strokeWidth={1.5}
-        />
-        <Path
-          d="M401,331 C396,336 396,341 401,346"
-          fill="none"
-          stroke={WHITE}
-          strokeWidth={1.5}
-        />
-      </G>
-
-      {/* Trophy */}
-      <G transform="translate(64,50)">
-        <Path
-          d="M6,0 L56,0 C56,24 46,36 31,36 C16,36 6,24 6,0 Z"
-          fill="url(#trophyGrad)"
-        />
-        <Path
-          d="M6,4 C-10,4 -10,28 6,26"
-          fill="none"
-          stroke={BLUE}
-          strokeWidth={4}
-          strokeLinecap="round"
-        />
-        <Path
-          d="M56,4 C72,4 72,28 56,26"
-          fill="none"
-          stroke={BLUE}
-          strokeWidth={4}
-          strokeLinecap="round"
-        />
-        <Rect x={26} y={36} width={9} height={17} fill={BLUE_DEEP} />
-        <Rect x={10} y={53} width={41} height={7} rx={2} fill={BLUE_DEEP} />
-        <Rect x={4} y={60} width={53} height={9} rx={2} fill={BLUE} />
-        <Line x1={16} y1={12} x2={46} y2={26} stroke={WHITE} strokeWidth={2.5} strokeLinecap="round" />
-        <Line x1={46} y1={12} x2={16} y2={26} stroke={WHITE} strokeWidth={2.5} strokeLinecap="round" />
-        <Circle cx={31} cy={19} r={2.6} fill={GOLD_BRIGHT} />
-      </G>
+      <Path d={TROPHY_WORDMARK_PATH} fill="url(#trophyGrad)" />
 
       {/* Greeting ornament: short line - diamond - line, plus a full
           divider underneath, framing the recipient name. */}
@@ -478,9 +356,6 @@ function ClassPartnerCertificateDocument({
     <Document>
       <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
         <CertificateArt />
-
-        <Text style={styles.wordmark}>YCC</Text>
-        <Text style={styles.wordmarkSub}>YUVA CHAMPIONS CRICKET</Text>
 
         <Text style={styles.greeting}>Dear Class Partner</Text>
         <Text style={styles.name}>{data.name}</Text>
