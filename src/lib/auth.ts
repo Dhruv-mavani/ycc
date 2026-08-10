@@ -103,6 +103,7 @@ export async function getPartnerAccessStatus(): Promise<
         partnerType: PartnerType;
         teamCode: string | null;
         uniqueId: string | null;
+        whatsappJoinedAt: string | null;
       };
     }
 > {
@@ -114,7 +115,7 @@ export async function getPartnerAccessStatus(): Promise<
 
   const { data: application } = await supabase
     .from("partner_program_applications")
-    .select("id, name, partner_type, status, team_code, unique_id")
+    .select("id, name, partner_type, status, team_code, unique_id, whatsapp_joined_at")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -129,6 +130,7 @@ export async function getPartnerAccessStatus(): Promise<
       partnerType: application.partner_type,
       teamCode: application.team_code,
       uniqueId: application.unique_id,
+      whatsappJoinedAt: application.whatsapp_joined_at,
     },
   };
 }

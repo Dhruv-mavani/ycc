@@ -113,52 +113,57 @@ function ReporteeCard({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const isApproved = reportee.status === "approved";
+  const isRejected = reportee.status === "rejected";
+
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">{reportee.name}</p>
+    <Card className={`overflow-hidden transition-all hover:shadow-md ${isApproved ? 'border-l-4 border-l-emerald-500' : isRejected ? 'border-l-4 border-l-destructive/50' : 'border-l-4 border-l-amber-500'}`}>
+      <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <p className="text-base font-semibold leading-none">{reportee.name}</p>
             <Badge
               variant="secondary"
-              className={
-                reportee.status === "approved"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize"
-                  : reportee.status === "rejected"
-                    ? "bg-destructive/10 text-destructive border-destructive/20 capitalize"
-                    : "capitalize"
-              }
+              className={`w-fit text-[10px] uppercase tracking-wider ${
+                isApproved
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : isRejected
+                    ? "bg-destructive/10 text-destructive border-destructive/20"
+                    : "bg-amber-50 text-amber-700 border-amber-200"
+              }`}
             >
               {reportee.status}
             </Badge>
           </div>
-          <p className="text-muted-foreground text-xs">
-            {reportee.stream}, Sem {reportee.semester}
+          <p className="text-muted-foreground text-xs font-medium">
+            {reportee.stream} • Sem {reportee.semester}
           </p>
-          <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1 text-xs">
-            <span className="flex items-center gap-1">
-              <Mail className="size-3" /> {reportee.email}
+          <div className="text-muted-foreground flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs bg-muted/30 p-2 rounded-md">
+            <span className="flex items-center gap-1.5 min-w-0">
+              <Mail className="size-3.5 shrink-0" />
+              <span className="truncate">{reportee.email}</span>
             </span>
-            <span className="flex items-center gap-1">
-              <Phone className="size-3" /> {reportee.mobile}
+            <span className="flex items-center gap-1.5 min-w-0">
+              <Phone className="size-3.5 shrink-0" />
+              <span className="truncate">{reportee.mobile}</span>
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
-          {reportee.status !== "approved" ? (
-            <Button size="sm" className="h-7 text-xs" disabled={busy} onClick={onApprove}>
+        <div className="flex sm:flex-col gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+          {!isApproved ? (
+            <Button size="sm" className="flex-1 sm:flex-none shadow-sm" disabled={busy} onClick={onApprove}>
               Approve
             </Button>
           ) : null}
-          {reportee.status !== "rejected" ? (
+          {!isRejected ? (
             <Button
               size="sm"
               variant="outline"
-              className="h-7 text-xs"
+              className="flex-1 sm:flex-none"
               disabled={busy}
               onClick={onReject}
             >
-              {reportee.status === "approved" ? "Revoke" : "Reject"}
+              {isApproved ? "Revoke" : "Reject"}
             </Button>
           ) : null}
         </div>

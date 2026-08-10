@@ -256,6 +256,7 @@ export interface Database {
           attendance_status: AttendanceStatus | null;
           attendance_marked_by: string | null;
           attendance_marked_at: string | null;
+          whatsapp_joined_at: string | null;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
@@ -283,6 +284,7 @@ export interface Database {
           attendance_status?: AttendanceStatus | null;
           attendance_marked_by?: string | null;
           attendance_marked_at?: string | null;
+          whatsapp_joined_at?: string | null;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;

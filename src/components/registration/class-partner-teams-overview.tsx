@@ -97,28 +97,40 @@ export function ClassPartnerTeamsOverview() {
 
 function ClassmateList({ title, members }: { title: string; members: Classmate[] }) {
   return (
-    <div className="space-y-2">
-      <h4 className="text-xs font-semibold">{title}</h4>
-      {members.length === 0 ? (
-        <p className="text-muted-foreground text-xs">Empty</p>
-      ) : (
-        members.map((m) => (
-          <div key={m.id} className="rounded-md border border-border/50 p-2">
-            <p className="text-xs font-medium">{m.name}</p>
-            <p className="text-muted-foreground text-[11px]">
-              {m.stream}, Sem {m.semester}
-            </p>
-            <div className="text-muted-foreground flex flex-col gap-0.5 text-[11px]">
-              <span className="flex items-center gap-1">
-                <Mail className="size-3" /> {m.email}
-              </span>
-              <span className="flex items-center gap-1">
-                <Phone className="size-3" /> {m.mobile}
-              </span>
-            </div>
+    <div className="flex flex-col rounded-xl bg-muted/40 border border-border/50 overflow-hidden">
+      <div className="bg-muted/80 px-4 py-3 border-b border-border/50">
+        <h4 className="text-xs font-semibold tracking-tight">{title}</h4>
+      </div>
+      <div className="flex-1 p-3 sm:p-4 space-y-3 min-h-[150px]">
+        {members.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-4 border-2 border-dashed border-border/50 rounded-lg bg-background/50">
+            <p className="text-muted-foreground text-xs font-medium">Empty</p>
           </div>
-        ))
-      )}
+        ) : (
+          members.map((m) => (
+            <Card key={m.id} className="shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="space-y-3 p-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-bold leading-tight">{m.name}</p>
+                  <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider">
+                    {m.stream} • Sem {m.semester}
+                  </p>
+                </div>
+                <div className="text-muted-foreground flex flex-col gap-1.5 text-xs bg-muted/30 p-2 rounded-md">
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <Mail className="size-3 shrink-0" />
+                    <span className="truncate">{m.email}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <Phone className="size-3 shrink-0" />
+                    <span className="truncate">{m.mobile}</span>
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 }

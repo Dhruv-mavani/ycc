@@ -2,63 +2,73 @@ import { requirePartnerOfType } from "@/lib/auth";
 import { PartnerHeader } from "@/components/registration/partner-header";
 import { PartnerReviewPanel } from "@/components/registration/partner-review-panel";
 import { TeamManagementPanel } from "@/components/registration/team-management-panel";
+import { WhatsappJoinGate } from "@/components/registration/whatsapp-join-gate";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default async function ClassPartnerPage() {
   const access = await requirePartnerOfType("class");
+
+  if (!access.application.whatsappJoinedAt) {
+    return (
+      <WhatsappJoinGate title="Class Partner" partnerName={access.application.name} />
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
       <PartnerHeader title="Class Partner" partnerName={access.application.name} />
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto max-w-4xl space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Welcome, {access.application.name}</CardTitle>
-              <CardDescription>
-                You&apos;re an approved YCC Class Partner.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
+          <div className="relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+            <div className="relative p-6 sm:p-8 flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                  Welcome, {access.application.name}
+                </h1>
+                <p className="text-muted-foreground text-sm sm:text-base">
+                  You&apos;re an approved YCC Class Partner.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6 pt-4 border-t border-border/50">
+                <div className="space-y-1.5">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">
                     Your team code
                   </p>
-                  <Badge variant="secondary" className="mt-1 font-mono text-sm">
-                    {access.application.teamCode ?? "Generating…"}
-                  </Badge>
+                  <div className="inline-flex items-center gap-2 rounded-md bg-secondary/50 px-3 py-1.5 border border-border/50">
+                    <span className="font-mono text-sm font-bold text-foreground">
+                      {access.application.teamCode ?? "Generating…"}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                <div className="space-y-1.5">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">
                     Your entry ID
                   </p>
-                  <Badge variant="secondary" className="mt-1 font-mono text-sm">
-                    {access.application.uniqueId ?? "Generating…"}
-                  </Badge>
+                  <div className="inline-flex items-center gap-2 rounded-md bg-secondary/50 px-3 py-1.5 border border-border/50">
+                    <span className="font-mono text-sm font-bold text-foreground">
+                      {access.application.uniqueId ?? "Generating…"}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <p className="text-muted-foreground text-xs">
-                Share your team code with your Classmate Partners — they&apos;ll
-                enter it on their application to join your team.
-              </p>
-              <Button nativeButton={false} render={
-                <a href="/api/partner-program/certificate">
-                  <Download className="size-4" />
-                  Download certificate
-                </a>
-              } />
-            </CardContent>
-          </Card>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                <p className="text-muted-foreground text-xs leading-relaxed max-w-md">
+                  Share your team code with your Classmate Partners — they&apos;ll
+                  enter it on their application to join your team.
+                </p>
+                <Button className="w-full sm:w-auto shadow-sm group" nativeButton={false} render={
+                  <a href="/api/partner-program/certificate">
+                    <Download className="size-4 mr-2 group-hover:-translate-y-0.5 transition-transform" />
+                    Download Certificate
+                  </a>
+                } />
+              </div>
+            </div>
+          </div>
 
           <div className="space-y-3">
             <h2 className="text-lg font-semibold">
