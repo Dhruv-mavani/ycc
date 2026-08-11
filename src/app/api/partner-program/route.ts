@@ -33,10 +33,11 @@ export async function POST(request: Request) {
   const input = parsed.data;
   const admin = createAdminClient();
 
-  // Classmate Partners don't collect a college — everyone else must pick
-  // a real one (validated by partnerProgramApplicationSchema too).
+  // Only YCC Co-Partner (class) applications collect a college — YCC
+  // Partners and Classmate Partners don't (validated by
+  // partnerProgramApplicationSchema too).
   let collegeId: string | null = null;
-  if (input.partnerType !== "classmate") {
+  if (input.partnerType === "class") {
     if (!input.collegeId) {
       return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
     }
@@ -97,9 +98,7 @@ export async function POST(request: Request) {
       instagram_handle: input.instagramHandle,
       referred_by: input.partnerType === "campus" ? input.referredBy || null : null,
       referred_by_id: input.partnerType === "campus" ? null : input.referredById,
-      agreement_q1: input.agreementQ1,
-      agreement_q2: input.agreementQ2,
-      agreement_q3: input.agreementQ3,
+      agreed_to_terms: input.agreedToTerms,
     })
     .select("id")
     .single();

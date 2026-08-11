@@ -15,8 +15,6 @@ export type StaffStatus = "pending" | "approved" | "rejected";
 export type PartnerType = "campus" | "class" | "classmate";
 export type PartnerApplicationStatus = "pending" | "approved" | "rejected";
 export type PartnerTeam = "A" | "B";
-export type AgreementYesNo = "Yes" | "No";
-export type AgreementYesAbsolutelyNo = "Yes, Absolutely" | "No";
 
 export interface Database {
   public: {
@@ -266,9 +264,7 @@ export interface Database {
           team_a_registration_id: string | null;
           team_b_registration_id: string | null;
           dues_paid: boolean;
-          agreement_q1: AgreementYesNo;
-          agreement_q2: AgreementYesNo;
-          agreement_q3: AgreementYesAbsolutelyNo;
+          agreed_to_terms: boolean;
           created_at: string;
         };
         Insert: {
@@ -297,9 +293,7 @@ export interface Database {
           team_a_registration_id?: string | null;
           team_b_registration_id?: string | null;
           dues_paid?: boolean;
-          agreement_q1: AgreementYesNo;
-          agreement_q2: AgreementYesNo;
-          agreement_q3: AgreementYesAbsolutelyNo;
+          agreed_to_terms: boolean;
           created_at?: string;
         };
         Update: Partial<

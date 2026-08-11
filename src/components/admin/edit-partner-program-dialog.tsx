@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -39,9 +40,7 @@ interface PartnerProgramApplication {
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;
-  agreement_q1: string;
-  agreement_q2: string;
-  agreement_q3: string;
+  agreed_to_terms: boolean;
   partner_type: PartnerType;
   status: PartnerApplicationStatus;
   created_at: string;
@@ -81,9 +80,7 @@ export function EditPartnerProgramDialog({
       mobile: application.mobile,
       instagramHandle: application.instagram_handle,
       referredBy: application.referred_by ?? "",
-      agreementQ1: application.agreement_q1 as PartnerProgramApplicationUpdateInput["agreementQ1"],
-      agreementQ2: application.agreement_q2 as PartnerProgramApplicationUpdateInput["agreementQ2"],
-      agreementQ3: application.agreement_q3 as PartnerProgramApplicationUpdateInput["agreementQ3"],
+      agreedToTerms: application.agreed_to_terms,
     });
   }, [application, reset]);
 
@@ -171,59 +168,28 @@ export function EditPartnerProgramDialog({
             <Input {...register("referredBy")} />
           </Field>
 
-          <div className="grid grid-cols-3 gap-3">
-            <Controller
-              control={control}
-              name="agreementQ1"
-              render={({ field }) => (
-                <Field label="Q1" error={errors.agreementQ1?.message}>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="—" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Yes">Yes</SelectItem>
-                      <SelectItem value="No">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
-            />
-            <Controller
-              control={control}
-              name="agreementQ2"
-              render={({ field }) => (
-                <Field label="Q2" error={errors.agreementQ2?.message}>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="—" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Yes">Yes</SelectItem>
-                      <SelectItem value="No">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
-            />
-            <Controller
-              control={control}
-              name="agreementQ3"
-              render={({ field }) => (
-                <Field label="Q3" error={errors.agreementQ3?.message}>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="—" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Yes, Absolutely">Yes, Absolutely</SelectItem>
-                      <SelectItem value="No">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
-            />
-          </div>
+          <Controller
+            control={control}
+            name="agreedToTerms"
+            render={({ field }) => (
+              <div className="flex items-center gap-2.5">
+                <Checkbox
+                  id="edit-agreedToTerms"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  aria-invalid={!!errors.agreedToTerms}
+                />
+                <Label htmlFor="edit-agreedToTerms" className="font-normal">
+                  Agreed to Partner Program T&amp;C
+                </Label>
+              </div>
+            )}
+          />
+          {errors.agreedToTerms ? (
+            <p className="text-destructive text-xs">
+              {errors.agreedToTerms.message}
+            </p>
+          ) : null}
 
           <DialogFooter>
             <Button

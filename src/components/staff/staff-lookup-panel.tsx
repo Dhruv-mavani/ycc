@@ -106,15 +106,16 @@ export function StaffLookupPanel({
     runSearch(text);
   }
 
-  async function toggleAttendance(participantId: string, next: boolean) {
+  async function toggleAttendance(participantIds: string[], next: boolean) {
     const status = next ? "present" : "absent";
+    const idSet = new Set(participantIds);
 
     // Optimistic update
     setResults((prev) =>
       prev.map((reg) => ({
         ...reg,
         participants: reg.participants.map((p) =>
-          p.id === participantId ? { ...p, attendanceStatus: status } : p,
+          idSet.has(p.id) ? { ...p, attendanceStatus: status } : p,
         ),
       })),
     );
@@ -122,7 +123,7 @@ export function StaffLookupPanel({
     const res = await fetch("/api/attendance", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ participantId, status }),
+      body: JSON.stringify({ participantIds, status }),
     });
 
     if (!res.ok) {
@@ -131,7 +132,7 @@ export function StaffLookupPanel({
         prev.map((reg) => ({
           ...reg,
           participants: reg.participants.map((p) =>
-            p.id === participantId
+            idSet.has(p.id)
               ? { ...p, attendanceStatus: next ? "absent" : "present" }
               : p,
           ),
@@ -406,57 +407,73 @@ export function StaffLookupPanel({
                 <CardTitle className="text-xl">{reg.teamName ?? reg.participants[0]?.name}</CardTitle>
                 <Badge variant="secondary" className="w-fit bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">{reg.eventName}</Badge>
               </div>
-              <CardDescription className="text-sm font-medium mt-1">{reg.collegeName}</CardDescription>
+              <CardDescription className="text-sm font-medium mt-1">
+                {reg.collegeName}
+                {reg.type === "team" ? (
+                  <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                    Mark the captain present to check in the whole team.
+                  </span>
+                ) : null}
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              {reg.participants.map((p) => (
-                <div
-                  key={p.id}
-                  className={cn(
-                    "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b last:border-b-0 transition-colors",
-                    p.attendanceStatus === "present" ? "bg-emerald-50/50 dark:bg-emerald-950/10" : "hover:bg-muted/30"
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={cn(
-                      "p-2 rounded-full mt-1",
-                      p.attendanceStatus === "present" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400" : "bg-muted text-muted-foreground"
-                    )}>
-                      {p.attendanceStatus === "present" ? <UserCheck className="size-5" /> : <UserX className="size-5" />}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-base font-semibold text-foreground break-words max-w-full">
-                          {p.name}
-                        </p>
-                        {p.isCaptain ? (
-                          <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 px-1.5 py-0 whitespace-nowrap">
-                            <Crown className="size-3 mr-1" /> Captain
-                          </Badge>
-                        ) : null}
+              {reg.participants.map((p) => {
+                const canToggle = reg.type === "individual" || p.isCaptain;
+                const allParticipantIds = reg.participants.map((m) => m.id);
+                return (
+                  <div
+                    key={p.id}
+                    className={cn(
+                      "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b last:border-b-0 transition-colors",
+                      p.attendanceStatus === "present" ? "bg-emerald-50/50 dark:bg-emerald-950/10" : "hover:bg-muted/30"
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        "p-2 rounded-full mt-1",
+                        p.attendanceStatus === "present" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400" : "bg-muted text-muted-foreground"
+                      )}>
+                        {p.attendanceStatus === "present" ? <UserCheck className="size-5" /> : <UserX className="size-5" />}
                       </div>
-                      <p className="text-muted-foreground font-mono text-sm mt-0.5">
-                        {p.uniqueId}
-                      </p>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-base font-semibold text-foreground break-words max-w-full">
+                            {p.name}
+                          </p>
+                          {p.isCaptain ? (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 px-1.5 py-0 whitespace-nowrap">
+                              <Crown className="size-3 mr-1" /> Captain
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <p className="text-muted-foreground font-mono text-sm mt-0.5">
+                          {p.uniqueId}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 self-end sm:self-auto shrink-0 bg-background rounded-lg border p-2 sm:p-0 sm:border-0 sm:bg-transparent">
+                      <span className={cn(
+                        "text-sm font-semibold uppercase tracking-wider",
+                        p.attendanceStatus === "present" ? "text-emerald-600" : "text-muted-foreground"
+                      )}>
+                        {p.attendanceStatus === "present" ? "Present" : "Absent"}
+                      </span>
+                      {canToggle ? (
+                        <Switch
+                          checked={p.attendanceStatus === "present"}
+                          onCheckedChange={(checked) =>
+                            toggleAttendance(
+                              reg.type === "team" ? allParticipantIds : [p.id],
+                              checked,
+                            )
+                          }
+                          className={p.attendanceStatus === "present" ? "data-[state=checked]:bg-emerald-500" : ""}
+                        />
+                      ) : null}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 self-end sm:self-auto shrink-0 bg-background rounded-lg border p-2 sm:p-0 sm:border-0 sm:bg-transparent">
-                    <span className={cn(
-                      "text-sm font-semibold uppercase tracking-wider",
-                      p.attendanceStatus === "present" ? "text-emerald-600" : "text-muted-foreground"
-                    )}>
-                      {p.attendanceStatus === "present" ? "Present" : "Absent"}
-                    </span>
-                    <Switch
-                      checked={p.attendanceStatus === "present"}
-                      onCheckedChange={(checked) =>
-                        toggleAttendance(p.id, checked)
-                      }
-                      className={p.attendanceStatus === "present" ? "data-[state=checked]:bg-emerald-500" : ""}
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         ))}

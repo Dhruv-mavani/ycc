@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -22,6 +23,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   partnerProgramApplicationSchema,
   type PartnerProgramApplicationInput,
@@ -51,6 +58,7 @@ export function PartnerProgramApplicationForm({
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const {
     register,
@@ -72,22 +80,17 @@ export function PartnerProgramApplicationForm({
       instagramHandle: "",
       referredBy: "",
       referredById: undefined,
-      agreementQ1: "" as PartnerProgramApplicationInput["agreementQ1"],
-      agreementQ2: "" as PartnerProgramApplicationInput["agreementQ2"],
-      agreementQ3: "" as PartnerProgramApplicationInput["agreementQ3"],
+      agreedToTerms: false,
     },
   });
 
-  const selectedCollegeId = useWatch({ control, name: "collegeId" });
-  const filteredReferrerOptions = referrerOptions.filter(
-    (r) => r.college_id === selectedCollegeId,
-  );
+  const agreedToTerms = useWatch({ control, name: "agreedToTerms" });
 
   const typeLabel =
     partnerType === "campus"
-      ? "Campus Partner"
+      ? "YCC Partner"
       : partnerType === "class"
-        ? "Class Partner"
+        ? "YCC Co-Partner"
         : "Classmate Partner";
   const scopeText =
     partnerType === "campus"
@@ -190,7 +193,7 @@ export function PartnerProgramApplicationForm({
               </button>
             </div>
           </Field>
-          {partnerType !== "classmate" ? (
+          {partnerType === "class" ? (
             <>
               <Field label="College" error={errors.collegeId?.message}>
                 <Controller
@@ -243,7 +246,7 @@ export function PartnerProgramApplicationForm({
           </Field>
           {partnerType === "campus" ? (
             <Field
-              label="Name of YCC Campus Partner (referred you) — optional"
+              label="Name of YCC Partner (referred you) — optional"
               error={errors.referredBy?.message}
             >
               <Input {...register("referredBy")} />
@@ -259,20 +262,14 @@ export function PartnerProgramApplicationForm({
                 render={({ field }) => (
                   <Select value={field.value ?? ""} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
-                      <SelectValue
-                        placeholder={
-                          selectedCollegeId
-                            ? `Select your ${referrerLabel}`
-                            : "Select your college first"
-                        }
-                      >
+                      <SelectValue placeholder={`Select your ${referrerLabel}`}>
                         {(value: string | null) =>
                           referrerOptions.find((o) => o.id === value)?.name ?? null
                         }
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredReferrerOptions.map((r) => (
+                      {referrerOptions.map((r) => (
                         <SelectItem key={r.id} value={r.id}>
                           {r.name}
                         </SelectItem>
@@ -281,15 +278,15 @@ export function PartnerProgramApplicationForm({
                   </Select>
                 )}
               />
-              {selectedCollegeId && filteredReferrerOptions.length === 0 ? (
+              {referrerOptions.length === 0 ? (
                 <p className="text-muted-foreground text-xs">
-                  No approved {referrerLabel}s found for your college yet.
+                  No approved {referrerLabel}s yet.
                 </p>
               ) : null}
             </Field>
           ) : (
             <Field
-              label="Your Class Partner's team code"
+              label="Your YCC Co-Partner's team code"
               error={errors.referredById?.message}
             >
               <Controller
@@ -309,80 +306,77 @@ export function PartnerProgramApplicationForm({
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>A few quick agreements</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <AgreementField
-            label={`Selected ${typeLabel}s will receive exclusive benefits, incentives, and commission & partner program opportunities based on their work and performance.`}
-            error={errors.agreementQ1?.message}
-          >
-            <Controller
-              control={control}
-              name="agreementQ1"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select an option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Yes">Yes</SelectItem>
-                    <SelectItem value="No">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </AgreementField>
-
-          <AgreementField
-            label={`Do you agree to work with YCC as a ${typeLabel.toLowerCase()} and assisting with all the requirements to promote our campaigns and events ${scopeText}?`}
-            error={errors.agreementQ2?.message}
-          >
-            <Controller
-              control={control}
-              name="agreementQ2"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select an option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Yes">Yes</SelectItem>
-                    <SelectItem value="No">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </AgreementField>
-
-          <AgreementField
-            label={`We believe every YCC ${typeLabel} should actively participate in YCC events and support our initiatives. Quote: Great leaders lead by example, We believe every Founder and Partner should support, use, and represent our services before encouraging others to join.`}
-            error={errors.agreementQ3?.message}
-          >
-            <Controller
-              control={control}
-              name="agreementQ3"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select an option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Yes, Absolutely">
-                      Yes, Absolutely
-                    </SelectItem>
-                    <SelectItem value="No">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </AgreementField>
+        <CardContent>
+          <Controller
+            control={control}
+            name="agreedToTerms"
+            render={({ field }) => (
+              <div className="flex items-start gap-2.5">
+                <Checkbox
+                  id="agreedToTerms"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  aria-invalid={!!errors.agreedToTerms}
+                  className="mt-0.5"
+                />
+                <div className="space-y-1.5">
+                  <Label htmlFor="agreedToTerms" className="font-normal">
+                    I agree to the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setTermsOpen(true)}
+                      className="font-medium text-primary underline underline-offset-2"
+                    >
+                      T&amp;C
+                    </button>
+                    <span className="text-destructive"> *</span>
+                  </Label>
+                  {errors.agreedToTerms ? (
+                    <p className="text-destructive text-xs">
+                      {errors.agreedToTerms.message}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            )}
+          />
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isSubmitting || !agreedToTerms}
+      >
         {isSubmitting ? "Submitting..." : "Submit application"}
       </Button>
+
+      <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Partner Program Terms &amp; Conditions</DialogTitle>
+          </DialogHeader>
+          <ul className="list-disc space-y-3 pl-5 text-sm text-muted-foreground">
+            <li>
+              Selected {typeLabel}s will receive exclusive benefits,
+              incentives, and commission &amp; partner program opportunities
+              based on their work and performance.
+            </li>
+            <li>
+              By applying, you agree to work with YCC as a {typeLabel} and to
+              assist with all the requirements to promote our campaigns and
+              events {scopeText}.
+            </li>
+            <li>
+              We believe every YCC {typeLabel} should actively participate in
+              YCC events and support our initiatives. Great leaders lead by
+              example — we believe every Founder and Partner should support,
+              use, and represent our services before encouraging others to
+              join.
+            </li>
+          </ul>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }
@@ -438,28 +432,10 @@ function TeamCodeField({
           </p>
         ) : (
           <p className="text-destructive text-xs">
-            No Class Partner found with that code.
+            No YCC Co-Partner found with that code.
           </p>
         )
       ) : null}
-    </div>
-  );
-}
-
-function AgreementField({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      {children}
-      {error ? <p className="text-destructive text-xs">{error}</p> : null}
     </div>
   );
 }

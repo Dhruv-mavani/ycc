@@ -12,10 +12,8 @@ const partnerProgramFieldsSchema = z.object({
   mobile: phoneSchema,
   instagramHandle: z.string().trim().min(1, "Required").max(100),
   referredBy: z.string().trim().max(150).optional(),
-  agreementQ1: z.enum(["Yes", "No"], { message: "Please select an option" }),
-  agreementQ2: z.enum(["Yes", "No"], { message: "Please select an option" }),
-  agreementQ3: z.enum(["Yes, Absolutely", "No"], {
-    message: "Please select an option",
+  agreedToTerms: z.boolean().refine((v) => v === true, {
+    message: "You must agree to the Partner Program terms to continue",
   }),
 });
 
@@ -25,11 +23,10 @@ const partnerProgramFieldsSchema = z.object({
 // to the right partner above them in the hierarchy.
 export const partnerProgramApplicationSchema = partnerProgramFieldsSchema
   .extend({
-    // Classmate Partners represent tournament participants open to
-    // everyone, not just college students — their Class Partner's team
-    // code is what links them to a team, not a college — so these stay
-    // required for campus/class applications (enforced below) but are
-    // optional here.
+    // Only YCC Co-Partner (class) applications collect a college — YCC
+    // Partner (campus) applications no longer scope to one, and Classmate
+    // Partners link to a team via their Co-Partner's team code instead —
+    // so these stay optional here and are required below only for "class".
     collegeId: z.string().uuid({ message: "Select your college" }).optional(),
     stream: z.string().trim().max(150).optional(),
     semester: z.string().trim().max(50).optional(),
@@ -46,15 +43,15 @@ export const partnerProgramApplicationSchema = partnerProgramFieldsSchema
     message: "Select who referred you",
     path: ["referredById"],
   })
-  .refine((data) => data.partnerType === "classmate" || !!data.collegeId, {
+  .refine((data) => data.partnerType !== "class" || !!data.collegeId, {
     message: "Select your college",
     path: ["collegeId"],
   })
-  .refine((data) => data.partnerType === "classmate" || !!data.stream?.trim(), {
+  .refine((data) => data.partnerType !== "class" || !!data.stream?.trim(), {
     message: "Required",
     path: ["stream"],
   })
-  .refine((data) => data.partnerType === "classmate" || !!data.semester?.trim(), {
+  .refine((data) => data.partnerType !== "class" || !!data.semester?.trim(), {
     message: "Required",
     path: ["semester"],
   });

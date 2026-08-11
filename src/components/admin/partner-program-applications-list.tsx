@@ -29,9 +29,7 @@ interface PartnerProgramApplication {
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;
-  agreement_q1: string;
-  agreement_q2: string;
-  agreement_q3: string;
+  agreed_to_terms: boolean;
   partner_type: PartnerType;
   status: PartnerApplicationStatus;
   referred_by_id: string | null;
@@ -225,9 +223,16 @@ export function PartnerProgramApplicationsList({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
-                <Badge variant="outline">Q1: {app.agreement_q1}</Badge>
-                <Badge variant="outline">Q2: {app.agreement_q2}</Badge>
-                <Badge variant="outline">Q3: {app.agreement_q3}</Badge>
+                <Badge
+                  variant="outline"
+                  className={
+                    app.agreed_to_terms
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-destructive/10 text-destructive border-destructive/20"
+                  }
+                >
+                  {app.agreed_to_terms ? "Agreed to T&C" : "Did not agree to T&C"}
+                </Badge>
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
                 {app.status !== "approved" ? (

@@ -16,9 +16,7 @@ interface PartnerProgramApplication {
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;
-  agreement_q1: string;
-  agreement_q2: string;
-  agreement_q3: string;
+  agreed_to_terms: boolean;
   partner_type: PartnerType;
   status: PartnerApplicationStatus;
   referred_by_id: string | null;
@@ -27,15 +25,15 @@ interface PartnerProgramApplication {
 }
 
 const PARTNER_TYPES = [
-  { id: "campus", label: "Campus Partner" },
-  { id: "class", label: "Class Partner" },
+  { id: "campus", label: "YCC Partner" },
+  { id: "class", label: "YCC Co-Partner" },
   { id: "classmate", label: "Classmate Partner" },
 ] as const;
 
 const HIERARCHY_NOTE: Record<(typeof PARTNER_TYPES)[number]["id"], string> = {
-  campus: "Campus Partners are approved by an admin here.",
-  class: "Class Partners are normally approved by the Campus Partner who referred them — you can override that below.",
-  classmate: "Classmate Partners are normally approved by the Class Partner who referred them — you can override that below.",
+  campus: "YCC Partners are approved by an admin here.",
+  class: "YCC Co-Partners are normally approved by the YCC Partner who referred them — you can override that below.",
+  classmate: "Classmate Partners are normally approved by the YCC Co-Partner who referred them — you can override that below.",
 };
 
 export function PartnerProgramAdminTabs({
@@ -57,7 +55,7 @@ export function PartnerProgramAdminTabs({
       <div>
         <h1 className="text-xl font-bold">Partner program applications</h1>
         <p className="text-muted-foreground text-sm">
-          Campus Partner / Class Partner / Classmate Partner applications
+          YCC Partner / YCC Co-Partner / Classmate Partner applications
           submitted through the public form.
         </p>
       </div>

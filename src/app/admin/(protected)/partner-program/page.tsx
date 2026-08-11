@@ -10,7 +10,7 @@ export default async function AdminPartnerProgramPage() {
     admin
       .from("partner_program_applications")
       .select(
-        "id, name, email, college_id, stream, semester, mobile, instagram_handle, referred_by, referred_by_id, agreement_q1, agreement_q2, agreement_q3, partner_type, status, created_at",
+        "id, name, email, college_id, stream, semester, mobile, instagram_handle, referred_by, referred_by_id, agreed_to_terms, partner_type, status, created_at",
       )
       .order("created_at", { ascending: false }),
     admin.from("colleges").select("id, name"),

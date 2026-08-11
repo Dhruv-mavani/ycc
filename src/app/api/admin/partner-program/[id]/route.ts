@@ -49,13 +49,11 @@ export async function PATCH(
       mobile: input.mobile,
       instagram_handle: input.instagramHandle,
       referred_by: input.referredBy || null,
-      agreement_q1: input.agreementQ1,
-      agreement_q2: input.agreementQ2,
-      agreement_q3: input.agreementQ3,
+      agreed_to_terms: input.agreedToTerms,
     })
     .eq("id", id)
     .select(
-      "id, name, email, college_id, stream, semester, mobile, instagram_handle, referred_by, agreement_q1, agreement_q2, agreement_q3, partner_type, status, created_at",
+      "id, name, email, college_id, stream, semester, mobile, instagram_handle, referred_by, agreed_to_terms, partner_type, status, created_at",
     )
     .single();
 
