@@ -14,6 +14,7 @@ interface TeamStatus {
   registrationId: string | null;
   status: "pending_payment" | "confirmed" | "failed" | "cancelled" | null;
   amountPaise: number | null;
+  participants: { id: string; name: string; uniqueId: string | null }[];
 }
 
 interface StatusResponse {
@@ -124,6 +125,44 @@ function TeamRegistrationCard({
                 </a>
               }
             />
+            <div className="space-y-1.5 border-t pt-3">
+              <p className="text-muted-foreground text-xs font-medium">
+                Player ID cards
+              </p>
+              {status.participants.map((p) =>
+                p.uniqueId ? (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between gap-2 text-sm"
+                  >
+                    <span className="truncate">{p.name}</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="shrink-0"
+                      nativeButton={false}
+                      render={
+                        <a href={`/api/participants/${p.id}/id-card`}>
+                          <Download className="size-3.5" />
+                          ID card
+                        </a>
+                      }
+                    />
+                  </div>
+                ) : (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between gap-2 text-sm"
+                  >
+                    <span className="truncate">{p.name}</span>
+                    <Button size="sm" variant="ghost" className="shrink-0" disabled>
+                      <Download className="size-3.5" />
+                      ID card
+                    </Button>
+                  </div>
+                ),
+              )}
+            </div>
           </div>
         ) : status.registrationId ? (
           <div className="space-y-3">

@@ -24,15 +24,16 @@ export async function GET(
     .eq("id", registration.event_id)
     .single();
 
-  let participants: { name: string; uniqueId: string | null }[] = [];
+  let participants: { id: string; name: string; uniqueId: string | null }[] = [];
   if (registration.status === "confirmed") {
     const { data } = await admin
       .from("participants")
-      .select("name, unique_id")
+      .select("id, name, unique_id")
       .eq("registration_id", id)
       .order("is_captain", { ascending: false })
       .order("created_at");
     participants = (data ?? []).map((p) => ({
+      id: p.id,
       name: p.name,
       uniqueId: p.unique_id,
     }));

@@ -11,16 +11,34 @@ async function loadTeamStatus(
   classPartnerId: string,
   registrationId: string | null,
 ) {
-  if (!registrationId) return { registrationId: null, status: null, amountPaise: null };
+  if (!registrationId)
+    return { registrationId: null, status: null, amountPaise: null, participants: [] };
   const { data } = await admin
     .from("registrations")
     .select("id, status, amount_paise")
     .eq("id", registrationId)
     .maybeSingle();
+
+  let participants: { id: string; name: string; uniqueId: string | null }[] = [];
+  if (data?.status === "confirmed") {
+    const { data: rows } = await admin
+      .from("participants")
+      .select("id, name, unique_id")
+      .eq("registration_id", registrationId)
+      .order("is_captain", { ascending: false })
+      .order("created_at");
+    participants = (rows ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      uniqueId: p.unique_id,
+    }));
+  }
+
   return {
     registrationId: data?.id ?? null,
     status: data?.status ?? null,
     amountPaise: data?.amount_paise ?? null,
+    participants,
   };
 }
 

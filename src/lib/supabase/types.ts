@@ -26,12 +26,14 @@ export interface Database {
           id: string;
           name: string;
           initials: string;
+          city: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           name: string;
           initials: string;
+          city?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["colleges"]["Insert"]>;

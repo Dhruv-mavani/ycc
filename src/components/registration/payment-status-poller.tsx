@@ -18,7 +18,7 @@ interface StatusResponse {
   eventName: string;
   teamName: string | null;
   amountPaise: number;
-  participants: { name: string; uniqueId: string | null }[];
+  participants: { id: string; name: string; uniqueId: string | null }[];
 }
 
 export function PaymentStatusPoller({
@@ -143,6 +143,21 @@ export function PaymentStatusPoller({
                   </a>
                 }
               />
+              {!data.teamName && data.participants[0]?.uniqueId ? (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  nativeButton={false}
+                  render={
+                    <a
+                      href={`/api/participants/${data.participants[0].id}/id-card`}
+                      download
+                    >
+                      Download ID card
+                    </a>
+                  }
+                />
+              ) : null}
               <p className="text-muted-foreground text-center text-xs">
                 Lost your receipt later?{" "}
                 <Link href="/receipt" className="underline">
