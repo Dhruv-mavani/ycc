@@ -265,7 +265,7 @@ export function StaffLookupPanel({
                     variant="outline"
                     className="bg-amber-50 text-amber-600 border-amber-200 whitespace-nowrap"
                   >
-                    Class Partner (Captain)
+                    YCC Co-Partner (Captain)
                   </Badge>
                 </CardTitle>
                 <Badge variant="secondary" className="w-fit bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 font-mono">

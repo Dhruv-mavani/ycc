@@ -73,9 +73,9 @@ export default async function EventDetailPage({
         <div className="mt-8 space-y-3 rounded-lg border border-dashed p-4 text-sm">
           <p className="text-muted-foreground">
             Registration for this event is exclusively through the YCC
-            Partner Program — a Class Partner registers their own team
+            Partner Program — a YCC Co-Partner registers their own team
             (themselves + 5 approved Classmate Partners). To join a team,
-            ask your Class Partner for their team code and apply as a
+            ask your YCC Co-Partner for their team code and apply as a
             Classmate Partner.
           </p>
           <Button

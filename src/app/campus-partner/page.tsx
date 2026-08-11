@@ -9,13 +9,13 @@ export default async function CampusPartnerPage() {
 
   if (!access.application.whatsappJoinedAt) {
     return (
-      <WhatsappJoinGate title="Campus Partner" partnerName={access.application.name} />
+      <WhatsappJoinGate title="YCC Partner" partnerName={access.application.name} />
     );
   }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PartnerHeader title="Campus Partner" partnerName={access.application.name} />
+      <PartnerHeader title="YCC Partner" partnerName={access.application.name} />
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
@@ -25,16 +25,16 @@ export default async function CampusPartnerPage() {
                 Welcome, {access.application.name}
               </h1>
               <p className="text-muted-foreground text-sm sm:text-base">
-                You&apos;re an approved YCC Campus Partner.
+                You&apos;re an approved YCC Partner.
               </p>
             </div>
           </div>
 
           <div className="space-y-3">
             <h2 className="text-lg font-semibold">
-              Class Partner applications referred by you
+              YCC Co-Partner applications referred by you
             </h2>
-            <PartnerReviewPanel childLabel="Class Partner" />
+            <PartnerReviewPanel childLabel="YCC Co-Partner" />
           </div>
 
           <div className="space-y-3">
@@ -42,7 +42,7 @@ export default async function CampusPartnerPage() {
               Classmate Partners &amp; team assignments
             </h2>
             <p className="text-muted-foreground text-sm">
-              Team sorting is managed by each Class Partner — shown here for
+              Team sorting is managed by each YCC Co-Partner — shown here for
               visibility.
             </p>
             <ClassPartnerTeamsOverview />

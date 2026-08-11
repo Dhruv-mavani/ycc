@@ -5,8 +5,8 @@ import type { PartnerType } from "@/lib/supabase/types";
 
 const REVIEWER_TEXT: Record<PartnerType, string> = {
   campus: "an admin",
-  class: "the Campus Partner who referred you",
-  classmate: "the Class Partner who referred you",
+  class: "the YCC Partner who referred you",
+  classmate: "the YCC Co-Partner who referred you",
 };
 
 const DASHBOARD_PATH: Record<PartnerType, string> = {

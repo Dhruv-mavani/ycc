@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createTeamRegistration } from "@/lib/create-team-registration";
 import type { PartnerTeam } from "@/lib/supabase/types";
 
-const REQUIRED_TEAMMATES = 5; // Class Partner (captain) + 5 = squad of 6
+const REQUIRED_TEAMMATES = 5; // YCC Co-Partner (captain) + 5 = squad of 6
 
 async function loadTeamStatus(
   admin: ReturnType<typeof createAdminClient>,
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
 
   if (!self.college_id) {
     return NextResponse.json(
-      { error: "Your Class Partner application is missing a college" },
+      { error: "Your YCC Co-Partner application is missing a college" },
       { status: 400 },
     );
   }

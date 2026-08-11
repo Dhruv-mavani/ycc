@@ -8,7 +8,7 @@ export async function POST(
 ) {
   const access = await getPartnerAccessStatus();
 
-  // Only a Class Partner sorts their Classmate Partners into teams.
+  // Only a YCC Co-Partner sorts their Classmate Partners into teams.
   if (access.state !== "approved" || access.application.partnerType !== "class") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

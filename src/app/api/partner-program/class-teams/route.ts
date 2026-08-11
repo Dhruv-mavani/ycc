@@ -3,8 +3,8 @@ import { getPartnerAccessStatus } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Read-only view for a Campus Partner: each of their Class Partner
- * reportees, together with that Class Partner's own Classmate Partner
+ * Read-only view for a YCC Partner: each of their YCC Co-Partner
+ * reportees, together with that YCC Co-Partner's own Classmate Partner
  * reportees (name/contact/team) — one level deeper than the regular
  * reportees endpoint, which only ever returns direct children.
  */

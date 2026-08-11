@@ -24,7 +24,7 @@ export interface LookupClassPartner {
 /**
  * Mirrors searchParticipants' shape/fast-path but over the partner-program
  * hierarchy: an exact team_code or unique_id match (the QR-scan fast path)
- * first, then a fuzzy name/mobile/code match. Only approved Class Partners
+ * first, then a fuzzy name/mobile/code match. Only approved YCC Co-Partners
  * are searchable — scanning/searching a captain surfaces their whole
  * approved Classmate Partner roster, same "search one, see the team"
  * pattern as the participant lookup.

@@ -43,7 +43,7 @@ export function ClassPartnerTeamsOverview() {
   if (classPartners.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
-        No Class Partners have named you as their referrer yet.
+        No YCC Co-Partners have named you as their referrer yet.
       </p>
     );
   }

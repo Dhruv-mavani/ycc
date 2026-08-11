@@ -9,8 +9,8 @@ function generateTeamCode(name: string, mobile: string): string {
 }
 
 /**
- * Runs once, the moment a Class Partner application is approved (by admin
- * or by their Campus Partner) — generates their team_code (QR payload +
+ * Runs once, the moment a YCC Co-Partner application is approved (by admin
+ * or by their YCC Partner) — generates their team_code (QR payload +
  * the code Classmate Partners enter to join) and personal unique_id
  * (event-day check-in, via allocate_partner_unique_id). Safe to call
  * repeatedly: skips whichever part is already set.

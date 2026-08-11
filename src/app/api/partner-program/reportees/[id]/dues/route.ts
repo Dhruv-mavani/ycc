@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getPartnerAccessStatus } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Lets a Class Partner check/uncheck whether a Classmate Partner has paid
+// Lets a YCC Co-Partner check/uncheck whether a Classmate Partner has paid
 // them their share of the team fee — separate bookkeeping from the actual
 // Razorpay payment, which the captain makes as one lump sum per team.
 export async function POST(

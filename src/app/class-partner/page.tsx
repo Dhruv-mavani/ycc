@@ -12,13 +12,13 @@ export default async function ClassPartnerPage() {
 
   if (!access.application.whatsappJoinedAt) {
     return (
-      <WhatsappJoinGate title="Class Partner" partnerName={access.application.name} />
+      <WhatsappJoinGate title="YCC Co-Partner" partnerName={access.application.name} />
     );
   }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PartnerHeader title="Class Partner" partnerName={access.application.name} />
+      <PartnerHeader title="YCC Co-Partner" partnerName={access.application.name} />
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
@@ -29,7 +29,7 @@ export default async function ClassPartnerPage() {
                   Welcome, {access.application.name}
                 </h1>
                 <p className="text-muted-foreground text-sm sm:text-base">
-                  You&apos;re an approved YCC Class Partner.
+                  You&apos;re an approved YCC Co-Partner.
                 </p>
               </div>
 

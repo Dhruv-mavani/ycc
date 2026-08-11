@@ -324,11 +324,11 @@ function ClassPartnerCertificateDocument({
       <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
         <CertificateArt />
 
-        <Text style={styles.greeting}>Dear Class Partner</Text>
+        <Text style={styles.greeting}>Dear YCC Co-Partner</Text>
         <Text style={styles.name}>{data.name}</Text>
 
         <Text style={styles.body}>
-          You are warmly invited to serve as a Class Partner for our
+          You are warmly invited to serve as a YCC Co-Partner for our
           Exclusive YCC Cricket League — Box Cricket Tournament. Your
           leadership and your classmates&apos; participation will make this
           tournament even more special.
@@ -340,7 +340,7 @@ function ClassPartnerCertificateDocument({
         <Text style={styles.stubYcc}>YCC</Text>
         <Text style={styles.stubYccSub}>CRICKET LEAGUE</Text>
         <Text style={styles.stubExclusive}>EXCLUSIVE</Text>
-        <Text style={styles.stubPass1}>CLASS PARTNER</Text>
+        <Text style={styles.stubPass1}>CO-PARTNER</Text>
         <Text style={styles.stubPass2}>PASS</Text>
 
         {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}

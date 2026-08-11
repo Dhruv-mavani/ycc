@@ -24,7 +24,7 @@ export type TeamRegistrationResult =
 /**
  * Creates a `registrations` row + one `participants` row per player, for a
  * team ("cricket") registration. Shared by the public registration API
- * (src/app/api/registrations/route.ts) and the Class Partner team
+ * (src/app/api/registrations/route.ts) and the YCC Co-Partner team
  * registration route, which builds its player list from already-approved
  * Classmate Partner records instead of a fresh form — both need identical
  * downstream behavior (GST calc, pending_payment status, Razorpay flow).

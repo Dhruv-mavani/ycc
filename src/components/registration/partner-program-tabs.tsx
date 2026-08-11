@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PartnerProgramApplicationForm } from "@/components/registration/partner-program-application-form";
 import { PartnerLoginForm } from "@/components/registration/partner-login-form";
@@ -17,20 +18,23 @@ interface ReferrerOption {
 const PARTNER_TYPES = [
   {
     id: "campus",
-    label: "Campus Partner",
-    heading: "Campus Partner Program",
+    slug: "YCC-partner",
+    label: "YCC Partner",
+    heading: "YCC Partner Program",
     description:
-      "Apply to become a YCC Campus Partner and help us bring events to your college. Fill in your details below.",
+      "Apply to become a YCC Partner and help us bring events to your college. Fill in your details below.",
   },
   {
     id: "class",
-    label: "Class Partner",
-    heading: "Class Partner Program",
+    slug: "YCC-Co-partner",
+    label: "YCC Co-Partner",
+    heading: "YCC Co-Partner Program",
     description:
-      "Apply to become a YCC Class Partner and help us bring events to your class. Fill in your details below.",
+      "Apply to become a YCC Co-Partner and help us bring events to your class. Fill in your details below.",
   },
   {
     id: "classmate",
+    slug: "Classmate-partner",
     label: "Classmate Partner",
     heading: "Classmate Partner Program",
     description:
@@ -39,17 +43,20 @@ const PARTNER_TYPES = [
 ] as const;
 
 export function PartnerProgramTabs({
+  initialType,
   colleges,
   campusPartners,
   classPartners,
 }: {
+  initialType: (typeof PARTNER_TYPES)[number]["id"];
   colleges: { id: string; name: string }[];
   campusPartners: ReferrerOption[];
   classPartners: ReferrerOption[];
 }) {
+  const router = useRouter();
   const [activeId, setActiveId] =
-    useState<(typeof PARTNER_TYPES)[number]["id"]>("campus");
-  const [mode, setMode] = useState<"apply" | "login" | "forgot">("login");
+    useState<(typeof PARTNER_TYPES)[number]["id"]>(initialType);
+  const [mode, setMode] = useState<"apply" | "login" | "forgot">("apply");
   const active = PARTNER_TYPES.find((t) => t.id === activeId)!;
 
   const referrerOptions =
@@ -58,7 +65,7 @@ export function PartnerProgramTabs({
       : activeId === "classmate"
         ? classPartners
         : [];
-  const referrerLabel = activeId === "class" ? "Campus Partner" : "Class Partner";
+  const referrerLabel = activeId === "class" ? "YCC Partner" : "YCC Co-Partner";
 
   if (mode === "forgot") {
     return (
@@ -122,7 +129,10 @@ export function PartnerProgramTabs({
             type="button"
             size="sm"
             variant={type.id === activeId ? "default" : "ghost"}
-            onClick={() => setActiveId(type.id)}
+            onClick={() => {
+              setActiveId(type.id);
+              router.push(`/partner-program/${type.slug}`);
+            }}
             aria-pressed={type.id === activeId}
           >
             {type.label}
