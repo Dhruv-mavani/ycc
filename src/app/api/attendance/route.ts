@@ -9,24 +9,27 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const participantId = body?.participantId;
+  const participantIds = body?.participantIds;
   const status = body?.status;
 
   if (
-    typeof participantId !== "string" ||
+    !Array.isArray(participantIds) ||
+    participantIds.length === 0 ||
+    !participantIds.every((id) => typeof id === "string") ||
     (status !== "present" && status !== "absent")
   ) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
   const admin = createAdminClient();
+  const markedAt = new Date().toISOString();
   const { error } = await admin.from("attendance").upsert(
-    {
+    participantIds.map((participantId: string) => ({
       participant_id: participantId,
       status,
       marked_by: session.userId,
-      marked_at: new Date().toISOString(),
-    },
+      marked_at: markedAt,
+    })),
     { onConflict: "participant_id" },
   );
 
