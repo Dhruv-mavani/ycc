@@ -35,11 +35,11 @@ const PAGE_BG = "#FCFCFC";
 const BLACK_TEXT = "#0a0a0a";
 
 // QR frame — measured off the background PNG (native coords).
-const QR_CLEAR_X = 283;
-const QR_CLEAR_Y = 1128;
-const QR_CLEAR_W = 410;
-const QR_CLEAR_H = 382;
-const QR_SIZE = 340;
+const QR_CLEAR_X = 274;
+const QR_CLEAR_Y = 1125;
+const QR_CLEAR_W = 370;
+const QR_CLEAR_H = 386;
+const QR_SIZE = 335;
 const QR_X = QR_CLEAR_X + (QR_CLEAR_W - QR_SIZE) / 2;
 const QR_Y = QR_CLEAR_Y + (QR_CLEAR_H - QR_SIZE) / 2;
 
