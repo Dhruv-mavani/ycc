@@ -25,6 +25,14 @@ const partnerProgramFieldsSchema = z.object({
 // to the right partner above them in the hierarchy.
 export const partnerProgramApplicationSchema = partnerProgramFieldsSchema
   .extend({
+    // Classmate Partners represent tournament participants open to
+    // everyone, not just college students — their Class Partner's team
+    // code is what links them to a team, not a college — so these stay
+    // required for campus/class applications (enforced below) but are
+    // optional here.
+    collegeId: z.string().uuid({ message: "Select your college" }).optional(),
+    stream: z.string().trim().max(150).optional(),
+    semester: z.string().trim().max(50).optional(),
     partnerType: partnerTypeSchema,
     referredById: z.string().uuid().optional(),
     password: z.string().min(8, "Password must be at least 8 characters").max(72),
@@ -37,6 +45,18 @@ export const partnerProgramApplicationSchema = partnerProgramFieldsSchema
   .refine((data) => data.partnerType === "campus" || !!data.referredById, {
     message: "Select who referred you",
     path: ["referredById"],
+  })
+  .refine((data) => data.partnerType === "classmate" || !!data.collegeId, {
+    message: "Select your college",
+    path: ["collegeId"],
+  })
+  .refine((data) => data.partnerType === "classmate" || !!data.stream?.trim(), {
+    message: "Required",
+    path: ["stream"],
+  })
+  .refine((data) => data.partnerType === "classmate" || !!data.semester?.trim(), {
+    message: "Required",
+    path: ["semester"],
   });
 
 // Used by the admin edit dialog — doesn't touch the applicant's account or referral link.

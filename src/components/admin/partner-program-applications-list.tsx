@@ -22,10 +22,10 @@ interface PartnerProgramApplication {
   id: string;
   name: string;
   email: string;
-  college_id: string;
+  college_id: string | null;
   collegeName: string;
-  stream: string;
-  semester: string;
+  stream: string | null;
+  semester: string | null;
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;
@@ -201,13 +201,13 @@ export function PartnerProgramApplicationsList({
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Stream
                   </p>
-                  <p className="font-medium">{app.stream}</p>
+                  <p className="font-medium">{app.stream ?? "—"}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Semester
                   </p>
-                  <p className="font-medium">{app.semester}</p>
+                  <p className="font-medium">{app.semester ?? "—"}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">

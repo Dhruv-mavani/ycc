@@ -31,9 +31,9 @@ import type { PartnerType } from "@/lib/supabase/types";
 interface ReferrerOption {
   id: string;
   name: string;
-  college_id: string;
-  stream: string;
-  semester: string;
+  college_id: string | null;
+  stream: string | null;
+  semester: string | null;
   team_code?: string | null;
 }
 
@@ -190,40 +190,44 @@ export function PartnerProgramApplicationForm({
               </button>
             </div>
           </Field>
-          <Field label="College" error={errors.collegeId?.message}>
-            <Controller
-              control={control}
-              name="collegeId"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select your college">
-                      {(value: string | null) =>
-                        colleges.find((c) => c.id === value)?.name ??
-                        "Select your college"
-                      }
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {colleges.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-          <Field label="Stream / Course" error={errors.stream?.message}>
-            <Input {...register("stream")} />
-          </Field>
-          <Field
-            label="Semester / Current Year"
-            error={errors.semester?.message}
-          >
-            <Input {...register("semester")} />
-          </Field>
+          {partnerType !== "classmate" ? (
+            <>
+              <Field label="College" error={errors.collegeId?.message}>
+                <Controller
+                  control={control}
+                  name="collegeId"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select your college">
+                          {(value: string | null) =>
+                            colleges.find((c) => c.id === value)?.name ??
+                            "Select your college"
+                          }
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {colleges.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </Field>
+              <Field label="Stream / Course" error={errors.stream?.message}>
+                <Input {...register("stream")} />
+              </Field>
+              <Field
+                label="Semester / Current Year"
+                error={errors.semester?.message}
+              >
+                <Input {...register("semester")} />
+              </Field>
+            </>
+          ) : null}
           <Field label="Mobile / WhatsApp number" error={errors.mobile?.message}>
             <Input
               {...register("mobile")}

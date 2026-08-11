@@ -23,7 +23,7 @@ export async function GET() {
   const { data: reportees, error } = await admin
     .from("partner_program_applications")
     .select(
-      "id, name, email, mobile, stream, semester, instagram_handle, status, team, created_at",
+      "id, name, email, mobile, stream, semester, instagram_handle, status, team, dues_paid, created_at",
     )
     .eq("referred_by_id", access.application.id)
     .eq("partner_type", childType)

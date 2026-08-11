@@ -23,7 +23,9 @@ export default async function AdminPartnerProgramPage() {
 
   const applicationsWithCollege = (applications ?? []).map((a) => ({
     ...a,
-    collegeName: collegeNameById.get(a.college_id) ?? "Unknown college",
+    collegeName: a.college_id
+      ? (collegeNameById.get(a.college_id) ?? "Unknown college")
+      : "N/A",
     referredByName: a.referred_by_id ? (nameById.get(a.referred_by_id) ?? null) : null,
   }));
 

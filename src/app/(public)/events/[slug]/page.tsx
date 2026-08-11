@@ -69,11 +69,28 @@ export default async function EventDetailPage({
         </div>
       ) : null}
 
-      <Button
-        className="mt-8 w-full"
-        nativeButton={false}
-        render={<Link href={`/register/${event.slug}`}>Register now</Link>}
-      />
+      {event.is_partner_only ? (
+        <div className="mt-8 space-y-3 rounded-lg border border-dashed p-4 text-sm">
+          <p className="text-muted-foreground">
+            Registration for this event is exclusively through the YCC
+            Partner Program — a Class Partner registers their own team
+            (themselves + 5 approved Classmate Partners). To join a team,
+            ask your Class Partner for their team code and apply as a
+            Classmate Partner.
+          </p>
+          <Button
+            className="w-full"
+            nativeButton={false}
+            render={<Link href="/partner-program">Go to Partner Program</Link>}
+          />
+        </div>
+      ) : (
+        <Button
+          className="mt-8 w-full"
+          nativeButton={false}
+          render={<Link href={`/register/${event.slug}`}>Register now</Link>}
+        />
+      )}
     </div>
   );
 }

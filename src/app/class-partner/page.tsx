@@ -2,6 +2,7 @@ import { requirePartnerOfType } from "@/lib/auth";
 import { PartnerHeader } from "@/components/registration/partner-header";
 import { PartnerReviewPanel } from "@/components/registration/partner-review-panel";
 import { TeamManagementPanel } from "@/components/registration/team-management-panel";
+import { PartnerEventRegistrationPanel } from "@/components/registration/partner-event-registration-panel";
 import { WhatsappJoinGate } from "@/components/registration/whatsapp-join-gate";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -84,6 +85,18 @@ export default async function ClassPartnerPage() {
               them around as you like.
             </p>
             <TeamManagementPanel />
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold">
+              Register for Ycc Partners Box Cricket Championship 2026
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Once a team has exactly 5 approved Classmate Partners, register
+              and pay ₹3000 to confirm that team&apos;s tournament entry. You
+              can register Team A, Team B, or both.
+            </p>
+            <PartnerEventRegistrationPanel captainName={access.application.name} />
           </div>
         </div>
       </main>

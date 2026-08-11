@@ -90,7 +90,11 @@ export async function searchClassPartners(
 
   if (!classPartners || classPartners.length === 0) return [];
 
-  const collegeIds = [...new Set(classPartners.map((c) => c.college_id))];
+  const collegeIds = [
+    ...new Set(
+      classPartners.map((c) => c.college_id).filter((id): id is string => id !== null),
+    ),
+  ];
   const [{ data: colleges }, { data: members }] = await Promise.all([
     admin.from("colleges").select("id, name").in("id", collegeIds),
     admin
@@ -113,7 +117,7 @@ export async function searchClassPartners(
     mobile: cp.mobile,
     uniqueId: cp.unique_id,
     teamCode: cp.team_code,
-    collegeName: collegeById.get(cp.college_id) ?? "",
+    collegeName: (cp.college_id ? collegeById.get(cp.college_id) : null) ?? "",
     attendanceStatus: cp.attendance_status ?? "absent",
     members: (members ?? [])
       .filter((m) => m.referred_by_id === cp.id)

@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import type { PartnerTeam } from "@/lib/supabase/types";
 
 interface Classmate {
@@ -12,10 +14,11 @@ interface Classmate {
   name: string;
   email: string;
   mobile: string;
-  stream: string;
-  semester: string;
+  stream: string | null;
+  semester: string | null;
   status: string;
   team: PartnerTeam | null;
+  dues_paid: boolean;
 }
 
 export function TeamManagementPanel() {
@@ -53,6 +56,25 @@ export function TeamManagementPanel() {
     }
   }
 
+  async function setDuesPaid(id: string, duesPaid: boolean) {
+    // Optimistic — this is just the captain's own bookkeeping checklist,
+    // not worth blocking the UI on a round trip.
+    setClassmates((prev) =>
+      (prev ?? []).map((c) => (c.id === id ? { ...c, dues_paid: duesPaid } : c)),
+    );
+    const res = await fetch(`/api/partner-program/reportees/${id}/dues`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ duesPaid }),
+    });
+    if (!res.ok) {
+      toast.error("Could not update payment status");
+      setClassmates((prev) =>
+        (prev ?? []).map((c) => (c.id === id ? { ...c, dues_paid: !duesPaid } : c)),
+      );
+    }
+  }
+
   if (classmates === null) {
     return <p className="text-muted-foreground text-sm">Loading…</p>;
   }
@@ -76,6 +98,7 @@ export function TeamManagementPanel() {
         title="Unassigned"
         members={unassigned}
         movingId={movingId}
+        onToggleDues={setDuesPaid}
         renderActions={(m) => (
           <>
             <Button
@@ -102,6 +125,7 @@ export function TeamManagementPanel() {
         title={`Team A (${teamA.length})`}
         members={teamA}
         movingId={movingId}
+        onToggleDues={setDuesPaid}
         renderActions={(m) => (
           <>
             <Button
@@ -129,6 +153,7 @@ export function TeamManagementPanel() {
         title={`Team B (${teamB.length})`}
         members={teamB}
         movingId={movingId}
+        onToggleDues={setDuesPaid}
         renderActions={(m) => (
           <>
             <Button
@@ -160,11 +185,13 @@ function TeamColumn({
   title,
   members,
   movingId,
+  onToggleDues,
   renderActions,
 }: {
   title: string;
   members: Classmate[];
   movingId: string | null;
+  onToggleDues: (id: string, duesPaid: boolean) => void;
   renderActions: (member: Classmate) => React.ReactNode;
 }) {
   return (
@@ -183,9 +210,11 @@ function TeamColumn({
               <CardContent className="space-y-3 p-4">
                 <div className="space-y-1">
                   <p className="text-sm font-bold leading-tight">{m.name}</p>
-                  <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider">
-                    {m.stream} • Sem {m.semester}
-                  </p>
+                  {m.stream && m.semester ? (
+                    <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider">
+                      {m.stream} • Sem {m.semester}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="text-muted-foreground flex flex-col gap-1.5 text-xs bg-muted/30 p-2 rounded-md">
                   <span className="flex items-center gap-1.5 min-w-0">
@@ -196,6 +225,20 @@ function TeamColumn({
                     <Phone className="size-3 shrink-0" />
                     <span className="truncate">{m.mobile}</span>
                   </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                  <Label
+                    htmlFor={`dues-${m.id}`}
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Paid their share
+                  </Label>
+                  <Switch
+                    id={`dues-${m.id}`}
+                    size="sm"
+                    checked={m.dues_paid}
+                    onCheckedChange={(checked) => onToggleDues(m.id, checked)}
+                  />
                 </div>
                 <div
                   className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/50"

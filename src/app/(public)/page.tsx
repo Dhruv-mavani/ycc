@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Trophy, Download, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   Card,
@@ -12,6 +13,7 @@ import {
 import { ContactModal } from "@/components/site/contact-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { HeroCarousel } from "@/components/ui/hero-carousel";
 import {
   Accordion,
   AccordionContent,
@@ -60,57 +62,32 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="relative z-0 flex flex-col items-center justify-center overflow-hidden pt-56 pb-32 text-center tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-50 dark:opacity-30"
-        >
-          <source src="/brand/hero_video.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/40 via-background/60 to-background"></div>
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(2,132,199,0.2),transparent_60%)]"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background to-transparent -z-10"></div>
+      <section className="relative z-0 flex flex-col items-center justify-center min-h-[90vh] overflow-hidden pt-32 pb-24 text-center tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000">
+        <HeroCarousel />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.5),transparent_60%)]"></div>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/10 via-transparent to-background/50"></div>
         
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-6 px-4">
-          <div className="mt-6 mb-2 relative flex w-full max-w-[340px] sm:max-w-lg md:max-w-3xl lg:max-w-5xl justify-center group">
-            
-            {/* Edge Glow Container (Scaled slightly larger than the logo, sits BEHIND) */}
-            <div 
-              className="absolute inset-0 z-0 pointer-events-none scale-[1.04] sm:scale-[1.03] blur-[3px] transition-transform duration-500 group-hover:scale-[1.05]"
-              style={{
-                WebkitMaskImage: 'url(/brand/hero-image-v5.png)',
-                WebkitMaskSize: 'contain',
-                WebkitMaskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center'
-              }}
-            >
-              {/* Rotating Light Beam (Darker Blue) */}
-              <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 animate-[spin_12s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_75%,#1d4ed8_90%,#3b82f6_100%)] opacity-100"></div>
-            </div>
-            
-            {/* The Actual Logo (Sits ON TOP, opaque, hiding the center of the beam) */}
-            <Image 
-              src="/brand/hero-image-v5.png" 
-              alt="Yuva Champions Cricket" 
-              width={1641} 
-              height={620} 
-              className="relative z-10 w-full h-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] transition-transform duration-500 group-hover:scale-[1.02]"
-              priority 
-            />
-            
-          </div>
-          <p className="text-muted-foreground font-medium max-w-2xl text-base sm:text-lg md:text-2xl leading-relaxed backdrop-blur-sm rounded-xl py-1 px-4 text-center">
-            Register your college team for the cricket championship, or enter
+        <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-4 sm:gap-6 px-4 z-10 mt-32 sm:mt-48">
+          
+          
+          <p className="text-blue-400 font-semibold max-w-2xl text-[0.8rem] min-[320px]:text-sm min-[380px]:text-base sm:text-lg md:text-xl leading-relaxed text-center [text-shadow:_0_2px_4px_rgba(0,0,0,1),_0_0_12px_rgba(0,0,0,1)] px-1 mt-1 sm:mt-2">
+            Register your team for the cricket championship, or enter
             solo for the quiz competition. Fast registration, instant QR-coded
             receipt.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
-            <Button size="lg" className="rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 hover:scale-105 transition duration-300 font-bold text-lg px-10 py-7" nativeButton={false} render={<Link href="#events">Register Now</Link>} />
-            <Button size="lg" variant="outline" className="rounded-full font-bold text-lg px-10 py-7" nativeButton={false} render={<Link href="/receipt">Download Your Receipt</Link>} />
+          
+          <div className="flex flex-col min-[400px]:flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 pt-3 sm:pt-6 w-full max-w-[260px] min-[320px]:max-w-xs min-[400px]:max-w-none mx-auto">
+            <Button size="lg" className="w-full min-[400px]:w-auto rounded-full shadow-xl shadow-primary/40 hover:shadow-primary/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 font-bold text-xs min-[320px]:text-sm sm:text-lg px-4 py-4 min-[320px]:px-5 min-[320px]:py-5 sm:px-8 sm:py-7 flex items-center justify-center gap-2 group border border-primary/50" nativeButton={false} render={<Link href="#events">
+              <Trophy className="size-3.5 min-[320px]:size-4 sm:size-5 group-hover:scale-110 transition-transform" /> Register Now
+            </Link>} />
+            <Button size="lg" variant="outline" className="w-full min-[400px]:w-auto rounded-full font-bold text-xs min-[320px]:text-sm sm:text-lg px-4 py-4 min-[320px]:px-5 min-[320px]:py-5 sm:px-8 sm:py-7 flex items-center justify-center gap-2 bg-background/20 backdrop-blur-md border-white/20 text-white hover:bg-white hover:text-black transition-colors duration-300 shadow-lg" nativeButton={false} render={<Link href="/receipt">
+              <Download className="size-3.5 min-[320px]:size-4 sm:size-5" /> Download Receipt
+            </Link>} />
           </div>
+        </div>
+
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-80 hidden sm:block">
+          <ChevronDown className="size-8 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
         </div>
       </section>
 
@@ -127,28 +104,53 @@ export default async function HomePage() {
                 </p>
               </div>
             )}
-            {events?.map((event) => (
-              <Card key={event.id} className="overflow-hidden border-dashed border-border/70 bg-card/30 flex flex-col opacity-80">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <CardTitle className="text-2xl font-bold text-muted-foreground">{event.name}</CardTitle>
-                    <Badge
-                      variant="secondary"
-                      className="whitespace-nowrap bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300"
-                    >
-                      Coming Soon
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-base mt-2">{event.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1" />
-                <CardFooter className="pt-6 border-t border-border/50">
-                  <Button className="w-full" variant="outline" disabled>
-                    View details
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+            {events?.map((event) =>
+              event.registration_open ? (
+                <Card key={event.id} className="overflow-hidden flex flex-col">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <CardTitle className="text-2xl font-bold">{event.name}</CardTitle>
+                      <Badge
+                        variant="secondary"
+                        className="whitespace-nowrap bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300"
+                      >
+                        Open
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-base mt-2">{event.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1" />
+                  <CardFooter className="pt-6 border-t border-border/50">
+                    <Button
+                      className="w-full"
+                      nativeButton={false}
+                      render={<Link href={`/events/${event.slug}`}>View details</Link>}
+                    />
+                  </CardFooter>
+                </Card>
+              ) : (
+                <Card key={event.id} className="overflow-hidden border-dashed border-border/70 bg-card/30 flex flex-col opacity-80">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <CardTitle className="text-2xl font-bold text-muted-foreground">{event.name}</CardTitle>
+                      <Badge
+                        variant="secondary"
+                        className="whitespace-nowrap bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300"
+                      >
+                        Coming Soon
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-base mt-2">{event.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1" />
+                  <CardFooter className="pt-6 border-t border-border/50">
+                    <Button className="w-full" variant="outline" disabled>
+                      View details
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ),
+            )}
             <Card className="overflow-hidden border-dashed border-border/70 bg-card/30 flex flex-col opacity-80">
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">

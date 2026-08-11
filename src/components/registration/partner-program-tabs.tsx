@@ -9,9 +9,9 @@ import { PartnerForgotPasswordForm } from "@/components/registration/partner-for
 interface ReferrerOption {
   id: string;
   name: string;
-  college_id: string;
-  stream: string;
-  semester: string;
+  college_id: string | null;
+  stream: string | null;
+  semester: string | null;
 }
 
 const PARTNER_TYPES = [

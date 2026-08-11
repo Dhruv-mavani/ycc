@@ -33,14 +33,23 @@ export async function POST(request: Request) {
   const input = parsed.data;
   const admin = createAdminClient();
 
-  const { data: college } = await admin
-    .from("colleges")
-    .select("id")
-    .eq("id", input.collegeId)
-    .maybeSingle();
+  // Classmate Partners don't collect a college — everyone else must pick
+  // a real one (validated by partnerProgramApplicationSchema too).
+  let collegeId: string | null = null;
+  if (input.partnerType !== "classmate") {
+    if (!input.collegeId) {
+      return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
+    }
+    const { data: college } = await admin
+      .from("colleges")
+      .select("id")
+      .eq("id", input.collegeId)
+      .maybeSingle();
 
-  if (!college) {
-    return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
+    if (!college) {
+      return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
+    }
+    collegeId = college.id;
   }
 
   if (input.partnerType !== "campus") {
@@ -81,9 +90,9 @@ export async function POST(request: Request) {
       email: input.email,
       user_id: authUser.user.id,
       partner_type: input.partnerType,
-      college_id: college.id,
-      stream: input.stream,
-      semester: input.semester,
+      college_id: collegeId,
+      stream: input.stream ?? null,
+      semester: input.semester ?? null,
       mobile: input.mobile,
       instagram_handle: input.instagramHandle,
       referred_by: input.partnerType === "campus" ? input.referredBy || null : null,

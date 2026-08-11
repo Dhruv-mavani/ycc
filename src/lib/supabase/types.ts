@@ -50,6 +50,8 @@ export interface Database {
           min_team_size: number | null;
           max_team_size: number | null;
           is_active: boolean;
+          registration_open: boolean;
+          is_partner_only: boolean;
           created_at: string;
         };
         Insert: {
@@ -64,6 +66,8 @@ export interface Database {
           min_team_size?: number | null;
           max_team_size?: number | null;
           is_active?: boolean;
+          registration_open?: boolean;
+          is_partner_only?: boolean;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
@@ -238,9 +242,9 @@ export interface Database {
           id: string;
           name: string;
           email: string;
-          college_id: string;
-          stream: string;
-          semester: string;
+          college_id: string | null;
+          stream: string | null;
+          semester: string | null;
           mobile: string;
           instagram_handle: string;
           user_id: string | null;
@@ -257,6 +261,9 @@ export interface Database {
           attendance_marked_by: string | null;
           attendance_marked_at: string | null;
           whatsapp_joined_at: string | null;
+          team_a_registration_id: string | null;
+          team_b_registration_id: string | null;
+          dues_paid: boolean;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
@@ -266,9 +273,9 @@ export interface Database {
           id?: string;
           name: string;
           email: string;
-          college_id: string;
-          stream: string;
-          semester: string;
+          college_id?: string | null;
+          stream?: string | null;
+          semester?: string | null;
           mobile: string;
           instagram_handle: string;
           user_id?: string | null;
@@ -285,6 +292,9 @@ export interface Database {
           attendance_marked_by?: string | null;
           attendance_marked_at?: string | null;
           whatsapp_joined_at?: string | null;
+          team_a_registration_id?: string | null;
+          team_b_registration_id?: string | null;
+          dues_paid?: boolean;
           agreement_q1: AgreementYesNo;
           agreement_q2: AgreementYesNo;
           agreement_q3: AgreementYesAbsolutelyNo;
