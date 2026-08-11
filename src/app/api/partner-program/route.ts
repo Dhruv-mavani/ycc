@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { partnerProgramApplicationSchema } from "@/lib/validations/partner-program";
 import { isRateLimited } from "@/lib/rate-limit";
+import { generatePartnerCode } from "@/lib/partner-approval";
 
 function getClientIp(request: Request) {
   return (
@@ -84,6 +85,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 409 });
   }
 
+  // YCC Partners and YCC Co-Partners skip approval entirely — they're
+  // active the moment they apply, so they can get their code and
+  // certificate immediately. Classmate Partners still wait for review
+  // (that flow is being redesigned separately).
+  const status = input.partnerType === "classmate" ? "pending" : "approved";
+
   const { data: application, error } = await admin
     .from("partner_program_applications")
     .insert({
@@ -99,6 +106,7 @@ export async function POST(request: Request) {
       referred_by: input.partnerType === "campus" ? input.referredBy || null : null,
       referred_by_id: input.partnerType === "campus" ? null : input.referredById,
       agreed_to_terms: input.agreedToTerms,
+      status,
     })
     .select("id")
     .single();
@@ -110,6 +118,10 @@ export async function POST(request: Request) {
       { error: "Could not submit application" },
       { status: 500 },
     );
+  }
+
+  if (status === "approved") {
+    await generatePartnerCode(admin, application.id);
   }
 
   return NextResponse.json({ applicationId: application.id });

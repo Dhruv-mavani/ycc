@@ -9,19 +9,23 @@ function generateTeamCode(name: string, mobile: string): string {
 }
 
 /**
- * Runs once, the moment a YCC Co-Partner application is approved (by admin
- * or by their YCC Partner) — generates their team_code (QR payload +
- * the code Classmate Partners enter to join) and personal unique_id
- * (event-day check-in, via allocate_partner_unique_id). Safe to call
- * repeatedly: skips whichever part is already set.
+ * Generates a partner's personal code (QR payload, and — for YCC
+ * Co-Partners — the code Classmate Partners enter to join; for YCC
+ * Partners, the code Co-Partners enter to link up). Called immediately at
+ * signup (no approval gate), and still safe to call again from the older
+ * approval-review call sites — both parts are skipped if already set.
+ *
+ * The per-college serial unique_id (event-day check-in) only applies to
+ * applications that have a college — YCC Partners no longer collect one,
+ * so that step is skipped for them.
  */
-export async function finalizeClassPartnerApproval(
+export async function generatePartnerCode(
   admin: ReturnType<typeof createAdminClient>,
   applicationId: string,
 ) {
   const { data: application } = await admin
     .from("partner_program_applications")
-    .select("name, mobile, team_code, unique_id")
+    .select("name, mobile, college_id, team_code, unique_id")
     .eq("id", applicationId)
     .single();
 
@@ -32,7 +36,7 @@ export async function finalizeClassPartnerApproval(
     let code = base;
     // Collision is astronomically unlikely (first name + last 4 mobile
     // digits) but the unique index would reject a duplicate outright, so
-    // fall back to a numbered suffix rather than fail the approval.
+    // fall back to a numbered suffix rather than fail the signup.
     for (let suffix = 2; suffix < 100; suffix++) {
       const { data: existing } = await admin
         .from("partner_program_applications")
@@ -48,7 +52,7 @@ export async function finalizeClassPartnerApproval(
       .eq("id", applicationId);
   }
 
-  if (!application.unique_id) {
+  if (!application.unique_id && application.college_id) {
     await admin.rpc("allocate_partner_unique_id", {
       p_application_id: applicationId,
     });

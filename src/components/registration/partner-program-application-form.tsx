@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -56,6 +57,7 @@ export function PartnerProgramApplicationForm({
   referrerLabel: string;
 }) {
   const [submitted, setSubmitted] = useState(false);
+  const [applicationId, setApplicationId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
@@ -73,9 +75,9 @@ export function PartnerProgramApplicationForm({
       email: "",
       password: "",
       confirmPassword: "",
-      collegeId: "",
-      stream: "",
-      semester: "",
+      collegeId: undefined,
+      stream: undefined,
+      semester: undefined,
       mobile: "",
       instagramHandle: "",
       referredBy: "",
@@ -113,7 +115,13 @@ export function PartnerProgramApplicationForm({
         return;
       }
 
+      const data: { applicationId: string } = await res.json();
+      setApplicationId(data.applicationId);
       setSubmitted(true);
+
+      if (partnerType === "classmate") return;
+      const downloadUrl = `/api/partner-program/certificate/${data.applicationId}/download`;
+      window.location.assign(downloadUrl);
     } catch {
       toast.error("Network error — please check your connection and try again");
     }
@@ -123,12 +131,45 @@ export function PartnerProgramApplicationForm({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Thanks for applying!</CardTitle>
+          <CardTitle>
+            {partnerType === "classmate"
+              ? "Thanks for applying!"
+              : "You're in!"}
+          </CardTitle>
           <CardDescription>
-            We&apos;ve received your application. Our team will reach out to
-            you soon.
+            {partnerType === "classmate" ? (
+              "We've received your application. Our team will reach out to you soon."
+            ) : (
+              <>
+                Your certificate is downloading now. Missed it? Use the
+                button below, or re-download it any time from{" "}
+                <Link
+                  href="/partner-program/certificate"
+                  className="font-medium text-primary underline underline-offset-2"
+                >
+                  the certificate lookup page
+                </Link>{" "}
+                with your mobile number and password.
+              </>
+            )}
           </CardDescription>
         </CardHeader>
+        {partnerType !== "classmate" && applicationId ? (
+          <CardContent>
+            <Button
+              variant="outline"
+              className="w-full"
+              nativeButton={false}
+              render={
+                <a
+                  href={`/api/partner-program/certificate/${applicationId}/download`}
+                >
+                  Download certificate again
+                </a>
+              }
+            />
+          </CardContent>
+        ) : null}
       </Card>
     );
   }
@@ -200,7 +241,7 @@ export function PartnerProgramApplicationForm({
                   control={control}
                   name="collegeId"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value ?? ""} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select your college">
                           {(value: string | null) =>
@@ -253,36 +294,21 @@ export function PartnerProgramApplicationForm({
             </Field>
           ) : partnerType === "class" ? (
             <Field
-              label={`Which ${referrerLabel} referred you?`}
+              label={`${referrerLabel}'s code`}
               error={errors.referredById?.message}
             >
               <Controller
                 control={control}
                 name="referredById"
                 render={({ field }) => (
-                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={`Select your ${referrerLabel}`}>
-                        {(value: string | null) =>
-                          referrerOptions.find((o) => o.id === value)?.name ?? null
-                        }
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {referrerOptions.map((r) => (
-                        <SelectItem key={r.id} value={r.id}>
-                          {r.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <TeamCodeField
+                    value={field.value}
+                    options={referrerOptions}
+                    notFoundLabel={referrerLabel}
+                    onResolve={field.onChange}
+                  />
                 )}
               />
-              {referrerOptions.length === 0 ? (
-                <p className="text-muted-foreground text-xs">
-                  No approved {referrerLabel}s yet.
-                </p>
-              ) : null}
             </Field>
           ) : (
             <Field
@@ -296,6 +322,7 @@ export function PartnerProgramApplicationForm({
                   <TeamCodeField
                     value={field.value}
                     options={referrerOptions}
+                    notFoundLabel="YCC Co-Partner"
                     onResolve={field.onChange}
                   />
                 )}
@@ -402,10 +429,12 @@ function Field({
 function TeamCodeField({
   value,
   options,
+  notFoundLabel = "YCC Co-Partner",
   onResolve,
 }: {
   value: string | undefined;
   options: ReferrerOption[];
+  notFoundLabel?: string;
   onResolve: (id: string | undefined) => void;
 }) {
   const matched = options.find((o) => o.id === value);
@@ -428,11 +457,12 @@ function TeamCodeField({
       {touched && text.trim() ? (
         matched ? (
           <p className="text-xs text-emerald-600">
-            Referred by {matched.name} — {matched.stream}, Sem {matched.semester}
+            Referred by {matched.name}
+            {matched.stream ? ` — ${matched.stream}, Sem ${matched.semester}` : ""}
           </p>
         ) : (
           <p className="text-destructive text-xs">
-            No YCC Co-Partner found with that code.
+            No {notFoundLabel} found with that code.
           </p>
         )
       ) : null}

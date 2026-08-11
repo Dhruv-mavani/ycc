@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { finalizeClassPartnerApproval } from "@/lib/partner-approval";
+import { generatePartnerCode } from "@/lib/partner-approval";
 
 export async function POST(
   request: Request,
@@ -42,7 +42,7 @@ export async function POST(
   }
 
   if (status === "approved" && updated.partner_type === "class") {
-    await finalizeClassPartnerApproval(admin, id);
+    await generatePartnerCode(admin, id);
   }
 
   return NextResponse.json({ ok: true });

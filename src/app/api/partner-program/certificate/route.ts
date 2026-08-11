@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPartnerAccessStatus } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { finalizeClassPartnerApproval } from "@/lib/partner-approval";
+import { generatePartnerCode } from "@/lib/partner-approval";
 import { generateQrDataUrl } from "@/lib/qr";
 import { renderClassPartnerCertificatePdf } from "@/lib/class-partner-certificate";
 
@@ -22,7 +22,7 @@ export async function GET() {
   if (!application?.team_code) {
     // Approval normally generates this — fall back for any pre-existing
     // approved row from before this feature shipped.
-    await finalizeClassPartnerApproval(admin, access.application.id);
+    await generatePartnerCode(admin, access.application.id);
     ({ data: application } = await admin
       .from("partner_program_applications")
       .select("name, team_code")

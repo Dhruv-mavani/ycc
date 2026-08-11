@@ -312,6 +312,9 @@ export interface ClassPartnerCertificateData {
   name: string;
   teamCode: string;
   qrDataUrl: string;
+  /** Defaults to "class" (YCC Co-Partner) — the original design this
+   * certificate was built for. Pass "campus" for a YCC Partner instead. */
+  partnerType?: "campus" | "class";
 }
 
 function ClassPartnerCertificateDocument({
@@ -319,28 +322,33 @@ function ClassPartnerCertificateDocument({
 }: {
   data: ClassPartnerCertificateData;
 }) {
+  const isCampus = data.partnerType === "campus";
+  const roleLabel = isCampus ? "YCC Partner" : "YCC Co-Partner";
+  const codeLabel = isCampus ? "Your Partner Code" : "Your Team Code";
+  const stubRole = isCampus ? "PARTNER" : "CO-PARTNER";
+
   return (
     <Document>
       <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
         <CertificateArt />
 
-        <Text style={styles.greeting}>Dear YCC Co-Partner</Text>
+        <Text style={styles.greeting}>Dear {roleLabel}</Text>
         <Text style={styles.name}>{data.name}</Text>
 
         <Text style={styles.body}>
-          You are warmly invited to serve as a YCC Co-Partner for our
+          You are warmly invited to serve as a {roleLabel} for our
           Exclusive YCC Cricket League — Box Cricket Tournament. Your
-          leadership and your classmates&apos; participation will make this
-          tournament even more special.
+          leadership and your {isCampus ? "co-partners'" : "classmates'"}{" "}
+          participation will make this tournament even more special.
         </Text>
 
-        <Text style={styles.codeLabel}>Your Team Code</Text>
+        <Text style={styles.codeLabel}>{codeLabel}</Text>
         <Text style={styles.codeValue}>{data.teamCode}</Text>
 
         <Text style={styles.stubYcc}>YCC</Text>
         <Text style={styles.stubYccSub}>CRICKET LEAGUE</Text>
         <Text style={styles.stubExclusive}>EXCLUSIVE</Text>
-        <Text style={styles.stubPass1}>CO-PARTNER</Text>
+        <Text style={styles.stubPass1}>{stubRole}</Text>
         <Text style={styles.stubPass2}>PASS</Text>
 
         {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
