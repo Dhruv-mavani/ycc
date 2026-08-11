@@ -2,262 +2,153 @@ import "server-only";
 import {
   Document,
   Page,
+  View,
   Text,
   Image,
   StyleSheet,
-  Svg,
-  G,
-  Path,
-  Rect,
-  Polygon,
   renderToBuffer,
 } from "@react-pdf/renderer";
-import { TROPHY_LOGO_PATHS, TROPHY_LOGO_SIZE } from "@/lib/trophy-logo-art";
-import {
-  BOX_CRICKET_ID_CARD_PATHS,
-  BOX_CRICKET_ID_CARD_SIZE,
-} from "@/lib/box-cricket-id-card-art";
+import fs from "node:fs";
+import path from "node:path";
 
-// Every position below was measured directly off a clean render of the
-// source template (assets/boxcricket_idcard.svg) via a pixel-scanning
-// script — not eyeballed. The page matches that source's native canvas
-// exactly, so BOX_CRICKET_ID_CARD_PATHS needs no rescale.
-const PAGE_WIDTH = BOX_CRICKET_ID_CARD_SIZE.width;
-const PAGE_HEIGHT = BOX_CRICKET_ID_CARD_SIZE.height;
+// The whole card (logo, tagline, banners, icons, QR frame, mandatory-QR
+// text, corner art) is the original design's own asset, rendered once at
+// build time to a high-res PNG and used as a full-page background —
+// pixel-identical to assets/boxcricket_idcard.svg. Only the truly dynamic
+// parts (college/city, player name, the unique ID, the real QR) are drawn
+// on top, each preceded by a solid rect sized to its own text/art zone
+// that repaints over the original's placeholder content.
+const bgDataUri = (() => {
+  const buffer = fs.readFileSync(
+    path.join(process.cwd(), "public/brand/box-cricket-id-card-bg.png"),
+  );
+  return `data:image/png;base64,${buffer.toString("base64")}`;
+})();
 
-const YCC_BLUE = "#0569D6";
-const SUBTITLE_BLUE = "#2f5fb3";
-const TAGLINE_BLUE = "#0F389F";
+// Native canvas size of assets/boxcricket_idcard.svg — the background PNG
+// was rendered at exactly 2x this, so it stays crisp at native size.
+const PAGE_WIDTH = 842;
+const PAGE_HEIGHT = 1244;
+
+const NAVY_BANNER = "#02165F";
+const CITY_BLUE = "#3E9BFF";
+const PAGE_BG = "#FCFCFC";
 const NAVY_TEXT = "#051754";
-const ORG_BLUE = "#084DCA";
+const BLUE_BANNER = "#0547BB";
 const BANNER_TEXT_WHITE = "#ffffff";
-const MANDATORY_BLACK = "#141A55";
-const MANDATORY_BLUE = "#1D51CB";
-const QR_FRAME_BLUE = "#1d4ed8";
 
-// Trophy icon (assets/classpartner_certificate3.svg, isolated to just the
-// cup) placed to match the faded original's logo position/size — the
-// wordmark next to it is retyped below instead of reused from the trace.
-const TROPHY_X = 130;
-const TROPHY_Y = 15;
-const TROPHY_SCALE = 204 / TROPHY_LOGO_SIZE.height;
-
-// react-pdf (4.5.1) hangs indefinitely if an absolutely-positioned Image
-// overflows past the bottom of the Page while a sibling Svg is present —
-// so this frame/QR must stay fully inside PAGE_HEIGHT (1244).
-const QR_FRAME_X = 246;
-const QR_FRAME_Y = 924;
-const QR_FRAME_SIZE = 300;
-const QR_PADDING = 18;
-
-// 5-point star polygon (point-up), used for the star row below the name
-// divider — that zone's exclusion swept up these too (same trace region
-// as the "ORGANIZED & MANAGED BY" text), so they're hand-drawn instead.
-function starPoints(cx: number, cy: number, outerR: number): string {
-  const innerR = outerR * 0.42;
-  const pts: string[] = [];
-  for (let i = 0; i < 10; i++) {
-    const r = i % 2 === 0 ? outerR : innerR;
-    const angle = (Math.PI / 5) * i - Math.PI / 2;
-    pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
-  }
-  return pts.join(" ");
-}
-const STAR_CENTERS = [247, 339, 431, 523, 614];
+// QR frame — measured off the background PNG (native coords). The overlay
+// clears the sample QR inside the original's own frame border (kept as
+// part of the background) and drops the real one in at the same spot.
+const QR_CLEAR_X = 262;
+const QR_CLEAR_Y = 954;
+const QR_CLEAR_W = 322;
+const QR_CLEAR_H = 282;
+const QR_SIZE = 250;
+const QR_X = QR_CLEAR_X + (QR_CLEAR_W - QR_SIZE) / 2;
+const QR_Y = QR_CLEAR_Y + (QR_CLEAR_H - QR_SIZE) / 2;
 
 const styles = StyleSheet.create({
-  page: { position: "relative", fontFamily: "Helvetica", backgroundColor: "#FCFCFC" },
-  ycc: {
+  page: { position: "relative" },
+  background: { position: "absolute", top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT },
+  // Widths below stay inside the banner's own flat-color zone (measured
+  // off the background PNG) — the brush-stroke texture starts past that
+  // on both sides, so a plain rect here doesn't clip the torn edges.
+  collegeClear: {
     position: "absolute",
-    top: 8,
-    left: 335,
-    width: 400,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 128,
-    color: YCC_BLUE,
-  },
-  subtitle: {
-    position: "absolute",
-    top: 190,
-    left: 341,
-    width: 389,
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 15,
-    letterSpacing: 1.2,
-    color: SUBTITLE_BLUE,
-  },
-  tagline: {
-    position: "absolute",
-    top: 250,
-    left: 60,
-    width: 722,
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 24,
-    color: TAGLINE_BLUE,
+    top: 373,
+    left: 140,
+    width: 600,
+    height: 92,
+    backgroundColor: NAVY_BANNER,
   },
   collegeName: {
     position: "absolute",
-    top: 385,
-    left: 190,
-    width: 610,
+    top: 383,
+    left: 140,
+    width: 600,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: 34,
     color: BANNER_TEXT_WHITE,
   },
   city: {
     position: "absolute",
-    top: 442,
-    left: 190,
-    width: 610,
+    top: 438,
+    left: 140,
+    width: 600,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: 22,
+    fontSize: 21,
     letterSpacing: 1,
-    color: "#7fb2ff",
+    color: CITY_BLUE,
+  },
+  // Tall enough to hold a name that wraps to 2 lines at the smallest
+  // tier below, without reaching the college banner above (ends ~465)
+  // or the divider below (starts ~665).
+  nameClear: {
+    position: "absolute",
+    top: 485,
+    left: 20,
+    width: 810,
+    height: 175,
+    backgroundColor: PAGE_BG,
   },
   playerName: {
     position: "absolute",
-    top: 553,
     left: 30,
     width: 782,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: 68,
     color: NAVY_TEXT,
   },
-  organizedLine1: {
+  uniqueIdClear: {
     position: "absolute",
-    top: 699,
-    left: 121,
-    width: 600,
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 15,
-    letterSpacing: 1,
-    color: NAVY_TEXT,
-  },
-  organizedLine2: {
-    position: "absolute",
-    top: 715,
-    left: 121,
-    width: 600,
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 24,
-    color: ORG_BLUE,
-  },
-  boxCricketBannerText: {
-    position: "absolute",
-    top: 818,
-    left: 233,
-    width: 413,
-    textAlign: "center",
-    fontFamily: "Helvetica-BoldOblique",
-    fontSize: 22,
-    letterSpacing: 1,
-    color: BANNER_TEXT_WHITE,
+    top: 862,
+    left: 283,
+    width: 312,
+    height: 72,
+    backgroundColor: BLUE_BANNER,
   },
   uniqueIdBannerText: {
     position: "absolute",
     top: 880,
-    left: 235,
-    width: 395,
+    left: 283,
+    width: 312,
     textAlign: "center",
     fontFamily: "Helvetica-BoldOblique",
-    fontSize: 26,
-    letterSpacing: 2,
+    fontSize: 24,
+    letterSpacing: 1,
     color: BANNER_TEXT_WHITE,
   },
-  courtLabel: {
+  qrClear: {
     position: "absolute",
-    top: 1032,
-    left: 12,
-    width: 178,
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 13,
-    letterSpacing: 0.5,
-    color: BANNER_TEXT_WHITE,
-  },
-  mandatoryLine1: {
-    position: "absolute",
-    top: 990,
-    left: 627,
-    width: 180,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 16,
-    color: MANDATORY_BLACK,
-  },
-  mandatoryLine2: {
-    position: "absolute",
-    top: 1018,
-    left: 627,
-    width: 180,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 16,
-    color: MANDATORY_BLUE,
-  },
-  mandatoryLine3: {
-    position: "absolute",
-    top: 1041,
-    left: 627,
-    width: 180,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 16,
-    color: MANDATORY_BLACK,
-  },
-  mandatoryLine4: {
-    position: "absolute",
-    top: 1064,
-    left: 627,
-    width: 180,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 16,
-    color: MANDATORY_BLACK,
+    top: QR_CLEAR_Y,
+    left: QR_CLEAR_X,
+    width: QR_CLEAR_W,
+    height: QR_CLEAR_H,
+    borderRadius: 18,
+    backgroundColor: "#ffffff",
   },
   qr: {
     position: "absolute",
-    top: QR_FRAME_Y + QR_PADDING,
-    left: QR_FRAME_X + QR_PADDING,
-    width: QR_FRAME_SIZE - QR_PADDING * 2,
-    height: QR_FRAME_SIZE - QR_PADDING * 2,
+    top: QR_Y,
+    left: QR_X,
+    width: QR_SIZE,
+    height: QR_SIZE,
   },
 });
 
-function BoxCricketArt() {
-  return (
-    <Svg width={PAGE_WIDTH} height={PAGE_HEIGHT}>
-      {BOX_CRICKET_ID_CARD_PATHS.map((p, i) => (
-        <Path key={i} d={p.d} fill={p.fill} />
-      ))}
-      <G transform={`translate(${TROPHY_X}, ${TROPHY_Y}) scale(${TROPHY_SCALE})`}>
-        {TROPHY_LOGO_PATHS.map((p, i) => (
-          <Path key={i} d={p.d} fill={p.fill} />
-        ))}
-      </G>
-      <Rect
-        x={QR_FRAME_X}
-        y={QR_FRAME_Y}
-        width={QR_FRAME_SIZE}
-        height={QR_FRAME_SIZE}
-        rx={18}
-        fill="#ffffff"
-        stroke={QR_FRAME_BLUE}
-        strokeWidth={3}
-      />
-      {STAR_CENTERS.map((cx, i) => (
-        <Polygon
-          key={cx}
-          points={starPoints(cx, 774, i === 2 ? 17 : 10)}
-          fill={i === 2 ? QR_FRAME_BLUE : NAVY_TEXT}
-        />
-      ))}
-      <Rect x={10} y={1030} width={180} height={38} rx={7} fill={ORG_BLUE} />
-    </Svg>
-  );
+// Long names wrap to 2+ lines at a fixed font size and spill into the
+// divider/college banner — scale down and shift up as length grows so
+// even a long full name stays inside its clear zone.
+function playerNameStyle(name: string) {
+  if (name.length <= 16) return { fontSize: 62, top: 553 };
+  if (name.length <= 24) return { fontSize: 46, top: 535 };
+  return { fontSize: 36, top: 515 };
+}
+
+function collegeNameFontSize(name: string) {
+  return name.length <= 30 ? 32 : 24;
 }
 
 export interface BoxCricketIdCardData {
@@ -272,34 +163,33 @@ function BoxCricketIdCardDocument({ data }: { data: BoxCricketIdCardData }) {
   return (
     <Document>
       <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
-        <BoxCricketArt />
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
+        <Image src={bgDataUri} style={styles.background} />
 
-        <Text style={styles.ycc}>YCC</Text>
-        <Text style={styles.subtitle}>YUVA CHAMPIONS CRICKET</Text>
-        <Text style={styles.tagline}>Cricket. Communities. Champions.</Text>
-
-        <Text style={styles.collegeName}>{data.collegeName.toUpperCase()}</Text>
+        <View style={styles.collegeClear} />
+        <Text
+          style={[
+            styles.collegeName,
+            { fontSize: collegeNameFontSize(data.collegeName) },
+          ]}
+        >
+          {data.collegeName.toUpperCase()}
+        </Text>
         {data.city ? (
           <Text style={styles.city}>{data.city.toUpperCase()}</Text>
         ) : null}
 
-        <Text style={styles.playerName}>{data.playerName.toUpperCase()}</Text>
+        <View style={styles.nameClear} />
+        <Text style={[styles.playerName, playerNameStyle(data.playerName)]}>
+          {data.playerName.toUpperCase()}
+        </Text>
 
-        <Text style={styles.organizedLine1}>ORGANIZED &amp; MANAGED BY</Text>
-        <Text style={styles.organizedLine2}>YCC CRICKET</Text>
-
-        <Text style={styles.boxCricketBannerText}>BOX CRICKET</Text>
+        <View style={styles.uniqueIdClear} />
         <Text style={styles.uniqueIdBannerText}>{data.uniqueId}</Text>
 
-        <Text style={styles.courtLabel}>BOX CRICKET</Text>
-
+        <View style={styles.qrClear} />
         {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
         <Image src={data.qrDataUrl} style={styles.qr} />
-
-        <Text style={styles.mandatoryLine1}>This QR is</Text>
-        <Text style={styles.mandatoryLine2}>mandatory</Text>
-        <Text style={styles.mandatoryLine3}>to bring</Text>
-        <Text style={styles.mandatoryLine4}>at the venue.</Text>
       </Page>
     </Document>
   );

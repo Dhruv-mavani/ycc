@@ -2,92 +2,100 @@ import "server-only";
 import {
   Document,
   Page,
+  View,
   Text,
   Image,
   StyleSheet,
-  Svg,
-  Path,
-  Rect,
   renderToBuffer,
 } from "@react-pdf/renderer";
-import { QUIZ_ID_CARD_PATHS, QUIZ_ID_CARD_SIZE } from "@/lib/quiz-id-card-art";
+import fs from "node:fs";
+import path from "node:path";
 
-// Every position below was measured directly off a clean render of the
-// source template (assets/quiz_idcard.svg) via a pixel-scanning script —
-// not eyeballed. The page matches that source's native canvas exactly, so
-// QUIZ_ID_CARD_PATHS needs no rescale.
-const PAGE_WIDTH = QUIZ_ID_CARD_SIZE.width;
-const PAGE_HEIGHT = QUIZ_ID_CARD_SIZE.height;
+// Same approach as box-cricket-id-card.tsx: the whole design is the
+// original asset (assets/quiz_idcard.svg), rendered once to a high-res
+// PNG and used as a full-page background — pixel-identical to the
+// source. Only the dynamic parts (college/city, player name, unique ID,
+// real QR) are drawn on top, each preceded by a solid rect that repaints
+// over the original's placeholder content in that zone.
+const bgDataUri = (() => {
+  const buffer = fs.readFileSync(
+    path.join(process.cwd(), "public/brand/quiz-id-card-bg.png"),
+  );
+  return `data:image/png;base64,${buffer.toString("base64")}`;
+})();
 
+// Native canvas size of assets/quiz_idcard.svg — the background PNG was
+// rendered at exactly 2x this, so it stays crisp at native size.
+const PAGE_WIDTH = 1004;
+const PAGE_HEIGHT = 1567;
+
+const BLACK_BANNER = "#030303";
 const GOLD = "#EAA803";
+const PAGE_BG = "#FCFCFC";
 const BLACK_TEXT = "#0a0a0a";
-const QR_FRAME_GOLD = "#FDB000";
 
-// react-pdf (4.5.1) hangs indefinitely if an absolutely-positioned Image
-// overflows past the bottom of the Page while a sibling Svg is present —
-// so this frame/QR must stay fully inside PAGE_HEIGHT (1567).
-const QR_FRAME_X = 270;
-const QR_FRAME_Y = 1120;
-const QR_FRAME_SIZE = 380;
-const QR_PADDING = 20;
+// QR frame — measured off the background PNG (native coords).
+const QR_CLEAR_X = 283;
+const QR_CLEAR_Y = 1128;
+const QR_CLEAR_W = 410;
+const QR_CLEAR_H = 382;
+const QR_SIZE = 340;
+const QR_X = QR_CLEAR_X + (QR_CLEAR_W - QR_SIZE) / 2;
+const QR_Y = QR_CLEAR_Y + (QR_CLEAR_H - QR_SIZE) / 2;
 
 const styles = StyleSheet.create({
-  page: { position: "relative", fontFamily: "Helvetica", backgroundColor: "#FCFCFC" },
+  page: { position: "relative" },
+  background: { position: "absolute", top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT },
+  collegeClear: {
+    position: "absolute",
+    top: 548,
+    left: 255,
+    width: 655,
+    height: 118,
+    backgroundColor: BLACK_BANNER,
+  },
   collegeName: {
     position: "absolute",
     top: 558,
-    left: 60,
-    width: 884,
+    left: 255,
+    width: 655,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: 44,
     color: "#ffffff",
   },
   city: {
     position: "absolute",
     top: 628,
-    left: 60,
-    width: 884,
+    left: 255,
+    width: 655,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: 24,
+    fontSize: 22,
     letterSpacing: 1,
     color: GOLD,
   },
+  // Tall enough for a 2-line name at the smallest tier below, without
+  // reaching the college banner above (ends ~666) or the organized-by
+  // text below (starts ~934).
+  nameClear: {
+    position: "absolute",
+    top: 700,
+    left: 60,
+    width: 884,
+    height: 205,
+    backgroundColor: PAGE_BG,
+  },
   playerName: {
     position: "absolute",
-    top: 748,
     left: 30,
     width: 944,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: 78,
-    color: BLACK_TEXT,
-  },
-  organizedLine1: {
-    position: "absolute",
-    top: 932,
-    left: 100,
-    width: 804,
-    textAlign: "center",
-    fontFamily: "Times-Bold",
-    fontSize: 20,
-    letterSpacing: 0.5,
-    color: BLACK_TEXT,
-  },
-  organizedLine2: {
-    position: "absolute",
-    top: 987,
-    left: 100,
-    width: 804,
-    textAlign: "center",
-    fontFamily: "Times-Bold",
-    fontSize: 26,
     color: BLACK_TEXT,
   },
   uniqueId: {
     position: "absolute",
-    top: 1092,
+    top: 1093,
     left: 60,
     width: 884,
     textAlign: "center",
@@ -96,69 +104,34 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     color: GOLD,
   },
-  mandatoryLine1: {
+  qrClear: {
     position: "absolute",
-    top: 1221,
-    left: 695,
-    width: 260,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 20,
-    color: BLACK_TEXT,
-  },
-  mandatoryLine2: {
-    position: "absolute",
-    top: 1247,
-    left: 695,
-    width: 260,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 20,
-    color: GOLD,
-  },
-  mandatoryLine3: {
-    position: "absolute",
-    top: 1281,
-    left: 695,
-    width: 260,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 20,
-    color: BLACK_TEXT,
-  },
-  mandatoryLine4: {
-    position: "absolute",
-    top: 1319,
-    left: 695,
-    width: 260,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 20,
-    color: BLACK_TEXT,
+    top: QR_CLEAR_Y,
+    left: QR_CLEAR_X,
+    width: QR_CLEAR_W,
+    height: QR_CLEAR_H,
+    borderRadius: 20,
+    backgroundColor: "#ffffff",
   },
   qr: {
     position: "absolute",
-    top: QR_FRAME_Y + QR_PADDING,
-    left: QR_FRAME_X + QR_PADDING,
-    width: QR_FRAME_SIZE - QR_PADDING * 2,
-    height: QR_FRAME_SIZE - QR_PADDING * 2,
+    top: QR_Y,
+    left: QR_X,
+    width: QR_SIZE,
+    height: QR_SIZE,
   },
 });
 
-function QuizArt() {
-  return (
-    <Svg width={PAGE_WIDTH} height={PAGE_HEIGHT}>
-      {QUIZ_ID_CARD_PATHS.map((p, i) => (
-        <Path key={i} d={p.d} fill={p.fill} />
-      ))}
-      <Rect
-        x={QR_FRAME_X}
-        y={QR_FRAME_Y}
-        width={QR_FRAME_SIZE}
-        height={QR_FRAME_SIZE}
-        rx={20}
-        fill="#ffffff"
-        stroke={QR_FRAME_GOLD}
-        strokeWidth={4}
-      />
-    </Svg>
-  );
+// Long names wrap to 2+ lines at a fixed font size and spill into
+// neighboring zones — scale down and shift up as length grows.
+function playerNameStyle(name: string) {
+  if (name.length <= 16) return { fontSize: 72, top: 750 };
+  if (name.length <= 24) return { fontSize: 54, top: 735 };
+  return { fontSize: 42, top: 715 };
+}
+
+function collegeNameFontSize(name: string) {
+  return name.length <= 26 ? 40 : name.length <= 34 ? 32 : 26;
 }
 
 export interface QuizIdCardData {
@@ -173,27 +146,32 @@ function QuizIdCardDocument({ data }: { data: QuizIdCardData }) {
   return (
     <Document>
       <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
-        <QuizArt />
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
+        <Image src={bgDataUri} style={styles.background} />
 
-        <Text style={styles.collegeName}>{data.collegeName.toUpperCase()}</Text>
+        <View style={styles.collegeClear} />
+        <Text
+          style={[
+            styles.collegeName,
+            { fontSize: collegeNameFontSize(data.collegeName) },
+          ]}
+        >
+          {data.collegeName.toUpperCase()}
+        </Text>
         {data.city ? (
           <Text style={styles.city}>{data.city.toUpperCase()}</Text>
         ) : null}
 
-        <Text style={styles.playerName}>{data.playerName.toUpperCase()}</Text>
-
-        <Text style={styles.organizedLine1}>ORGANIZED &amp; MANAGED BY</Text>
-        <Text style={styles.organizedLine2}>YCC CRICKET</Text>
+        <View style={styles.nameClear} />
+        <Text style={[styles.playerName, playerNameStyle(data.playerName)]}>
+          {data.playerName.toUpperCase()}
+        </Text>
 
         <Text style={styles.uniqueId}>{data.uniqueId}</Text>
 
+        <View style={styles.qrClear} />
         {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
         <Image src={data.qrDataUrl} style={styles.qr} />
-
-        <Text style={styles.mandatoryLine1}>This QR is</Text>
-        <Text style={styles.mandatoryLine2}>mandatory</Text>
-        <Text style={styles.mandatoryLine3}>to bring</Text>
-        <Text style={styles.mandatoryLine4}>at the venue.</Text>
       </Page>
     </Document>
   );
