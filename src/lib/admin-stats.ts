@@ -128,16 +128,18 @@ export interface PartnerSquadReadiness {
   name: string;
   partnerType: "campus" | "class";
   teamCode: string | null;
-  downstreamCount: number;
-  hasConfirmedRegistration: boolean;
+  totalParticipants: number;
+  teamsRegistered: number;
+  revenuePaise: number;
 }
 
 /**
- * Pre-registration readiness for every approved YCC Partner/Co-Partner:
- * their direct downstream roster (Co-Partners for a Partner, Classmate
- * Partners for a Co-Partner — see squad-source/route.ts) against the fixed
- * squad size of 6 (captain + 5), independent of whether they've actually
- * registered a team yet.
+ * Per-partner rollup for every approved YCC Partner/Co-Partner: how many
+ * people they've directly recruited (Co-Partners for a Partner, Classmate
+ * Partners for a Co-Partner — see squad-source/route.ts), and how many of
+ * the fixed-size-6 teams they've actually registered and paid for from that
+ * roster so far (a roster bigger than 6 gets filed as multiple teams, in
+ * batches of 6, against the same partner-keyed college row).
  */
 export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[]> {
   const admin = createAdminClient();
@@ -160,18 +162,18 @@ export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[
           .eq("status", "approved")
       : { data: [] as { referred_by_id: string | null }[] };
 
-  const downstreamCountById = new Map<string, number>();
+  const totalParticipantsById = new Map<string, number>();
   for (const c of children ?? []) {
     if (!c.referred_by_id) continue;
-    downstreamCountById.set(
+    totalParticipantsById.set(
       c.referred_by_id,
-      (downstreamCountById.get(c.referred_by_id) ?? 0) + 1,
+      (totalParticipantsById.get(c.referred_by_id) ?? 0) + 1,
     );
   }
 
-  // Each partner's squad registration is filed under a college row keyed
-  // by their team_code (see squad-source/route.ts) — used here only to
-  // check whether they've already registered, not for display.
+  // Every team a partner registers is filed under one college row keyed by
+  // their own team_code (see squad-source/route.ts) — a roster bigger than
+  // 6 means multiple registrations pile up under that same college.
   const teamCodes = (partners ?? [])
     .map((p) => p.team_code)
     .filter((c): c is string => !!c);
@@ -188,22 +190,31 @@ export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[
     collegeIds.length > 0
       ? await admin
           .from("registrations")
-          .select("college_id")
+          .select("college_id, amount_paise")
           .in("college_id", collegeIds)
           .eq("status", "confirmed")
           .eq("type", "team")
-      : { data: [] as { college_id: string }[] };
-  const confirmedCollegeIds = new Set((confirmedRegs ?? []).map((r) => r.college_id));
+      : { data: [] as { college_id: string; amount_paise: number }[] };
+
+  const teamsByCollege = new Map<string, { count: number; revenuePaise: number }>();
+  for (const r of confirmedRegs ?? []) {
+    const entry = teamsByCollege.get(r.college_id) ?? { count: 0, revenuePaise: 0 };
+    entry.count += 1;
+    entry.revenuePaise += r.amount_paise;
+    teamsByCollege.set(r.college_id, entry);
+  }
 
   return (partners ?? []).map((p) => {
     const collegeId = p.team_code ? collegeIdByInitials.get(p.team_code) : undefined;
+    const teams = collegeId ? teamsByCollege.get(collegeId) : undefined;
     return {
       id: p.id,
       name: p.name,
       partnerType: p.partner_type as "campus" | "class",
       teamCode: p.team_code,
-      downstreamCount: downstreamCountById.get(p.id) ?? 0,
-      hasConfirmedRegistration: collegeId ? confirmedCollegeIds.has(collegeId) : false,
+      totalParticipants: totalParticipantsById.get(p.id) ?? 0,
+      teamsRegistered: teams?.count ?? 0,
+      revenuePaise: teams?.revenuePaise ?? 0,
     };
   });
 }

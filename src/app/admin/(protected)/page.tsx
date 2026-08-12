@@ -5,6 +5,7 @@ import { getEventOverview, getPartnerSquadReadiness } from "@/lib/admin-stats";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { EventFilter } from "@/components/admin/event-filter";
 import { CollegeRevenueChart } from "@/components/admin/college-revenue-chart";
+import { PartnerOverviewTable } from "@/components/admin/partner-overview-table";
 import { AdminNavButtons } from "@/components/admin/admin-nav-buttons";
 import { PageSpinner } from "@/components/site/page-spinner";
 import {
@@ -179,81 +180,14 @@ async function DashboardData({ eventId }: { eventId?: string }) {
       </Card>
 
       <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
-        <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
+        <CardHeader className="p-4 sm:p-6 pb-0">
           <CardTitle>YCC Partner Overview</CardTitle>
           <CardDescription>
-            Click a name to see who they&apos;ve recruited. Squad shows
-            progress toward a full 6-player team; Registered shows whether
-            that team has actually been entered and paid for.
+            Click a name to see who they&apos;ve recruited and which teams
+            they&apos;ve registered so far.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table className="min-w-[560px]">
-            <TableHeader className="bg-muted/10">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="font-semibold text-foreground/80 pl-6">Name</TableHead>
-                <TableHead className="font-semibold text-foreground/80">Type</TableHead>
-                <TableHead className="text-right font-semibold text-foreground/80">Downstream</TableHead>
-                <TableHead className="text-right font-semibold text-foreground/80">Squad</TableHead>
-                <TableHead className="text-right font-semibold text-foreground/80 pr-6">Registered</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {squadReadiness.map((p) => {
-                const squadTotal = p.downstreamCount + 1;
-                const ready = squadTotal >= 6;
-                return (
-                  <TableRow key={p.id} className="hover:bg-primary/5 transition-colors">
-                    <TableCell className="pl-6 font-medium">
-                      <Link
-                        href={`/admin/partners/${p.id}`}
-                        className="text-primary hover:underline"
-                      >
-                        {p.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {p.partnerType === "campus" ? "YCC Partner" : "YCC Co-Partner"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">{p.downstreamCount}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge
-                        variant="secondary"
-                        className={
-                          ready
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-amber-50 text-amber-700 border-amber-200"
-                        }
-                      >
-                        {ready
-                          ? squadTotal > 6
-                            ? `${squadTotal}/6 — trim ${squadTotal - 6}`
-                            : "6/6 ready"
-                          : `${squadTotal}/6`}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right pr-6">
-                      {p.hasConfirmedRegistration ? (
-                        <Badge className="bg-blue-50 text-blue-700 border-blue-200">Yes</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">No</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {squadReadiness.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-muted-foreground text-center py-12">
-                    No approved YCC Partners or Co-Partners yet.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
-        </CardContent>
+        <PartnerOverviewTable data={squadReadiness} />
       </Card>
     </div>
   );

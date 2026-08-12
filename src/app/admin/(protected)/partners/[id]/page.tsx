@@ -24,6 +24,10 @@ const TYPE_LABEL: Record<PartnerType, string> = {
   classmate: "Classmate Partner",
 };
 
+function formatRupees(paise: number) {
+  return `₹${(paise / 100).toLocaleString("en-IN")}`;
+}
+
 export default async function AdminPartnerDetailPage({
   params,
 }: {
@@ -83,6 +87,37 @@ export default async function AdminPartnerDetailPage({
   }
 
   const childLabel = childType ? TYPE_LABEL[childType] : null;
+
+  // Teams this partner has actually registered (and paid for) from their
+  // roster — a roster bigger than 6 gets filed as multiple teams, in
+  // batches of 6, all under the one college row keyed by their team_code.
+  const { data: squadCollege } = partner.team_code
+    ? await admin
+        .from("colleges")
+        .select("id")
+        .eq("initials", partner.team_code)
+        .maybeSingle()
+    : { data: null as { id: string } | null };
+
+  const { data: teamRegistrations } = squadCollege
+    ? await admin
+        .from("registrations")
+        .select("id, team_name, status, amount_paise, created_at")
+        .eq("college_id", squadCollege.id)
+        .order("created_at")
+    : { data: [] as { id: string; team_name: string | null; status: string; amount_paise: number; created_at: string }[] };
+
+  const teamIds = (teamRegistrations ?? []).map((t) => t.id);
+  const { data: teamParticipants } =
+    teamIds.length > 0
+      ? await admin
+          .from("participants")
+          .select("registration_id, name, is_captain")
+          .in("registration_id", teamIds)
+          .order("is_captain", { ascending: false })
+      : { data: [] as { registration_id: string; name: string; is_captain: boolean }[] };
+
+  const totalParticipants = (children ?? []).length;
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 px-4 py-6">
@@ -162,6 +197,62 @@ export default async function AdminPartnerDetailPage({
           </div>
         </CardContent>
       </Card>
+
+      {partner.team_code ? (
+        <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
+          <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
+            <CardTitle>Teams registered by {partner.name}</CardTitle>
+            <CardDescription>
+              {totalParticipants} {childLabel ?? "participant"}
+              {totalParticipants === 1 ? "" : "s"} recruited, filed into{" "}
+              {(teamRegistrations ?? []).length} team
+              {(teamRegistrations ?? []).length === 1 ? "" : "s"} of 6 so far.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="divide-y divide-border/50 p-0">
+            {(teamRegistrations ?? []).length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">
+                No teams registered yet.
+              </p>
+            ) : (
+              (teamRegistrations ?? []).map((t, i) => {
+                const members = (teamParticipants ?? []).filter(
+                  (p) => p.registration_id === t.id,
+                );
+                return (
+                  <div key={t.id} className="px-4 py-3 sm:px-6 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-medium">
+                        {t.team_name ?? `Team ${i + 1}`}
+                      </p>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-emerald-600 font-semibold text-sm">
+                          {formatRupees(t.amount_paise)}
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className={
+                            t.status === "confirmed"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize"
+                              : t.status === "failed" || t.status === "cancelled"
+                                ? "bg-destructive/10 text-destructive border-destructive/20 capitalize"
+                                : "capitalize"
+                          }
+                        >
+                          {t.status.replace("_", " ")}
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                      {members.map((m) => m.name).join(", ")}
+                    </p>
+                  </div>
+                );
+              })
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {childLabel ? (
         <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
