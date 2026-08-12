@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PartnerProgramApplicationForm } from "@/components/registration/partner-program-application-form";
 import { PartnerLoginForm } from "@/components/registration/partner-login-form";
@@ -140,7 +142,7 @@ export function PartnerProgramTabs({
         ))}
       </div>
 
-      <p className="mb-6 text-sm text-muted-foreground">
+      <p className="mb-3 text-sm text-muted-foreground">
         Already have an account?{" "}
         <button
           type="button"
@@ -150,6 +152,21 @@ export function PartnerProgramTabs({
           Login here
         </button>
       </p>
+
+      {activeId !== "classmate" ? (
+        <Button
+          variant="outline"
+          size="sm"
+          className="mb-6 w-full sm:w-auto"
+          nativeButton={false}
+          render={
+            <Link href="/partner-program/certificate">
+              <Download className="size-4" />
+              Download your certificate
+            </Link>
+          }
+        />
+      ) : null}
 
       <h1 className="mb-1 text-xl font-bold">{active.heading}</h1>
       <p className="text-muted-foreground mb-6 text-sm">{active.description}</p>

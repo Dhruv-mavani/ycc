@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isRateLimited } from "@/lib/rate-limit";
+import { partnerCertificateLookupSchema } from "@/lib/validations/partner-program";
 
 function getClientIp(request: Request) {
   return (
@@ -28,16 +29,16 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const mobile = typeof body?.mobile === "string" ? body.mobile.trim() : "";
-  const password = typeof body?.password === "string" ? body.password : "";
+  const parsed = partnerCertificateLookupSchema.safeParse(body);
 
-  if (!mobile || !password) {
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Enter your mobile number and password" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid mobile number or password" },
       { status: 400 },
     );
   }
 
+  const { mobile, password } = parsed.data;
   const admin = createAdminClient();
   const { data: application } = await admin
     .from("partner_program_applications")

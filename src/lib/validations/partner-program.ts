@@ -78,6 +78,11 @@ export const partnerResetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const partnerCertificateLookupSchema = z.object({
+  mobile: phoneSchema,
+  password: z.string().min(1, "Enter your password"),
+});
+
 export type PartnerProgramApplicationInput = z.infer<
   typeof partnerProgramApplicationSchema
 >;
@@ -91,3 +96,7 @@ export type PartnerLoginInput = z.infer<typeof partnerLoginSchema>;
 export type PartnerForgotPasswordInput = z.infer<typeof partnerForgotPasswordSchema>;
 
 export type PartnerResetPasswordInput = z.infer<typeof partnerResetPasswordSchema>;
+
+export type PartnerCertificateLookupInput = z.infer<
+  typeof partnerCertificateLookupSchema
+>;

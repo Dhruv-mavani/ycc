@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,37 +16,50 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BackButton } from "@/components/site/back-button";
+import {
+  partnerCertificateLookupSchema,
+  type PartnerCertificateLookupInput,
+} from "@/lib/validations/partner-program";
 
 export default function PartnerCertificateLookupPage() {
-  const [mobile, setMobile] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!mobile.trim() || !password) return;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<PartnerCertificateLookupInput>({
+    resolver: zodResolver(partnerCertificateLookupSchema),
+    defaultValues: { mobile: "", password: "" },
+  });
 
-    setLoading(true);
+  async function onSubmit(values: PartnerCertificateLookupInput) {
+    setFormError(null);
     try {
       const res = await fetch("/api/partner-program/certificate/lookup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile: mobile.trim(), password }),
+        body: JSON.stringify(values),
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        toast.error(errorData.error ?? "Could not find your certificate");
+        const message: string =
+          errorData.error ?? "Could not find your certificate";
+        setFormError(message);
+        toast.error(message);
         return;
       }
 
       const data = await res.json();
-      window.location.href = `/api/partner-program/certificate/${data.applicationId}/download`;
+      window.location.assign(
+        `/api/partner-program/certificate/${data.applicationId}/download`,
+      );
     } catch {
-      toast.error("Network error — please check your connection and try again");
-    } finally {
-      setLoading(false);
+      const message = "Network error — please check your connection and try again";
+      setFormError(message);
+      toast.error(message);
     }
   }
 
@@ -60,15 +75,22 @@ export default function PartnerCertificateLookupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Mobile number</Label>
               <Input
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
+                {...register("mobile", {
+                  onChange: () => setFormError(null),
+                })}
                 inputMode="numeric"
                 placeholder="9876543210"
+                aria-invalid={!!errors.mobile}
               />
+              {errors.mobile ? (
+                <p className="text-destructive text-xs">
+                  {errors.mobile.message}
+                </p>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <Label>Password</Label>
@@ -76,8 +98,10 @@ export default function PartnerCertificateLookupPage() {
                 <Input
                   type={showPassword ? "text" : "password"}
                   className="pr-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  aria-invalid={!!errors.password}
+                  {...register("password", {
+                    onChange: () => setFormError(null),
+                  })}
                 />
                 <button
                   type="button"
@@ -92,9 +116,19 @@ export default function PartnerCertificateLookupPage() {
                   )}
                 </button>
               </div>
+              {errors.password ? (
+                <p className="text-destructive text-xs">
+                  {errors.password.message}
+                </p>
+              ) : null}
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Looking up..." : "Download certificate"}
+            {formError ? (
+              <p className="text-destructive text-sm" role="alert">
+                {formError}
+              </p>
+            ) : null}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Looking up..." : "Download certificate"}
             </Button>
           </form>
         </CardContent>
