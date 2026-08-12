@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { phoneSchema } from "@/lib/validations/registration";
+import { ageSchema, genderSchema, phoneSchema } from "@/lib/validations/registration";
 
 export const partnerTypeSchema = z.enum(["campus", "class", "classmate"]);
 
@@ -7,6 +7,8 @@ const partnerProgramFieldsSchema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(100),
   email: z.string().trim().email("Enter a valid email address").max(200),
   mobile: phoneSchema,
+  age: ageSchema,
+  gender: genderSchema,
   instagramHandle: z.string().trim().min(1, "Required").max(100),
   referredBy: z.string().trim().max(150).optional(),
   agreedToTerms: z.boolean().refine((v) => v === true, {

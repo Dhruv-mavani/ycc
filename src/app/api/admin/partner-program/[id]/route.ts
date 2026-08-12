@@ -34,13 +34,15 @@ export async function PATCH(
       name: input.name,
       email: input.email,
       mobile: input.mobile,
+      age: input.age,
+      gender: input.gender,
       instagram_handle: input.instagramHandle,
       referred_by: input.referredBy || null,
       agreed_to_terms: input.agreedToTerms,
     })
     .eq("id", id)
     .select(
-      "id, name, email, mobile, instagram_handle, referred_by, agreed_to_terms, partner_type, status, created_at",
+      "id, name, email, mobile, age, gender, instagram_handle, referred_by, agreed_to_terms, partner_type, status, created_at",
     )
     .single();
 

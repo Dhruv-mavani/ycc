@@ -233,6 +233,35 @@ export function PartnerProgramApplicationForm({
               placeholder="10-digit mobile"
             />
           </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Age" error={errors.age?.message}>
+              <Input {...register("age", { valueAsNumber: true })} type="number" inputMode="numeric" />
+            </Field>
+            <Field label="Gender" error={errors.gender?.message}>
+              <Controller
+                control={control}
+                name="gender"
+                render={({ field }) => (
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select">
+                        {(value: string | null) =>
+                          value
+                            ? value[0].toUpperCase() + value.slice(1)
+                            : "Select"
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </Field>
+          </div>
           <Field
             label="Instagram handle"
             error={errors.instagramHandle?.message}

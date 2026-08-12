@@ -115,6 +115,8 @@ export interface Database {
           phone: string | null;
           email: string | null;
           is_captain: boolean;
+          age: number | null;
+          gender: string | null;
           unique_id: string | null;
           created_at: string;
         };
@@ -125,6 +127,8 @@ export interface Database {
           phone?: string | null;
           email?: string | null;
           is_captain?: boolean;
+          age?: number | null;
+          gender?: string | null;
           unique_id?: string | null;
           created_at?: string;
         };
@@ -243,6 +247,8 @@ export interface Database {
           name: string;
           email: string;
           mobile: string;
+          age: number | null;
+          gender: string | null;
           instagram_handle: string;
           user_id: string | null;
           partner_type: PartnerType;
@@ -269,6 +275,8 @@ export interface Database {
           name: string;
           email: string;
           mobile: string;
+          age?: number | null;
+          gender?: string | null;
           instagram_handle: string;
           user_id?: string | null;
           partner_type?: PartnerType;

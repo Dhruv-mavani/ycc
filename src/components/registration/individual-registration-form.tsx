@@ -46,6 +46,9 @@ export function IndividualRegistrationForm({
     phone: string;
   } | null>(null);
 
+  const individualOption = colleges.find((c) => c.name === "Individual");
+  const collegeOptions = colleges.filter((c) => c.name !== "Individual");
+
   const {
     register,
     control,
@@ -134,11 +137,16 @@ export function IndividualRegistrationForm({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {colleges.map((c) => (
+                    {collegeOptions.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
                       </SelectItem>
                     ))}
+                    {individualOption ? (
+                      <SelectItem value={individualOption.id}>
+                        Not from a college (Individual)
+                      </SelectItem>
+                    ) : null}
                   </SelectContent>
                 </Select>
               )}
@@ -154,6 +162,35 @@ export function IndividualRegistrationForm({
               placeholder="10-digit mobile"
             />
           </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Age" error={errors.age?.message}>
+              <Input {...register("age", { valueAsNumber: true })} type="number" inputMode="numeric" />
+            </Field>
+            <Field label="Gender" error={errors.gender?.message}>
+              <Controller
+                control={control}
+                name="gender"
+                render={({ field }) => (
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select">
+                        {(value: string | null) =>
+                          value
+                            ? value[0].toUpperCase() + value.slice(1)
+                            : "Select"
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </Field>
+          </div>
         </CardContent>
       </Card>
 

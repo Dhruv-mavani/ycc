@@ -9,7 +9,7 @@ export default async function AdminPartnerProgramPage() {
   const { data: applications } = await admin
     .from("partner_program_applications")
     .select(
-      "id, name, email, mobile, instagram_handle, referred_by, referred_by_id, agreed_to_terms, partner_type, status, created_at",
+      "id, name, email, mobile, age, gender, instagram_handle, referred_by, referred_by_id, agreed_to_terms, partner_type, status, created_at",
     )
     .order("created_at", { ascending: false });
 

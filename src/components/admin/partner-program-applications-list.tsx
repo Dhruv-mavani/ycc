@@ -30,6 +30,8 @@ interface PartnerProgramApplication {
   name: string;
   email: string;
   mobile: string;
+  age: number | null;
+  gender: string | null;
   instagram_handle: string;
   referred_by: string | null;
   agreed_to_terms: boolean;
@@ -205,7 +207,19 @@ export function PartnerProgramApplicationsList({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:grid-cols-4">
+                <div>
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                    Age
+                  </p>
+                  <p className="font-medium">{app.age ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                    Gender
+                  </p>
+                  <p className="font-medium capitalize">{app.gender ?? "—"}</p>
+                </div>
                 <div>
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Instagram

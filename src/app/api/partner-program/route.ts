@@ -79,6 +79,8 @@ export async function POST(request: Request) {
       user_id: authUser.user.id,
       partner_type: input.partnerType,
       mobile: input.mobile,
+      age: input.age,
+      gender: input.gender,
       instagram_handle: input.instagramHandle,
       referred_by: input.partnerType === "campus" ? input.referredBy || null : null,
       referred_by_id: input.partnerType === "campus" ? null : input.referredById,

@@ -17,6 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   partnerProgramApplicationUpdateSchema,
   type PartnerProgramApplicationUpdateInput,
 } from "@/lib/validations/partner-program";
@@ -27,6 +34,8 @@ interface PartnerProgramApplication {
   name: string;
   email: string;
   mobile: string;
+  age: number | null;
+  gender: string | null;
   instagram_handle: string;
   referred_by: string | null;
   agreed_to_terms: boolean;
@@ -62,6 +71,8 @@ export function EditPartnerProgramDialog({
       name: application.name,
       email: application.email,
       mobile: application.mobile,
+      age: application.age ?? undefined,
+      gender: (application.gender ?? undefined) as PartnerProgramApplicationUpdateInput["gender"],
       instagramHandle: application.instagram_handle,
       referredBy: application.referred_by ?? "",
       agreedToTerms: application.agreed_to_terms,
@@ -110,6 +121,35 @@ export function EditPartnerProgramDialog({
           <Field label="Mobile" error={errors.mobile?.message}>
             <Input {...register("mobile")} inputMode="numeric" />
           </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Age" error={errors.age?.message}>
+              <Input {...register("age", { valueAsNumber: true })} type="number" inputMode="numeric" />
+            </Field>
+            <Field label="Gender" error={errors.gender?.message}>
+              <Controller
+                control={control}
+                name="gender"
+                render={({ field }) => (
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select">
+                        {(value: string | null) =>
+                          value
+                            ? value[0].toUpperCase() + value.slice(1)
+                            : "Select"
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </Field>
+          </div>
           <Field label="Instagram handle" error={errors.instagramHandle?.message}>
             <Input {...register("instagramHandle")} />
           </Field>

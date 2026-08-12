@@ -21,6 +21,8 @@ export interface RealtimePartnerProgramRow {
   name: string;
   email: string;
   mobile: string;
+  age: number | null;
+  gender: string | null;
   instagram_handle: string;
   referred_by: string | null;
   referred_by_id: string | null;

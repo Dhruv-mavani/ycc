@@ -123,6 +123,91 @@ export async function getEventOverview(
   };
 }
 
+export interface PartnerSquadReadiness {
+  id: string;
+  name: string;
+  partnerType: "campus" | "class";
+  teamCode: string | null;
+  downstreamCount: number;
+  hasConfirmedRegistration: boolean;
+}
+
+/**
+ * Pre-registration readiness for every approved YCC Partner/Co-Partner:
+ * their direct downstream roster (Co-Partners for a Partner, Classmate
+ * Partners for a Co-Partner — see squad-source/route.ts) against the fixed
+ * squad size of 6 (captain + 5), independent of whether they've actually
+ * registered a team yet.
+ */
+export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[]> {
+  const admin = createAdminClient();
+
+  const { data: partners } = await admin
+    .from("partner_program_applications")
+    .select("id, name, partner_type, team_code")
+    .in("partner_type", ["campus", "class"])
+    .eq("status", "approved")
+    .order("name");
+
+  const partnerIds = (partners ?? []).map((p) => p.id);
+
+  const { data: children } =
+    partnerIds.length > 0
+      ? await admin
+          .from("partner_program_applications")
+          .select("referred_by_id")
+          .in("referred_by_id", partnerIds)
+          .eq("status", "approved")
+      : { data: [] as { referred_by_id: string | null }[] };
+
+  const downstreamCountById = new Map<string, number>();
+  for (const c of children ?? []) {
+    if (!c.referred_by_id) continue;
+    downstreamCountById.set(
+      c.referred_by_id,
+      (downstreamCountById.get(c.referred_by_id) ?? 0) + 1,
+    );
+  }
+
+  // Each partner's squad registration is filed under a college row keyed
+  // by their team_code (see squad-source/route.ts) — used here only to
+  // check whether they've already registered, not for display.
+  const teamCodes = (partners ?? [])
+    .map((p) => p.team_code)
+    .filter((c): c is string => !!c);
+  const { data: partnerColleges } =
+    teamCodes.length > 0
+      ? await admin.from("colleges").select("id, initials").in("initials", teamCodes)
+      : { data: [] as { id: string; initials: string }[] };
+  const collegeIdByInitials = new Map(
+    (partnerColleges ?? []).map((c) => [c.initials, c.id]),
+  );
+  const collegeIds = [...collegeIdByInitials.values()];
+
+  const { data: confirmedRegs } =
+    collegeIds.length > 0
+      ? await admin
+          .from("registrations")
+          .select("college_id")
+          .in("college_id", collegeIds)
+          .eq("status", "confirmed")
+          .eq("type", "team")
+      : { data: [] as { college_id: string }[] };
+  const confirmedCollegeIds = new Set((confirmedRegs ?? []).map((r) => r.college_id));
+
+  return (partners ?? []).map((p) => {
+    const collegeId = p.team_code ? collegeIdByInitials.get(p.team_code) : undefined;
+    return {
+      id: p.id,
+      name: p.name,
+      partnerType: p.partner_type as "campus" | "class",
+      teamCode: p.team_code,
+      downstreamCount: downstreamCountById.get(p.id) ?? 0,
+      hasConfirmedRegistration: collegeId ? confirmedCollegeIds.has(collegeId) : false,
+    };
+  });
+}
+
 export interface CollegeRegistrationDetail {
   registrationId: string;
   type: "team" | "individual";
@@ -138,6 +223,8 @@ export interface CollegeRegistrationDetail {
     name: string;
     phone: string | null;
     email: string | null;
+    age: number | null;
+    gender: string | null;
     uniqueId: string | null;
     isCaptain: boolean;
     attendanceStatus: "present" | "absent";
@@ -227,6 +314,8 @@ export async function getCollegeDetail(
           name: p.name,
           phone: p.phone,
           email: p.email,
+          age: p.age,
+          gender: p.gender,
           uniqueId: p.unique_id,
           isCaptain: p.is_captain,
           attendanceStatus:

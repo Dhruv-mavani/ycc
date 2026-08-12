@@ -118,6 +118,13 @@ export function CollegeRegistrationsList({
                           No ID
                         </span>
                       )}
+                      {p.age || p.gender ? (
+                        <span className="text-muted-foreground text-xs">
+                          {[p.age, p.gender ? p.gender[0].toUpperCase() + p.gender.slice(1) : null]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      ) : null}
                     </div>
                     {((p.phone || p.email) && !p.isCaptain) ? (
                       <div className="flex items-center gap-3 text-muted-foreground text-xs">

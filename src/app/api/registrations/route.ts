@@ -101,6 +101,8 @@ export async function POST(request: Request) {
       phone: input.phone as string | null,
       email: null as string | null,
       is_captain: false,
+      age: input.age,
+      gender: input.gender,
     },
   ]);
 

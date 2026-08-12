@@ -5,6 +5,16 @@ export const phoneSchema = z
   .trim()
   .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number");
 
+export const ageSchema = z
+  .number({ message: "Enter a valid age" })
+  .int("Enter a valid age")
+  .min(1, "Enter a valid age")
+  .max(119, "Enter a valid age");
+
+export const genderSchema = z.enum(["male", "female", "other"], {
+  message: "Select a gender",
+});
+
 export const playerSchema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(100),
   phone: phoneSchema,
@@ -27,6 +37,8 @@ export const individualRegistrationSchema = z.object({
   collegeId: z.string().uuid({ message: "Select your college" }),
   name: z.string().trim().min(2, "Name is too short").max(100),
   phone: phoneSchema,
+  age: ageSchema,
+  gender: genderSchema,
 });
 
 export const registrationRequestSchema = z.discriminatedUnion("type", [
