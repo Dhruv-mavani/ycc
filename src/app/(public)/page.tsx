@@ -67,16 +67,15 @@ export default async function HomePage() {
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.5),transparent_60%)]"></div>
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/10 via-transparent to-background/50"></div>
         
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-4 sm:gap-6 px-4 z-10 mt-32 sm:mt-48">
+        <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 z-10 mt-32 sm:mt-48 md:mt-56">
           
-          
-          <p className="text-blue-400 font-semibold max-w-2xl text-[0.8rem] min-[320px]:text-sm min-[380px]:text-base sm:text-lg md:text-xl leading-relaxed text-center [text-shadow:_0_2px_4px_rgba(0,0,0,1),_0_0_12px_rgba(0,0,0,1)] px-1 mt-1 sm:mt-2">
+          <p className="text-blue-400 font-semibold max-w-3xl text-sm min-[320px]:text-base min-[380px]:text-lg sm:text-xl md:text-2xl leading-relaxed text-center [text-shadow:_0_2px_4px_rgba(0,0,0,1),_0_0_12px_rgba(0,0,0,1)] px-2">
             Register your team for the cricket championship, or enter
             solo for the quiz competition. Fast registration, instant QR-coded
             receipt.
           </p>
           
-          <div className="flex flex-col min-[400px]:flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 pt-3 sm:pt-6 w-full max-w-[260px] min-[320px]:max-w-xs min-[400px]:max-w-none mx-auto">
+          <div className="flex flex-col min-[400px]:flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 mt-12 sm:mt-20 pt-3 sm:pt-6 w-full max-w-[260px] min-[320px]:max-w-xs min-[400px]:max-w-none mx-auto">
             <Button size="lg" className="w-full min-[400px]:w-auto rounded-full shadow-xl shadow-primary/40 hover:shadow-primary/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 font-bold text-xs min-[320px]:text-sm sm:text-lg px-4 py-4 min-[320px]:px-5 min-[320px]:py-5 sm:px-8 sm:py-7 flex items-center justify-center gap-2 group border border-primary/50" nativeButton={false} render={<Link href="#events">
               <Trophy className="size-3.5 min-[320px]:size-4 sm:size-5 group-hover:scale-110 transition-transform" /> Register Now
             </Link>} />

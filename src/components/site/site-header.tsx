@@ -82,8 +82,8 @@ export function SiteHeader() {
     return (
       <header className="absolute top-0 w-full z-50 px-4 pt-0 pb-2 flex justify-center">
         <div className="w-full max-w-2xl px-4 sm:px-6 pb-4 flex flex-col items-center justify-center gap-0">
-          <div className="flex w-full items-center justify-between sm:justify-center">
-            <Link href="/" className="flex shrink-0 items-center justify-center group z-10 -mt-6 sm:-mt-12">
+          <div className="flex w-full items-center justify-between sm:justify-center -mt-8 sm:-mt-14">
+            <Link href="/" className="flex shrink-0 items-center justify-center group z-10 translate-y-2 sm:translate-y-0">
               <div className="transition-transform duration-300 group-hover:scale-105">
                 <Image
                   src="/brand/ycc-logo-bgless.png"
