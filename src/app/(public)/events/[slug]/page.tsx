@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,19 @@ export default async function EventDetailPage({
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <BackButton className="mb-4" />
+      
+      {(event.type === "quiz" || event.slug.includes("quiz")) && (
+        <div className="mb-6 w-full overflow-hidden rounded-xl shadow-md">
+          <Image
+            src="/ycc_quiz_banner.png"
+            alt={`${event.name} Banner`}
+            width={800}
+            height={400}
+            className="w-full h-32 sm:h-48 md:h-64 object-cover object-center"
+            priority
+          />
+        </div>
+      )}
       <div className="mb-2 flex items-center gap-2">
         <Badge variant="secondary" className="capitalize">
           {event.type}
