@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   Card,
@@ -142,7 +143,11 @@ export function PartnerProgramApplicationsList({
           <Card key={app.id}>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <CardTitle className="text-xl">{app.name}</CardTitle>
+                <CardTitle className="text-xl">
+                  <Link href={`/admin/partners/${app.id}`} className="hover:underline">
+                    {app.name}
+                  </Link>
+                </CardTitle>
                 <div className="flex items-center gap-2">
                   {coPartnersByPartnerId ? (
                     <Badge
@@ -343,7 +348,12 @@ export function PartnerProgramApplicationsList({
                   className="flex items-center justify-between gap-3 rounded-lg border p-3"
                 >
                   <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">{cp.name}</p>
+                    <Link
+                      href={`/admin/partners/${cp.id}`}
+                      className="font-medium text-sm text-primary hover:underline truncate block"
+                    >
+                      {cp.name}
+                    </Link>
                     <p className="text-muted-foreground text-xs truncate">
                       {cp.mobile}
                     </p>

@@ -79,12 +79,6 @@ export function ClassPartnerTeamsOverview() {
                   />
                 </div>
               )}
-              {cp.classmates.some((c) => c.status !== "approved") ? (
-                <p className="text-muted-foreground text-xs">
-                  {cp.classmates.filter((c) => c.status === "pending").length}{" "}
-                  pending, waiting on {cp.name}&apos;s review.
-                </p>
-              ) : null}
             </CardContent>
           </Card>
         );

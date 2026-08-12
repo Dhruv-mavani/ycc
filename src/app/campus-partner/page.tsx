@@ -1,6 +1,5 @@
 import { requirePartnerOfType } from "@/lib/auth";
 import { PartnerHeader } from "@/components/registration/partner-header";
-import { PartnerReviewPanel } from "@/components/registration/partner-review-panel";
 import { ClassPartnerTeamsOverview } from "@/components/registration/class-partner-teams-overview";
 import { WhatsappJoinGate } from "@/components/registration/whatsapp-join-gate";
 
@@ -28,13 +27,6 @@ export default async function CampusPartnerPage() {
                 You&apos;re an approved YCC Partner.
               </p>
             </div>
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold">
-              YCC Co-Partner applications referred by you
-            </h2>
-            <PartnerReviewPanel childLabel="YCC Co-Partner" />
           </div>
 
           <div className="space-y-3">

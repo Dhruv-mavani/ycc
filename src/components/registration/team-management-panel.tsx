@@ -80,8 +80,8 @@ export function TeamManagementPanel() {
   if (classmates.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
-        No approved Classmate Partners yet — approve some above before
-        sorting them into teams.
+        No Classmate Partners yet — once someone applies with your team code,
+        they&apos;ll show up here to sort into teams.
       </p>
     );
   }

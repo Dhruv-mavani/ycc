@@ -1,6 +1,5 @@
 import { requirePartnerOfType } from "@/lib/auth";
 import { PartnerHeader } from "@/components/registration/partner-header";
-import { PartnerReviewPanel } from "@/components/registration/partner-review-panel";
 import { TeamManagementPanel } from "@/components/registration/team-management-panel";
 import { PartnerEventRegistrationPanel } from "@/components/registration/partner-event-registration-panel";
 import { WhatsappJoinGate } from "@/components/registration/whatsapp-join-gate";
@@ -72,17 +71,10 @@ export default async function ClassPartnerPage() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold">
-              Classmate Partner applications referred by you
-            </h2>
-            <PartnerReviewPanel childLabel="Classmate Partner" />
-          </div>
-
-          <div className="space-y-3">
             <h2 className="text-lg font-semibold">Team A / Team B</h2>
             <p className="text-muted-foreground text-sm">
-              Sort your approved Classmate Partners into two teams — move
-              them around as you like.
+              Sort your Classmate Partners into two teams — move them around
+              as you like.
             </p>
             <TeamManagementPanel />
           </div>

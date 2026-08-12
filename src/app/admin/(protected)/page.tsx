@@ -180,11 +180,11 @@ async function DashboardData({ eventId }: { eventId?: string }) {
 
       <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
         <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-          <CardTitle>YCC Partner squad readiness</CardTitle>
+          <CardTitle>YCC Partner Overview</CardTitle>
           <CardDescription>
-            Every approved YCC Partner/Co-Partner&apos;s current downstream
-            roster against the fixed squad size of 6 (captain + 5) — shown
-            whether or not they&apos;ve registered a team yet.
+            Click a name to see who they&apos;ve recruited. Squad shows
+            progress toward a full 6-player team; Registered shows whether
+            that team has actually been entered and paid for.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
@@ -204,7 +204,14 @@ async function DashboardData({ eventId }: { eventId?: string }) {
                 const ready = squadTotal >= 6;
                 return (
                   <TableRow key={p.id} className="hover:bg-primary/5 transition-colors">
-                    <TableCell className="pl-6 font-medium">{p.name}</TableCell>
+                    <TableCell className="pl-6 font-medium">
+                      <Link
+                        href={`/admin/partners/${p.id}`}
+                        className="text-primary hover:underline"
+                      >
+                        {p.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">
                         {p.partnerType === "campus" ? "YCC Partner" : "YCC Co-Partner"}
