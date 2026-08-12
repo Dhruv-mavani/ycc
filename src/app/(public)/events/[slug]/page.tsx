@@ -37,7 +37,7 @@ export default async function EventDetailPage({
             alt={`${event.name} Banner`}
             width={800}
             height={400}
-            className="w-full h-32 sm:h-48 md:h-64 object-cover object-center"
+            className="w-full h-auto object-cover"
             priority
           />
         </div>
