@@ -76,7 +76,7 @@ export default async function HomePage() {
           </p>
           
           <div className="flex flex-col min-[400px]:flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 mt-12 sm:mt-20 pt-3 sm:pt-6 w-full max-w-[260px] min-[320px]:max-w-xs min-[400px]:max-w-none mx-auto">
-            <Button size="lg" className="w-full min-[400px]:w-auto rounded-full shadow-xl shadow-primary/40 hover:shadow-primary/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 font-bold text-xs min-[320px]:text-sm sm:text-lg px-4 py-4 min-[320px]:px-5 min-[320px]:py-5 sm:px-8 sm:py-7 flex items-center justify-center gap-2 group border border-primary/50" nativeButton={false} render={<Link href="#events">
+            <Button size="lg" className="w-full min-[400px]:w-auto rounded-full shadow-xl shadow-primary/40 hover:shadow-primary/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 font-bold text-xs min-[320px]:text-sm sm:text-lg px-4 py-4 min-[320px]:px-5 min-[320px]:py-5 sm:px-8 sm:py-7 flex items-center justify-center gap-2 group border border-primary/50" nativeButton={false} render={<Link href="/partner-program">
               <Trophy className="size-3.5 min-[320px]:size-4 sm:size-5 group-hover:scale-110 transition-transform" /> Register Now
             </Link>} />
             <Button size="lg" variant="outline" className="w-full min-[400px]:w-auto rounded-full font-bold text-xs min-[320px]:text-sm sm:text-lg px-4 py-4 min-[320px]:px-5 min-[320px]:py-5 sm:px-8 sm:py-7 flex items-center justify-center gap-2 bg-background/20 backdrop-blur-md border-white/20 text-white hover:bg-white hover:text-black transition-colors duration-300 shadow-lg" nativeButton={false} render={<Link href="/receipt">
@@ -92,7 +92,7 @@ export default async function HomePage() {
 
       <section id="events" className="mx-auto max-w-5xl px-4 pb-24 scroll-mt-24">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center">Register Here</h2>
+          <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center">Pay Here</h2>
           <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent ml-6 hidden sm:block"></div>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
