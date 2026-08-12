@@ -12,9 +12,6 @@ import { PartnerForgotPasswordForm } from "@/components/registration/partner-for
 interface ReferrerOption {
   id: string;
   name: string;
-  college_id: string | null;
-  stream: string | null;
-  semester: string | null;
 }
 
 const PARTNER_TYPES = [
@@ -46,12 +43,10 @@ const PARTNER_TYPES = [
 
 export function PartnerProgramTabs({
   initialType,
-  colleges,
   campusPartners,
   classPartners,
 }: {
   initialType: (typeof PARTNER_TYPES)[number]["id"];
-  colleges: { id: string; name: string }[];
   campusPartners: ReferrerOption[];
   classPartners: ReferrerOption[];
 }) {
@@ -174,7 +169,6 @@ export function PartnerProgramTabs({
       <PartnerProgramApplicationForm
         key={activeId}
         partnerType={activeId}
-        colleges={colleges}
         referrerOptions={referrerOptions}
         referrerLabel={referrerLabel}
       />

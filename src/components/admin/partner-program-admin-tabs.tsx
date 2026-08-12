@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PartnerProgramApplicationsList } from "@/components/admin/partner-program-applications-list";
 import type { PartnerApplicationStatus, PartnerType } from "@/lib/supabase/types";
@@ -9,10 +9,6 @@ interface PartnerProgramApplication {
   id: string;
   name: string;
   email: string;
-  college_id: string | null;
-  collegeName: string;
-  stream: string | null;
-  semester: string | null;
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;
@@ -38,10 +34,8 @@ const HIERARCHY_NOTE: Record<(typeof PARTNER_TYPES)[number]["id"], string> = {
 
 export function PartnerProgramAdminTabs({
   applications,
-  colleges,
 }: {
   applications: PartnerProgramApplication[];
-  colleges: { id: string; name: string }[];
 }) {
   const [activeId, setActiveId] =
     useState<(typeof PARTNER_TYPES)[number]["id"]>("campus");
@@ -49,6 +43,19 @@ export function PartnerProgramAdminTabs({
   const filteredApplications = applications.filter(
     (app) => app.partner_type === activeId,
   );
+
+  // Groups YCC Co-Partners under the YCC Partner who referred them, so the
+  // admin can see each YCC Partner's full recruited roster and count.
+  const coPartnersByPartnerId = useMemo(() => {
+    const map = new Map<string, PartnerProgramApplication[]>();
+    for (const app of applications) {
+      if (app.partner_type !== "class" || !app.referred_by_id) continue;
+      const list = map.get(app.referred_by_id) ?? [];
+      list.push(app);
+      map.set(app.referred_by_id, list);
+    }
+    return map;
+  }, [applications]);
 
   return (
     <div className="space-y-4">
@@ -80,7 +87,7 @@ export function PartnerProgramAdminTabs({
         key={activeId}
         applications={filteredApplications}
         activeType={activeId}
-        colleges={colleges}
+        coPartnersByPartnerId={activeId === "campus" ? coPartnersByPartnerId : undefined}
       />
     </div>
   );

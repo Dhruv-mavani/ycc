@@ -34,26 +34,6 @@ export async function POST(request: Request) {
   const input = parsed.data;
   const admin = createAdminClient();
 
-  // Only YCC Co-Partner (class) applications collect a college — YCC
-  // Partners and Classmate Partners don't (validated by
-  // partnerProgramApplicationSchema too).
-  let collegeId: string | null = null;
-  if (input.partnerType === "class") {
-    if (!input.collegeId) {
-      return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
-    }
-    const { data: college } = await admin
-      .from("colleges")
-      .select("id")
-      .eq("id", input.collegeId)
-      .maybeSingle();
-
-    if (!college) {
-      return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
-    }
-    collegeId = college.id;
-  }
-
   if (input.partnerType !== "campus") {
     const parentType = input.partnerType === "class" ? "campus" : "class";
     const { data: referrer } = input.referredById
@@ -98,9 +78,6 @@ export async function POST(request: Request) {
       email: input.email,
       user_id: authUser.user.id,
       partner_type: input.partnerType,
-      college_id: collegeId,
-      stream: input.stream ?? null,
-      semester: input.semester ?? null,
       mobile: input.mobile,
       instagram_handle: input.instagramHandle,
       referred_by: input.partnerType === "campus" ? input.referredBy || null : null,

@@ -12,20 +12,23 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Mail, Phone, PencilIcon, Search, Trash2Icon } from "lucide-react";
+import { CalendarDays, Mail, Phone, PencilIcon, Search, Trash2Icon, Users } from "lucide-react";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 import { ConfirmDialog } from "@/components/site/confirm-dialog";
 import { EditPartnerProgramDialog } from "@/components/admin/edit-partner-program-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import type { PartnerApplicationStatus, PartnerType } from "@/lib/supabase/types";
 
 interface PartnerProgramApplication {
   id: string;
   name: string;
   email: string;
-  college_id: string | null;
-  collegeName: string;
-  stream: string | null;
-  semester: string | null;
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;
@@ -40,11 +43,11 @@ interface PartnerProgramApplication {
 export function PartnerProgramApplicationsList({
   applications,
   activeType,
-  colleges,
+  coPartnersByPartnerId,
 }: {
   applications: PartnerProgramApplication[];
   activeType: PartnerType;
-  colleges: { id: string; name: string }[];
+  coPartnersByPartnerId?: Map<string, PartnerProgramApplication[]>;
 }) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
@@ -52,6 +55,7 @@ export function PartnerProgramApplicationsList({
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PartnerProgramApplication | null>(null);
   const [editTarget, setEditTarget] = useState<PartnerProgramApplication | null>(null);
+  const [coPartnersTarget, setCoPartnersTarget] = useState<PartnerProgramApplication | null>(null);
 
   useEffect(() => {
     localStorage.setItem("lastSeenPartnerProgramAt", new Date().toISOString());
@@ -62,9 +66,7 @@ export function PartnerProgramApplicationsList({
       if (row.partner_type !== activeType) return;
       setItems((prev) => {
         if (prev.some((a) => a.id === row.id)) return prev;
-        const collegeName =
-          colleges.find((c) => c.id === row.college_id)?.name ?? "Unknown college";
-        return [{ ...row, collegeName, referredByName: null }, ...prev];
+        return [{ ...row, referredByName: null }, ...prev];
       });
     },
   });
@@ -140,7 +142,16 @@ export function PartnerProgramApplicationsList({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <CardTitle className="text-xl">{app.name}</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{app.collegeName}</Badge>
+                  {coPartnersByPartnerId ? (
+                    <Badge
+                      variant="outline"
+                      className="cursor-pointer bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
+                      onClick={() => setCoPartnersTarget(app)}
+                    >
+                      <Users className="size-3 mr-1" />
+                      {(coPartnersByPartnerId.get(app.id) ?? []).length} Co-Partners
+                    </Badge>
+                  ) : null}
                   <Badge
                     variant="secondary"
                     className={
@@ -194,19 +205,7 @@ export function PartnerProgramApplicationsList({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:grid-cols-4">
-                <div>
-                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
-                    Stream
-                  </p>
-                  <p className="font-medium">{app.stream ?? "—"}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
-                    Semester
-                  </p>
-                  <p className="font-medium">{app.semester ?? "—"}</p>
-                </div>
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3">
                 <div>
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Instagram
@@ -289,7 +288,6 @@ export function PartnerProgramApplicationsList({
 
       <EditPartnerProgramDialog
         application={editTarget}
-        colleges={colleges}
         open={editTarget !== null}
         onOpenChange={(open) => {
           if (!open) setEditTarget(null);
@@ -300,6 +298,66 @@ export function PartnerProgramApplicationsList({
           );
         }}
       />
+
+      <Dialog
+        open={coPartnersTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setCoPartnersTarget(null);
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {coPartnersTarget?.name}&apos;s YCC Co-Partners
+            </DialogTitle>
+            <DialogDescription>
+              {(coPartnersByPartnerId?.get(coPartnersTarget?.id ?? "") ?? [])
+                .length}{" "}
+              YCC Co-Partner
+              {(coPartnersByPartnerId?.get(coPartnersTarget?.id ?? "") ?? [])
+                .length === 1
+                ? ""
+                : "s"}{" "}
+              brought in so far.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {(coPartnersByPartnerId?.get(coPartnersTarget?.id ?? "") ?? []).map(
+              (cp) => (
+                <div
+                  key={cp.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{cp.name}</p>
+                    <p className="text-muted-foreground text-xs truncate">
+                      {cp.mobile}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="secondary"
+                    className={
+                      cp.status === "approved"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize shrink-0"
+                        : cp.status === "rejected"
+                          ? "bg-destructive/10 text-destructive border-destructive/20 capitalize shrink-0"
+                          : "capitalize shrink-0"
+                    }
+                  >
+                    {cp.status}
+                  </Badge>
+                </div>
+              ),
+            )}
+            {(coPartnersByPartnerId?.get(coPartnersTarget?.id ?? "") ?? [])
+              .length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-4">
+                No YCC Co-Partners yet.
+              </p>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

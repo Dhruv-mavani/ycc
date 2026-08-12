@@ -242,9 +242,6 @@ export interface Database {
           id: string;
           name: string;
           email: string;
-          college_id: string | null;
-          stream: string | null;
-          semester: string | null;
           mobile: string;
           instagram_handle: string;
           user_id: string | null;
@@ -271,9 +268,6 @@ export interface Database {
           id?: string;
           name: string;
           email: string;
-          college_id?: string | null;
-          stream?: string | null;
-          semester?: string | null;
           mobile: string;
           instagram_handle: string;
           user_id?: string | null;

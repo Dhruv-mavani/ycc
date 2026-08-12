@@ -17,13 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   partnerProgramApplicationUpdateSchema,
   type PartnerProgramApplicationUpdateInput,
 } from "@/lib/validations/partner-program";
@@ -33,10 +26,6 @@ interface PartnerProgramApplication {
   id: string;
   name: string;
   email: string;
-  college_id: string | null;
-  collegeName: string;
-  stream: string | null;
-  semester: string | null;
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;
@@ -48,13 +37,11 @@ interface PartnerProgramApplication {
 
 export function EditPartnerProgramDialog({
   application,
-  colleges,
   open,
   onOpenChange,
   onSaved,
 }: {
   application: PartnerProgramApplication | null;
-  colleges: { id: string; name: string }[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: (updated: PartnerProgramApplication) => void;
@@ -74,9 +61,6 @@ export function EditPartnerProgramDialog({
     reset({
       name: application.name,
       email: application.email,
-      collegeId: application.college_id ?? "",
-      stream: application.stream ?? "",
-      semester: application.semester ?? "",
       mobile: application.mobile,
       instagramHandle: application.instagram_handle,
       referredBy: application.referred_by ?? "",
@@ -100,10 +84,7 @@ export function EditPartnerProgramDialog({
       }
 
       const data = await res.json();
-      const collegeName =
-        colleges.find((c) => c.id === data.application.college_id)?.name ??
-        "Unknown college";
-      onSaved({ ...data.application, collegeName });
+      onSaved(data.application);
       toast.success("Application updated");
       onOpenChange(false);
     } catch {
@@ -126,38 +107,6 @@ export function EditPartnerProgramDialog({
           <Field label="Email" error={errors.email?.message}>
             <Input type="email" {...register("email")} />
           </Field>
-          <Field label="College" error={errors.collegeId?.message}>
-            <Controller
-              control={control}
-              name="collegeId"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select college">
-                      {(value: string | null) =>
-                        colleges.find((c) => c.id === value)?.name ?? "Select college"
-                      }
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {colleges.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Stream" error={errors.stream?.message}>
-              <Input {...register("stream")} />
-            </Field>
-            <Field label="Semester" error={errors.semester?.message}>
-              <Input {...register("semester")} />
-            </Field>
-          </div>
           <Field label="Mobile" error={errors.mobile?.message}>
             <Input {...register("mobile")} inputMode="numeric" />
           </Field>

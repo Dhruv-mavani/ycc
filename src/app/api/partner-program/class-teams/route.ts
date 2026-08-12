@@ -33,7 +33,7 @@ export async function GET() {
       ? await admin
           .from("partner_program_applications")
           .select(
-            "id, name, email, mobile, stream, semester, status, team, referred_by_id",
+            "id, name, email, mobile, status, team, referred_by_id",
           )
           .in("referred_by_id", classPartnerIds)
           .eq("partner_type", "classmate")

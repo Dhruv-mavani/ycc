@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
   const [results, partnerResults] = await Promise.all([
     searchParticipants(q, collegeId),
-    searchClassPartners(q, collegeId),
+    searchClassPartners(q),
   ]);
   return NextResponse.json({ results, partnerResults });
 }

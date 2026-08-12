@@ -13,8 +13,6 @@ interface Reportee {
   name: string;
   email: string;
   mobile: string;
-  stream: string | null;
-  semester: string | null;
   instagram_handle: string;
   status: PartnerApplicationStatus;
   created_at: string;
@@ -135,11 +133,6 @@ function ReporteeCard({
               {reportee.status}
             </Badge>
           </div>
-          {reportee.stream && reportee.semester ? (
-            <p className="text-muted-foreground text-xs font-medium">
-              {reportee.stream} • Sem {reportee.semester}
-            </p>
-          ) : null}
           <div className="text-muted-foreground flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs bg-muted/30 p-2 rounded-md">
             <span className="flex items-center gap-1.5 min-w-0">
               <Mail className="size-3.5 shrink-0" />

@@ -15,9 +15,9 @@ function generateTeamCode(name: string, mobile: string): string {
  * signup (no approval gate), and still safe to call again from the older
  * approval-review call sites — both parts are skipped if already set.
  *
- * The per-college serial unique_id (event-day check-in) only applies to
- * applications that have a college — YCC Partners no longer collect one,
- * so that step is skipped for them.
+ * The per-college serial unique_id (event-day check-in) used to key off
+ * the applicant's own college — now that no partner type collects one,
+ * allocate_partner_unique_id resolves a shared placeholder college itself.
  */
 export async function generatePartnerCode(
   admin: ReturnType<typeof createAdminClient>,
@@ -25,7 +25,7 @@ export async function generatePartnerCode(
 ) {
   const { data: application } = await admin
     .from("partner_program_applications")
-    .select("name, mobile, college_id, team_code, unique_id")
+    .select("name, mobile, team_code, unique_id")
     .eq("id", applicationId)
     .single();
 
@@ -52,7 +52,7 @@ export async function generatePartnerCode(
       .eq("id", applicationId);
   }
 
-  if (!application.unique_id && application.college_id) {
+  if (!application.unique_id) {
     await admin.rpc("allocate_partner_unique_id", {
       p_application_id: applicationId,
     });

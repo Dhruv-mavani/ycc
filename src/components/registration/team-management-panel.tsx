@@ -14,8 +14,6 @@ interface Classmate {
   name: string;
   email: string;
   mobile: string;
-  stream: string | null;
-  semester: string | null;
   status: string;
   team: PartnerTeam | null;
   dues_paid: boolean;
@@ -210,11 +208,6 @@ function TeamColumn({
               <CardContent className="space-y-3 p-4">
                 <div className="space-y-1">
                   <p className="text-sm font-bold leading-tight">{m.name}</p>
-                  {m.stream && m.semester ? (
-                    <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider">
-                      {m.stream} • Sem {m.semester}
-                    </p>
-                  ) : null}
                 </div>
                 <div className="text-muted-foreground flex flex-col gap-1.5 text-xs bg-muted/30 p-2 rounded-md">
                   <span className="flex items-center gap-1.5 min-w-0">

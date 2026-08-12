@@ -6,6 +6,12 @@ import type { PartnerTeam } from "@/lib/supabase/types";
 
 const REQUIRED_TEAMMATES = 5; // YCC Co-Partner (captain) + 5 = squad of 6
 
+// registrations.college_id is required, but YCC Co-Partners no longer
+// collect a college (the tournament is open to everyone, not just
+// college students) — every partner-team registration is filed under
+// this one shared placeholder college instead of a real one.
+const PARTNER_PROGRAM_COLLEGE_INITIALS = "YCCP";
+
 async function loadTeamStatus(
   admin: ReturnType<typeof createAdminClient>,
   classPartnerId: string,
@@ -97,7 +103,7 @@ export async function POST(request: Request) {
 
   const { data: self } = await admin
     .from("partner_program_applications")
-    .select("id, name, mobile, college_id, team_a_registration_id, team_b_registration_id")
+    .select("id, name, mobile, team_a_registration_id, team_b_registration_id")
     .eq("id", access.application.id)
     .single();
 
@@ -114,10 +120,16 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!self.college_id) {
+  const { data: partnerCollege } = await admin
+    .from("colleges")
+    .select("id")
+    .eq("initials", PARTNER_PROGRAM_COLLEGE_INITIALS)
+    .maybeSingle();
+
+  if (!partnerCollege) {
     return NextResponse.json(
-      { error: "Your YCC Co-Partner application is missing a college" },
-      { status: 400 },
+      { error: "Registration is not set up yet — contact support" },
+      { status: 500 },
     );
   }
 
@@ -163,7 +175,7 @@ export async function POST(request: Request) {
 
   const result = await createTeamRegistration(admin, {
     eventId: event.id,
-    collegeId: self.college_id,
+    collegeId: partnerCollege.id,
     teamName: `${self.name} — Team ${team}`,
     players,
   });

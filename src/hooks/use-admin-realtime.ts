@@ -20,9 +20,6 @@ export interface RealtimePartnerProgramRow {
   id: string;
   name: string;
   email: string;
-  college_id: string;
-  stream: string;
-  semester: string;
   mobile: string;
   instagram_handle: string;
   referred_by: string | null;

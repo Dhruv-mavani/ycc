@@ -9,13 +9,6 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
@@ -39,20 +32,15 @@ import type { PartnerType } from "@/lib/supabase/types";
 interface ReferrerOption {
   id: string;
   name: string;
-  college_id: string | null;
-  stream: string | null;
-  semester: string | null;
   team_code?: string | null;
 }
 
 export function PartnerProgramApplicationForm({
   partnerType,
-  colleges,
   referrerOptions,
   referrerLabel,
 }: {
   partnerType: PartnerType;
-  colleges: { id: string; name: string }[];
   referrerOptions: ReferrerOption[];
   referrerLabel: string;
 }) {
@@ -75,9 +63,6 @@ export function PartnerProgramApplicationForm({
       email: "",
       password: "",
       confirmPassword: "",
-      collegeId: undefined,
-      stream: undefined,
-      semester: undefined,
       mobile: "",
       instagramHandle: "",
       referredBy: "",
@@ -234,44 +219,6 @@ export function PartnerProgramApplicationForm({
               </button>
             </div>
           </Field>
-          {partnerType === "class" ? (
-            <>
-              <Field label="College" error={errors.collegeId?.message}>
-                <Controller
-                  control={control}
-                  name="collegeId"
-                  render={({ field }) => (
-                    <Select value={field.value ?? ""} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select your college">
-                          {(value: string | null) =>
-                            colleges.find((c) => c.id === value)?.name ??
-                            "Select your college"
-                          }
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {colleges.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </Field>
-              <Field label="Stream / Course" error={errors.stream?.message}>
-                <Input {...register("stream")} />
-              </Field>
-              <Field
-                label="Semester / Current Year"
-                error={errors.semester?.message}
-              >
-                <Input {...register("semester")} />
-              </Field>
-            </>
-          ) : null}
           <Field label="Mobile / WhatsApp number" error={errors.mobile?.message}>
             <Input
               {...register("mobile")}
@@ -456,10 +403,7 @@ function TeamCodeField({
       />
       {touched && text.trim() ? (
         matched ? (
-          <p className="text-xs text-emerald-600">
-            Referred by {matched.name}
-            {matched.stream ? ` — ${matched.stream}, Sem ${matched.semester}` : ""}
-          </p>
+          <p className="text-xs text-emerald-600">Referred by {matched.name}</p>
         ) : (
           <p className="text-destructive text-xs">
             No {notFoundLabel} found with that code.

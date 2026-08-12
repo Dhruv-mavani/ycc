@@ -55,7 +55,6 @@ interface LookupClassPartner {
   mobile: string;
   uniqueId: string | null;
   teamCode: string | null;
-  collegeName: string;
   attendanceStatus: "present" | "absent";
   members: LookupTeamMember[];
 }
@@ -274,7 +273,7 @@ export function StaffLookupPanel({
                 </Badge>
               </div>
               <CardDescription className="text-sm font-medium mt-1">
-                {cp.collegeName} · {cp.uniqueId} · {cp.mobile}
+                {cp.uniqueId} · {cp.mobile}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">

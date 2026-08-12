@@ -24,22 +24,20 @@ export default async function PartnerProgramPage({
   if (slug && !partnerType) notFound();
 
   const supabase = await createClient();
-  const [{ data: colleges }, { data: campusPartners }, { data: classPartners }] =
-    await Promise.all([
-      supabase.from("colleges").select("id, name").order("name"),
-      supabase
-        .from("partner_program_applications")
-        .select("id, name, college_id, stream, semester, team_code")
-        .eq("partner_type", "campus")
-        .eq("status", "approved")
-        .order("name"),
-      supabase
-        .from("partner_program_applications")
-        .select("id, name, college_id, stream, semester, team_code")
-        .eq("partner_type", "class")
-        .eq("status", "approved")
-        .order("name"),
-    ]);
+  const [{ data: campusPartners }, { data: classPartners }] = await Promise.all([
+    supabase
+      .from("partner_program_applications")
+      .select("id, name, team_code")
+      .eq("partner_type", "campus")
+      .eq("status", "approved")
+      .order("name"),
+    supabase
+      .from("partner_program_applications")
+      .select("id, name, team_code")
+      .eq("partner_type", "class")
+      .eq("status", "approved")
+      .order("name"),
+  ]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -47,7 +45,6 @@ export default async function PartnerProgramPage({
       <PartnerProgramTabs
         key={partnerType}
         initialType={partnerType}
-        colleges={colleges ?? []}
         campusPartners={campusPartners ?? []}
         classPartners={classPartners ?? []}
       />

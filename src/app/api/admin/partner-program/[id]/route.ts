@@ -28,24 +28,11 @@ export async function PATCH(
   const input = parsed.data;
   const admin = createAdminClient();
 
-  const { data: college } = await admin
-    .from("colleges")
-    .select("id")
-    .eq("id", input.collegeId)
-    .maybeSingle();
-
-  if (!college) {
-    return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
-  }
-
   const { data: application, error } = await admin
     .from("partner_program_applications")
     .update({
       name: input.name,
       email: input.email,
-      college_id: college.id,
-      stream: input.stream,
-      semester: input.semester,
       mobile: input.mobile,
       instagram_handle: input.instagramHandle,
       referred_by: input.referredBy || null,
@@ -53,7 +40,7 @@ export async function PATCH(
     })
     .eq("id", id)
     .select(
-      "id, name, email, college_id, stream, semester, mobile, instagram_handle, referred_by, agreed_to_terms, partner_type, status, created_at",
+      "id, name, email, mobile, instagram_handle, referred_by, agreed_to_terms, partner_type, status, created_at",
     )
     .single();
 
