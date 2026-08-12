@@ -11,6 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -241,21 +248,45 @@ export function PartnerProgramApplicationForm({
             </Field>
           ) : partnerType === "class" ? (
             <Field
-              label={`${referrerLabel}'s code`}
+              label={`${referrerLabel}'s name/code`}
               error={errors.referredById?.message}
             >
               <Controller
                 control={control}
                 name="referredById"
                 render={({ field }) => (
-                  <TeamCodeField
-                    value={field.value}
-                    options={referrerOptions}
-                    notFoundLabel={referrerLabel}
-                    onResolve={field.onChange}
-                  />
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={`Select your ${referrerLabel}`}>
+                        {(value: string | null) => {
+                          const match = referrerOptions.find((o) => o.id === value);
+                          if (!match) return `Select your ${referrerLabel}`;
+                          return match.team_code
+                            ? `${match.name} (${match.team_code})`
+                            : match.name;
+                        }}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {referrerOptions.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name}
+                          {r.team_code ? (
+                            <span className="ml-1.5 font-mono text-xs text-muted-foreground">
+                              {r.team_code}
+                            </span>
+                          ) : null}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
               />
+              {referrerOptions.length === 0 ? (
+                <p className="text-muted-foreground text-xs">
+                  No approved {referrerLabel}s found yet.
+                </p>
+              ) : null}
             </Field>
           ) : (
             <Field

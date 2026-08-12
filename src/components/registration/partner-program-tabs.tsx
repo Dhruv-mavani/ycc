@@ -12,6 +12,7 @@ import { PartnerForgotPasswordForm } from "@/components/registration/partner-for
 interface ReferrerOption {
   id: string;
   name: string;
+  team_code: string | null;
 }
 
 const PARTNER_TYPES = [
