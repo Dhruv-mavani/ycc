@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -21,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import {
   teamRegistrationSchema,
   type TeamRegistrationInput,
@@ -33,6 +35,13 @@ interface ReferrerOption {
   id: string;
   name: string;
   team_code: string | null;
+}
+
+interface RosterMember {
+  id: string;
+  name: string;
+  phone: string;
+  alreadyAllotted: boolean;
 }
 
 type ReferrerType = "campus" | "class";
@@ -62,12 +71,15 @@ export function TeamRegistrationForm({
   const [referrerId, setReferrerId] = useState("");
   const [loadingSquad, setLoadingSquad] = useState(false);
   const [squadError, setSquadError] = useState<string | null>(null);
+  const [captain, setCaptain] = useState<{ name: string; phone: string } | null>(null);
+  const [roster, setRoster] = useState<RosterMember[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState("");
 
   const {
     register,
     handleSubmit,
     setValue,
-    control,
     formState: { errors, isSubmitting },
   } = useForm<TeamRegistrationInput>({
     resolver: zodResolver(teamRegistrationSchema),
@@ -80,7 +92,7 @@ export function TeamRegistrationForm({
     },
   });
 
-  const { fields, replace, remove } = useFieldArray({ control, name: "players" });
+  const seatsAvailable = maxTeamSize - 1; // one seat is always the captain
 
   const referrerLabel =
     referrerType === "campus"
@@ -89,7 +101,11 @@ export function TeamRegistrationForm({
         ? "YCC Co-Partner"
         : "";
   const childLabel =
-    referrerType === "campus" ? "Co-Partners" : "Classmate Partners";
+    referrerType === "campus"
+      ? "Co-Partners"
+      : referrerType === "class"
+        ? "Classmate Partners"
+        : "";
   const referrerOptions =
     referrerType === "campus"
       ? campusPartners
@@ -98,9 +114,38 @@ export function TeamRegistrationForm({
         : [];
 
   function resetSquad() {
-    replace([]);
+    setCaptain(null);
+    setRoster([]);
+    setSelectedIds(new Set());
+    setQuery("");
     setValue("collegeId", "");
+    setValue("players", []);
     setSquadError(null);
+  }
+
+  function syncPlayers(nextSelected: Set<string>) {
+    const selectedMembers = roster.filter((r) => nextSelected.has(r.id));
+    setValue(
+      "players",
+      captain
+        ? [captain, ...selectedMembers.map((r) => ({ name: r.name, phone: r.phone }))]
+        : [],
+      { shouldValidate: true },
+    );
+  }
+
+  function toggleMember(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (next.size >= seatsAvailable) return prev;
+        next.add(id);
+      }
+      syncPlayers(next);
+      return next;
+    });
   }
 
   async function loadSquad(type: ReferrerType, id: string) {
@@ -113,19 +158,16 @@ export function TeamRegistrationForm({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setSquadError(data.error ?? "Could not load this squad");
-        replace([]);
-        setValue("collegeId", "");
+        resetSquad();
         return;
       }
       setValue("collegeId", data.collegeId, { shouldValidate: true });
       setValue("teamName", `${data.captain.name} — Squad`);
-      replace([
-        { name: data.captain.name, phone: data.captain.phone },
-        ...data.roster.map((r: { name: string; phone: string }) => ({
-          name: r.name,
-          phone: r.phone,
-        })),
-      ]);
+      setCaptain(data.captain);
+      setRoster(data.roster ?? []);
+      setSelectedIds(new Set());
+      setValue("players", []);
+      setQuery("");
     } catch {
       setSquadError("Network error — please try again");
     } finally {
@@ -180,7 +222,11 @@ export function TeamRegistrationForm({
     );
   }
 
-  const squadReady = fields.length === maxTeamSize;
+  const availableCount = roster.filter((r) => !r.alreadyAllotted).length;
+  const filteredRoster = roster.filter((r) =>
+    r.name.toLowerCase().includes(query.trim().toLowerCase()),
+  );
+  const squadReady = selectedIds.size === seatsAvailable;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -274,68 +320,89 @@ export function TeamRegistrationForm({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Squad ({fields.length}/{maxTeamSize})
-          </CardTitle>
-          <CardDescription>
-            {loadingSquad
-              ? "Loading squad…"
-              : fields.length === 0
-                ? `Select a ${referrerLabel || "YCC Partner / YCC Co-Partner"} above to load the squad`
+      {captain ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Squad ({selectedIds.size + 1}/{maxTeamSize})
+            </CardTitle>
+            <CardDescription>
+              {loadingSquad
+                ? "Loading roster…"
                 : squadReady
-                  ? "Ready to register"
-                  : fields.length > maxTeamSize
-                    ? `Remove ${fields.length - maxTeamSize} player${fields.length - maxTeamSize === 1 ? "" : "s"} — exactly ${maxTeamSize} required`
-                    : `Need ${maxTeamSize - fields.length} more approved ${childLabel} before this squad can register`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {fields.map((field, index) => (
-            <div key={field.id}>
-              {index > 0 && <Separator className="mb-4" />}
-              <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-                <Field
-                  label={
-                    index === 0
-                      ? `Player ${index + 1} name (Captain)`
-                      : `Player ${index + 1} name`
-                  }
-                  error={errors.players?.[index]?.name?.message}
-                >
-                  <Input {...register(`players.${index}.name` as const)} />
-                </Field>
-                <Field
-                  label="Mobile number"
-                  error={errors.players?.[index]?.phone?.message}
-                >
-                  <Input
-                    {...register(`players.${index}.phone` as const)}
-                    inputMode="numeric"
-                    placeholder="10-digit mobile"
-                  />
-                </Field>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={index === 0}
-                  onClick={() => remove(index)}
-                >
-                  Remove
-                </Button>
+                  ? "Ready to register — pick a different set of people to build another team."
+                  : `Pick ${seatsAvailable - selectedIds.size} more ${childLabel} to complete this team. ${availableCount} available.`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
+              <div>
+                <p className="font-medium text-sm">{captain.name}</p>
+                <p className="text-muted-foreground text-xs">{captain.phone}</p>
               </div>
+              <Badge variant="secondary" className="shrink-0">Captain</Badge>
             </div>
-          ))}
-          {fields.length === 0 && !loadingSquad ? (
-            <p className="text-muted-foreground text-sm">
-              No players yet — pick a YCC Partner or YCC Co-Partner above to
-              load their squad.
-            </p>
-          ) : null}
-        </CardContent>
-      </Card>
+
+            {roster.length > 0 ? (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground size-4" />
+                <Input
+                  placeholder={`Search ${childLabel.toLowerCase()}...`}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            ) : null}
+
+            <div className="max-h-80 space-y-1 overflow-y-auto">
+              {filteredRoster.map((member) => {
+                const checked = selectedIds.has(member.id);
+                const disabled =
+                  member.alreadyAllotted ||
+                  (!checked && selectedIds.size >= seatsAvailable);
+                return (
+                  <label
+                    key={member.id}
+                    className={`flex items-center justify-between gap-3 rounded-lg border p-3 ${
+                      disabled && !checked
+                        ? "opacity-50"
+                        : "cursor-pointer hover:bg-muted/40"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Checkbox
+                        checked={checked}
+                        disabled={disabled}
+                        onCheckedChange={() => toggleMember(member.id)}
+                      />
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">{member.name}</p>
+                        <p className="text-muted-foreground text-xs">{member.phone}</p>
+                      </div>
+                    </div>
+                    {member.alreadyAllotted ? (
+                      <Badge variant="outline" className="shrink-0 text-xs">
+                        Already in a team
+                      </Badge>
+                    ) : null}
+                  </label>
+                );
+              })}
+              {!loadingSquad && roster.length === 0 ? (
+                <p className="text-muted-foreground text-sm py-4 text-center">
+                  No approved {childLabel} yet.
+                </p>
+              ) : null}
+              {!loadingSquad && roster.length > 0 && filteredRoster.length === 0 ? (
+                <p className="text-muted-foreground text-sm py-4 text-center">
+                  No one matches &quot;{query}&quot;.
+                </p>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Button
         type="submit"
@@ -346,7 +413,9 @@ export function TeamRegistrationForm({
           ? "Submitting..."
           : squadReady
             ? "Continue to payment"
-            : `Squad must have exactly ${maxTeamSize} players`}
+            : captain
+              ? `Select ${seatsAvailable} ${childLabel.toLowerCase()} to continue`
+              : "Select a referrer to continue"}
       </Button>
     </form>
   );

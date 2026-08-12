@@ -75,6 +75,29 @@ export async function GET(request: Request) {
     );
   }
 
+  // A roster bigger than 6 gets split across multiple team registrations —
+  // anyone already locked into an earlier one (by phone, since the roster
+  // and registered participants are separate tables with no direct FK)
+  // can't be picked again for a new team.
+  const { data: existingRegs } = await admin
+    .from("registrations")
+    .select("id")
+    .eq("college_id", college.id)
+    .in("status", ["pending_payment", "confirmed"]);
+
+  const existingRegIds = (existingRegs ?? []).map((r) => r.id);
+  const { data: existingParticipants } =
+    existingRegIds.length > 0
+      ? await admin
+          .from("participants")
+          .select("phone")
+          .in("registration_id", existingRegIds)
+      : { data: [] as { phone: string | null }[] };
+
+  const allottedPhones = new Set(
+    (existingParticipants ?? []).map((p) => p.phone).filter((p): p is string => !!p),
+  );
+
   return NextResponse.json({
     collegeId: college.id,
     captain: { name: referrer.name, phone: referrer.mobile },
@@ -82,6 +105,7 @@ export async function GET(request: Request) {
       id: r.id,
       name: r.name,
       phone: r.mobile,
+      alreadyAllotted: allottedPhones.has(r.mobile),
     })),
   });
 }
