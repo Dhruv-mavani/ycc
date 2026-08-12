@@ -246,7 +246,7 @@ export function PartnerProgramApplicationForm({
             >
               <Input {...register("referredBy")} />
             </Field>
-          ) : partnerType === "class" ? (
+          ) : (
             <Field
               label={`${referrerLabel}'s name/code`}
               error={errors.referredById?.message}
@@ -287,24 +287,6 @@ export function PartnerProgramApplicationForm({
                   No approved {referrerLabel}s found yet.
                 </p>
               ) : null}
-            </Field>
-          ) : (
-            <Field
-              label="Your YCC Co-Partner's team code"
-              error={errors.referredById?.message}
-            >
-              <Controller
-                control={control}
-                name="referredById"
-                render={({ field }) => (
-                  <TeamCodeField
-                    value={field.value}
-                    options={referrerOptions}
-                    notFoundLabel="YCC Co-Partner"
-                    onResolve={field.onChange}
-                  />
-                )}
-              />
             </Field>
           )}
         </CardContent>
@@ -400,47 +382,6 @@ function Field({
       <Label>{label}</Label>
       {children}
       {error ? <p className="text-destructive text-xs">{error}</p> : null}
-    </div>
-  );
-}
-
-function TeamCodeField({
-  value,
-  options,
-  notFoundLabel = "YCC Co-Partner",
-  onResolve,
-}: {
-  value: string | undefined;
-  options: ReferrerOption[];
-  notFoundLabel?: string;
-  onResolve: (id: string | undefined) => void;
-}) {
-  const matched = options.find((o) => o.id === value);
-  const [text, setText] = useState(matched?.team_code ?? "");
-  const [touched, setTouched] = useState(false);
-
-  return (
-    <div className="space-y-1.5">
-      <Input
-        placeholder="e.g. ABHI9864"
-        value={text}
-        onChange={(e) => {
-          const raw = e.target.value.toUpperCase();
-          setText(raw);
-          setTouched(true);
-          const found = options.find((o) => o.team_code === raw.trim());
-          onResolve(found?.id);
-        }}
-      />
-      {touched && text.trim() ? (
-        matched ? (
-          <p className="text-xs text-emerald-600">Referred by {matched.name}</p>
-        ) : (
-          <p className="text-destructive text-xs">
-            No {notFoundLabel} found with that code.
-          </p>
-        )
-      ) : null}
     </div>
   );
 }
