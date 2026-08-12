@@ -119,7 +119,7 @@ async function DashboardData({ eventId }: { eventId?: string }) {
 
       <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
         <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-          <CardTitle>Colleges Overview</CardTitle>
+          <CardTitle>Overview</CardTitle>
           <CardDescription>Click a college name to view full registration details</CardDescription>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">

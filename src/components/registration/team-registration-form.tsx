@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -29,20 +29,28 @@ import {
 import { RazorpayCheckoutButton } from "@/components/registration/razorpay-checkout-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
 
+interface ReferrerOption {
+  id: string;
+  name: string;
+  team_code: string | null;
+}
+
+type ReferrerType = "campus" | "class";
+
 export function TeamRegistrationForm({
   eventId,
   eventName,
-  minTeamSize,
   maxTeamSize,
   feePaise,
-  colleges,
+  campusPartners,
+  classPartners,
 }: {
   eventId: string;
   eventName: string;
-  minTeamSize: number;
   maxTeamSize: number;
   feePaise: number;
-  colleges: { id: string; name: string }[];
+  campusPartners: ReferrerOption[];
+  classPartners: ReferrerOption[];
 }) {
   const [submitted, setSubmitted] = useState<{
     registrationId: string;
@@ -50,11 +58,16 @@ export function TeamRegistrationForm({
     captainName: string;
     captainPhone: string;
   } | null>(null);
+  const [referrerType, setReferrerType] = useState<ReferrerType | "">("");
+  const [referrerId, setReferrerId] = useState("");
+  const [loadingSquad, setLoadingSquad] = useState(false);
+  const [squadError, setSquadError] = useState<string | null>(null);
 
   const {
     register,
-    control,
     handleSubmit,
+    setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<TeamRegistrationInput>({
     resolver: zodResolver(teamRegistrationSchema),
@@ -63,14 +76,62 @@ export function TeamRegistrationForm({
       eventId,
       collegeId: "",
       teamName: "",
-      players: [{ name: "", phone: "" }],
+      players: [],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "players",
-  });
+  const { fields, replace, remove } = useFieldArray({ control, name: "players" });
+
+  const referrerLabel =
+    referrerType === "campus"
+      ? "YCC Partner"
+      : referrerType === "class"
+        ? "YCC Co-Partner"
+        : "";
+  const childLabel =
+    referrerType === "campus" ? "Co-Partners" : "Classmate Partners";
+  const referrerOptions =
+    referrerType === "campus"
+      ? campusPartners
+      : referrerType === "class"
+        ? classPartners
+        : [];
+
+  function resetSquad() {
+    replace([]);
+    setValue("collegeId", "");
+    setSquadError(null);
+  }
+
+  async function loadSquad(type: ReferrerType, id: string) {
+    setLoadingSquad(true);
+    setSquadError(null);
+    try {
+      const res = await fetch(
+        `/api/partner-program/squad-source?type=${type}&id=${id}`,
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSquadError(data.error ?? "Could not load this squad");
+        replace([]);
+        setValue("collegeId", "");
+        return;
+      }
+      setValue("collegeId", data.collegeId, { shouldValidate: true });
+      setValue("teamName", `${data.captain.name} — Squad`);
+      replace([
+        { name: data.captain.name, phone: data.captain.phone },
+        ...data.roster.map((r: { name: string; phone: string }) => ({
+          name: r.name,
+          phone: r.phone,
+        })),
+      ]);
+    } catch {
+      setSquadError("Network error — please try again");
+    } finally {
+      setLoadingSquad(false);
+    }
+  }
 
   async function onSubmit(values: TeamRegistrationInput) {
     try {
@@ -119,6 +180,8 @@ export function TeamRegistrationForm({
     );
   }
 
+  const squadReady = fields.length === maxTeamSize;
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Card>
@@ -130,31 +193,81 @@ export function TeamRegistrationForm({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Field label="College" error={errors.collegeId?.message}>
-            <Controller
-              control={control}
-              name="collegeId"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select your college">
-                      {(value: string | null) =>
-                        colleges.find((c) => c.id === value)?.name ??
-                        "Select your college"
-                      }
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {colleges.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+          <Field label="Are you a YCC Partner or YCC Co-Partner?">
+            <Select
+              value={referrerType}
+              onValueChange={(val) => {
+                setReferrerType(val as ReferrerType);
+                setReferrerId("");
+                resetSquad();
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select one">
+                  {(value: string | null) =>
+                    value === "campus"
+                      ? "YCC Partner"
+                      : value === "class"
+                        ? "YCC Co-Partner"
+                        : "Select one"
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="campus">YCC Partner</SelectItem>
+                <SelectItem value="class">YCC Co-Partner</SelectItem>
+              </SelectContent>
+            </Select>
           </Field>
+
+          {referrerType ? (
+            <Field
+              label={`${referrerLabel}'s name/code`}
+              error={errors.collegeId?.message}
+            >
+              <Select
+                value={referrerId}
+                onValueChange={(val) => {
+                  if (!val) return;
+                  setReferrerId(val);
+                  loadSquad(referrerType, val);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={`Select your ${referrerLabel}`}>
+                    {(value: string | null) => {
+                      const match = referrerOptions.find((o) => o.id === value);
+                      if (!match) return `Select your ${referrerLabel}`;
+                      return match.team_code
+                        ? `${match.name} (${match.team_code})`
+                        : match.name;
+                    }}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {referrerOptions.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name}
+                      {r.team_code ? (
+                        <span className="ml-1.5 font-mono text-xs text-muted-foreground">
+                          {r.team_code}
+                        </span>
+                      ) : null}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {referrerOptions.length === 0 ? (
+                <p className="text-muted-foreground text-xs">
+                  No approved {referrerLabel}s found yet.
+                </p>
+              ) : null}
+              {squadError ? (
+                <p className="text-destructive text-xs">{squadError}</p>
+              ) : null}
+            </Field>
+          ) : null}
+
           <Field label="Team name" error={errors.teamName?.message}>
             <Input {...register("teamName")} placeholder="e.g. CK Strikers" />
           </Field>
@@ -163,11 +276,19 @@ export function TeamRegistrationForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Squad ({fields.length}/{maxTeamSize})</CardTitle>
+          <CardTitle>
+            Squad ({fields.length}/{maxTeamSize})
+          </CardTitle>
           <CardDescription>
-            {minTeamSize === maxTeamSize
-              ? `Add exactly ${minTeamSize} players`
-              : `Add ${minTeamSize}–${maxTeamSize} players`}
+            {loadingSquad
+              ? "Loading squad…"
+              : fields.length === 0
+                ? `Select a ${referrerLabel || "YCC Partner / YCC Co-Partner"} above to load the squad`
+                : squadReady
+                  ? "Ready to register"
+                  : fields.length > maxTeamSize
+                    ? `Remove ${fields.length - maxTeamSize} player${fields.length - maxTeamSize === 1 ? "" : "s"} — exactly ${maxTeamSize} required`
+                    : `Need ${maxTeamSize - fields.length} more approved ${childLabel} before this squad can register`}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -199,7 +320,7 @@ export function TeamRegistrationForm({
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={fields.length <= 1}
+                  disabled={index === 0}
                   onClick={() => remove(index)}
                 >
                   Remove
@@ -207,20 +328,25 @@ export function TeamRegistrationForm({
               </div>
             </div>
           ))}
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            disabled={fields.length >= maxTeamSize}
-            onClick={() => append({ name: "", phone: "" })}
-          >
-            + Add player
-          </Button>
+          {fields.length === 0 && !loadingSquad ? (
+            <p className="text-muted-foreground text-sm">
+              No players yet — pick a YCC Partner or YCC Co-Partner above to
+              load their squad.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Submitting..." : "Continue to payment"}
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isSubmitting || loadingSquad || !squadReady}
+      >
+        {isSubmitting
+          ? "Submitting..."
+          : squadReady
+            ? "Continue to payment"
+            : `Squad must have exactly ${maxTeamSize} players`}
       </Button>
     </form>
   );

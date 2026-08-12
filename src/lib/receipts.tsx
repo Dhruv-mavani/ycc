@@ -11,6 +11,8 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 import { calculateGst } from "@/lib/gst";
+import { BoxCricketIdCardPage } from "@/lib/box-cricket-id-card";
+import { QuizIdCardPage } from "@/lib/quiz-id-card";
 
 // Read via fs.readFileSync (statically analyzable path) so Next's file
 // tracing bundles the logo into serverless functions; react-pdf's own file
@@ -133,7 +135,10 @@ export interface ReceiptParticipant {
 export interface ReceiptData {
   registrationId: string;
   eventName: string;
+  /** "quiz" gets the quiz ID card design; anything else gets the box-cricket one. */
+  eventType: string;
   collegeName: string;
+  collegeCity: string | null;
   teamName: string | null;
   type: "team" | "individual";
   /** Base (pre-tax) price for this registration — GST is computed from this. */
@@ -292,6 +297,21 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
           receipt safe — it is your proof of registration.
         </Text>
       </Page>
+
+      {data.participants.map((p) => {
+        const cardData = {
+          playerName: p.name,
+          collegeName: data.collegeName,
+          city: data.collegeCity,
+          uniqueId: p.uniqueId,
+          qrDataUrl: p.qrDataUrl,
+        };
+        return data.eventType === "quiz" ? (
+          <QuizIdCardPage key={p.uniqueId} data={cardData} />
+        ) : (
+          <BoxCricketIdCardPage key={p.uniqueId} data={cardData} />
+        );
+      })}
     </Document>
   );
 }

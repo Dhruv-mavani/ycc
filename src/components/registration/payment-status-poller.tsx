@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -12,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { downloadFileOrThrow } from "@/lib/download-file";
 
 interface StatusResponse {
   status: "pending_payment" | "confirmed" | "failed" | "cancelled";
@@ -29,6 +31,7 @@ export function PaymentStatusPoller({
   const [data, setData] = useState<StatusResponse | null>(null);
   const [error, setError] = useState(false);
   const [downloadStarted, setDownloadStarted] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const hasTriggeredDownload = useRef(false);
 
   useEffect(() => {
@@ -64,9 +67,36 @@ export function PaymentStatusPoller({
     if (data?.status === "confirmed" && !hasTriggeredDownload.current) {
       hasTriggeredDownload.current = true;
       setDownloadStarted(true);
-      window.location.href = `/api/registrations/${registrationId}/receipt`;
+      downloadFileOrThrow(
+        `/api/registrations/${registrationId}/receipt`,
+        `YCC-Receipt-${registrationId}.pdf`,
+      )
+        .catch((err) => {
+          setDownloadError(
+            err instanceof Error ? err.message : "Could not download your receipt",
+          );
+        })
+        .finally(() => setDownloadStarted(false));
     }
   }, [data?.status, registrationId]);
+
+  async function retryDownload() {
+    setDownloadStarted(true);
+    setDownloadError(null);
+    try {
+      await downloadFileOrThrow(
+        `/api/registrations/${registrationId}/receipt`,
+        `YCC-Receipt-${registrationId}.pdf`,
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not download your receipt";
+      setDownloadError(message);
+      toast.error(message);
+    } finally {
+      setDownloadStarted(false);
+    }
+  }
 
   if (error) {
     return (
@@ -110,6 +140,19 @@ export function PaymentStatusPoller({
                 now. Don&apos;t close this page until it finishes.
               </div>
             )}
+            {downloadError && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                <strong>Couldn&apos;t download your receipt.</strong>{" "}
+                {downloadError}{" "}
+                <button
+                  type="button"
+                  onClick={retryDownload}
+                  className="font-medium underline underline-offset-2"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
             <p className="text-sm">
               Your registration is confirmed. Keep the unique ID(s) below
               safe — you&apos;ll need them at the venue.
@@ -133,30 +176,32 @@ export function PaymentStatusPoller({
               <Button
                 variant="outline"
                 className="w-full"
-                nativeButton={false}
-                render={
-                  <a
-                    href={`/api/registrations/${registrationId}/receipt`}
-                    download
-                  >
-                    Download receipt again
-                  </a>
-                }
-              />
+                disabled={downloadStarted}
+                onClick={retryDownload}
+              >
+                {downloadStarted ? "Downloading..." : "Download receipt again"}
+              </Button>
               {!data.teamName && data.participants[0]?.uniqueId ? (
                 <Button
                   variant="outline"
                   className="w-full"
-                  nativeButton={false}
-                  render={
-                    <a
-                      href={`/api/participants/${data.participants[0].id}/id-card`}
-                      download
-                    >
-                      Download ID card
-                    </a>
-                  }
-                />
+                  onClick={async () => {
+                    try {
+                      await downloadFileOrThrow(
+                        `/api/participants/${data.participants[0].id}/id-card`,
+                        `YCC-ID-Card-${data.participants[0].uniqueId}.pdf`,
+                      );
+                    } catch (err) {
+                      toast.error(
+                        err instanceof Error
+                          ? err.message
+                          : "Could not download your ID card",
+                      );
+                    }
+                  }}
+                >
+                  Download ID card
+                </Button>
               ) : null}
               <p className="text-muted-foreground text-center text-xs">
                 Lost your receipt later?{" "}

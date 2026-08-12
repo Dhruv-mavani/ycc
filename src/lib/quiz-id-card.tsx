@@ -142,41 +142,47 @@ export interface QuizIdCardData {
   qrDataUrl: string;
 }
 
-function QuizIdCardDocument({ data }: { data: QuizIdCardData }) {
+// Exported (not just the Document wrapper below) so the combined
+// receipt+ID-cards PDF (src/lib/receipts.tsx) can drop this page in
+// directly alongside other pages in one Document — react-pdf documents
+// can't be nested, only their Page children can be composed.
+export function QuizIdCardPage({ data }: { data: QuizIdCardData }) {
   return (
-    <Document>
-      <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
-        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
-        <Image src={bgDataUri} style={styles.background} />
+    <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
+      {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
+      <Image src={bgDataUri} style={styles.background} />
 
-        <View style={styles.collegeClear} />
-        <Text
-          style={[
-            styles.collegeName,
-            { fontSize: collegeNameFontSize(data.collegeName) },
-          ]}
-        >
-          {data.collegeName.toUpperCase()}
-        </Text>
-        {data.city ? (
-          <Text style={styles.city}>{data.city.toUpperCase()}</Text>
-        ) : null}
+      <View style={styles.collegeClear} />
+      <Text
+        style={[
+          styles.collegeName,
+          { fontSize: collegeNameFontSize(data.collegeName) },
+        ]}
+      >
+        {data.collegeName.toUpperCase()}
+      </Text>
+      {data.city ? (
+        <Text style={styles.city}>{data.city.toUpperCase()}</Text>
+      ) : null}
 
-        <View style={styles.nameClear} />
-        <Text style={[styles.playerName, playerNameStyle(data.playerName)]}>
-          {data.playerName.toUpperCase()}
-        </Text>
+      <View style={styles.nameClear} />
+      <Text style={[styles.playerName, playerNameStyle(data.playerName)]}>
+        {data.playerName.toUpperCase()}
+      </Text>
 
-        <Text style={styles.uniqueId}>{data.uniqueId}</Text>
+      <Text style={styles.uniqueId}>{data.uniqueId}</Text>
 
-        <View style={styles.qrClear} />
-        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
-        <Image src={data.qrDataUrl} style={styles.qr} />
-      </Page>
-    </Document>
+      <View style={styles.qrClear} />
+      {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
+      <Image src={data.qrDataUrl} style={styles.qr} />
+    </Page>
   );
 }
 
 export async function renderQuizIdCardPdf(data: QuizIdCardData): Promise<Buffer> {
-  return renderToBuffer(<QuizIdCardDocument data={data} />);
+  return renderToBuffer(
+    <Document>
+      <QuizIdCardPage data={data} />
+    </Document>,
+  );
 }

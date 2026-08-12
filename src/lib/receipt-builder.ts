@@ -57,6 +57,17 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
   if (!event) throw new Error("event not found");
   if (!college) throw new Error("college not found");
 
+  const missingUniqueId = (participants ?? []).filter((p) => !p.unique_id);
+  if (missingUniqueId.length > 0) {
+    // Shouldn't happen for a confirmed registration (unique IDs are
+    // allocated at confirmation time), but surfacing a clear cause here
+    // beats generateQrDataUrl throwing an opaque "Invalid data" a few
+    // lines down for a null unique_id.
+    throw new Error(
+      `Registration ${registrationId} is confirmed but ${missingUniqueId.length} participant(s) are missing a unique_id — check-in ID allocation may have failed`,
+    );
+  }
+
   const participantsWithQr = await Promise.all(
     (participants ?? []).map(async (p) => ({
       name: p.name,
@@ -68,7 +79,9 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
   const pdfBuffer = await renderReceiptPdf({
     registrationId: registration.id,
     eventName: event.name,
+    eventType: event.type,
     collegeName: college.name,
+    collegeCity: college.city,
     teamName: registration.team_name,
     type: registration.type,
     basePaise: event.fee_paise,

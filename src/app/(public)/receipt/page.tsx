@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BackButton } from "@/components/site/back-button";
+import { downloadFileOrThrow } from "@/lib/download-file";
 
 export default function ReceiptLookupPage() {
   const [query, setQuery] = useState("");
@@ -37,9 +38,16 @@ export default function ReceiptLookupPage() {
       }
 
       const data = await res.json();
-      window.location.href = `/api/registrations/${data.registrationId}/receipt`;
-    } catch {
-      toast.error("Network error — please check your connection and try again");
+      await downloadFileOrThrow(
+        `/api/registrations/${data.registrationId}/receipt`,
+        `YCC-Receipt-${data.registrationId}.pdf`,
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Network error — please check your connection and try again",
+      );
     } finally {
       setLoading(false);
     }

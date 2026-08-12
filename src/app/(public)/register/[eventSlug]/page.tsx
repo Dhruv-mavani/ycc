@@ -10,15 +10,28 @@ export default async function RegisterPage({
   params: Promise<{ eventSlug: string }>;
 }) {
   const [{ eventSlug }, supabase] = await Promise.all([params, createClient()]);
-  const [{ data: event }, { data: colleges }] = await Promise.all([
-    supabase
-      .from("events")
-      .select("*")
-      .eq("slug", eventSlug)
-      .eq("is_active", true)
-      .maybeSingle(),
-    supabase.from("colleges").select("id, name").order("name"),
-  ]);
+  const [{ data: event }, { data: colleges }, { data: campusPartners }, { data: classPartners }] =
+    await Promise.all([
+      supabase
+        .from("events")
+        .select("*")
+        .eq("slug", eventSlug)
+        .eq("is_active", true)
+        .maybeSingle(),
+      supabase.from("colleges").select("id, name").order("name"),
+      supabase
+        .from("partner_program_applications")
+        .select("id, name, team_code")
+        .eq("partner_type", "campus")
+        .eq("status", "approved")
+        .order("name"),
+      supabase
+        .from("partner_program_applications")
+        .select("id, name, team_code")
+        .eq("partner_type", "class")
+        .eq("status", "approved")
+        .order("name"),
+    ]);
 
   if (!event) notFound();
 
@@ -34,10 +47,10 @@ export default async function RegisterPage({
         <TeamRegistrationForm
           eventId={event.id}
           eventName={event.name}
-          minTeamSize={event.min_team_size ?? 6}
           maxTeamSize={event.max_team_size ?? 6}
           feePaise={event.fee_paise}
-          colleges={colleges ?? []}
+          campusPartners={campusPartners ?? []}
+          classPartners={classPartners ?? []}
         />
       ) : (
         <IndividualRegistrationForm

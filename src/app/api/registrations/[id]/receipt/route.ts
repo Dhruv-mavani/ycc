@@ -14,9 +14,14 @@ export async function GET(
     ({ pdfBuffer } = await buildReceiptPdf(id));
   } catch (err) {
     console.error("buildReceiptPdf failed for", id, err);
+    const missingIds = err instanceof Error && err.message.includes("missing a unique_id");
     return NextResponse.json(
-      { error: "Receipt not found — registration may not be confirmed yet" },
-      { status: 404 },
+      {
+        error: missingIds
+          ? `Receipt isn't ready yet — contact support with registration ID ${id}`
+          : "Receipt not found — registration may not be confirmed yet",
+      },
+      { status: missingIds ? 500 : 404 },
     );
   }
 
