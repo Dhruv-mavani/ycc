@@ -18,7 +18,11 @@ export default async function RegisterPage({
         .eq("slug", eventSlug)
         .eq("is_active", true)
         .maybeSingle(),
-      supabase.from("colleges").select("id, name").order("name"),
+      supabase
+        .from("colleges")
+        .select("id, name")
+        .eq("is_public", true)
+        .order("name"),
       supabase
         .from("partner_program_applications")
         .select("id, name, team_code")

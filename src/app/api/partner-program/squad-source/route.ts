@@ -62,7 +62,7 @@ export async function GET(request: Request) {
   const { data: college, error: collegeError } = await admin
     .from("colleges")
     .upsert(
-      { name: referrer.name, initials: referrer.team_code },
+      { name: referrer.name, initials: referrer.team_code, is_public: false },
       { onConflict: "initials" },
     )
     .select("id")

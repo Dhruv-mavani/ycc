@@ -25,6 +25,7 @@ export interface Database {
           name: string;
           initials: string;
           city: string | null;
+          is_public: boolean;
           created_at: string;
         };
         Insert: {
@@ -32,6 +33,7 @@ export interface Database {
           name: string;
           initials: string;
           city?: string | null;
+          is_public?: boolean;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["colleges"]["Insert"]>;
