@@ -36,7 +36,7 @@ export function SiteFooter() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8">
         {/* Left: Call to Action */}
         <div className="flex flex-col items-start justify-center">
-          <span className="text-blue-500 font-bold tracking-[0.2em] text-xs uppercase mb-6">Cricket. Communities. Champions.</span>
+          <span className="text-blue-500 font-bold tracking-widest min-[360px]:tracking-[0.2em] text-[9px] min-[320px]:text-[10px] min-[360px]:text-xs uppercase mb-6 whitespace-nowrap">Cricket. Communities. Champions.</span>
           <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-extrabold text-white leading-[1.1] tracking-tight mb-6">
             Ready to<br/>Play?
           </h2>
