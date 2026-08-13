@@ -336,8 +336,8 @@ export function TeamRegistrationForm({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
-              <div>
-                <p className="font-medium text-sm">{captain.name}</p>
+              <div className="min-w-0">
+                <p className="font-medium text-sm truncate">{captain.name}</p>
                 <p className="text-muted-foreground text-xs">{captain.phone}</p>
               </div>
               <Badge variant="secondary" className="shrink-0">Captain</Badge>

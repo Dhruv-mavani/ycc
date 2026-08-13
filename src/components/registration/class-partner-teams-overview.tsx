@@ -57,7 +57,7 @@ export function ClassPartnerTeamsOverview() {
         return (
           <Card key={cp.id}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
+              <CardTitle className="flex flex-wrap items-center gap-2 text-base">
                 {cp.name}
                 <Badge variant="secondary" className="capitalize">
                   {cp.status}

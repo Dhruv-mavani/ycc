@@ -258,8 +258,8 @@ export function StaffLookupPanel({
           >
             <CardHeader className="bg-muted/40 border-b p-4 sm:p-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <ShieldCheck className="size-5 text-primary" />
+                <CardTitle className="flex flex-wrap items-center gap-2 text-xl">
+                  <ShieldCheck className="size-5 text-primary shrink-0" />
                   {cp.name}
                   <Badge
                     variant="outline"

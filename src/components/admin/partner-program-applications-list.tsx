@@ -212,26 +212,26 @@ export function PartnerProgramApplicationsList({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:grid-cols-4 sm:divide-x sm:divide-border">
                 <div>
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Age
                   </p>
                   <p className="font-medium">{app.age ?? "—"}</p>
                 </div>
-                <div>
+                <div className="sm:pl-4">
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Gender
                   </p>
                   <p className="font-medium capitalize">{app.gender ?? "—"}</p>
                 </div>
-                <div>
+                <div className="sm:pl-4">
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Instagram
                   </p>
                   <p className="font-medium">@{app.instagram_handle}</p>
                 </div>
-                <div>
+                <div className="sm:pl-4">
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Referred by
                   </p>
