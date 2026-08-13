@@ -201,7 +201,12 @@ export default async function AdminPartnerDetailPage({
       {partner.team_code ? (
         <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
           <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-            <CardTitle>Teams registered by {partner.name}</CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+              <CardTitle>Teams</CardTitle>
+              <span className="text-muted-foreground text-sm font-medium">
+                registered by {partner.name}
+              </span>
+            </div>
             <CardDescription>
               {totalParticipants} {childLabel ?? "participant"}
               {totalParticipants === 1 ? "" : "s"} recruited, filed into{" "}
@@ -222,9 +227,18 @@ export default async function AdminPartnerDetailPage({
                 return (
                   <div key={t.id} className="px-4 py-3 sm:px-6 space-y-2">
                     <div className="flex flex-col items-start sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
-                      <p className="font-medium">
-                        {t.team_name ?? `Team ${i + 1}`}
-                      </p>
+                      {squadCollege ? (
+                        <Link
+                          href={`/admin/colleges/${squadCollege.id}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {i + 1}. {t.team_name ?? `Team ${i + 1}`}
+                        </Link>
+                      ) : (
+                        <span className="font-medium">
+                          {i + 1}. {t.team_name ?? `Team ${i + 1}`}
+                        </span>
+                      )}
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-emerald-600 font-semibold text-sm">
                           {formatRupees(t.amount_paise)}
@@ -257,7 +271,12 @@ export default async function AdminPartnerDetailPage({
       {childLabel ? (
         <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
           <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-            <CardTitle>{childLabel}s referred by {partner.name}</CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+              <CardTitle>{childLabel}s</CardTitle>
+              <span className="text-muted-foreground text-sm font-medium">
+                referred by {partner.name}
+              </span>
+            </div>
             <CardDescription>
               {(children ?? []).length} recruited so far
               {CHILD_TYPE[childType!] ? " — click a name to see their own progress" : ""}.
