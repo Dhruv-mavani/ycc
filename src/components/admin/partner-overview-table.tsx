@@ -33,7 +33,7 @@ export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }
   const filtered = data.filter((p) => p.partnerType === activeType);
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/30">
         <Select value={activeType} onValueChange={(v) => setActiveType(v as "campus" | "class")}>
           <SelectTrigger className="w-full sm:w-[220px]">
