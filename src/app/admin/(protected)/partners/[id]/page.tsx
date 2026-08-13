@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon, Users } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PartnerChildrenBadge } from "@/components/admin/partner-children-badge";
 import {
   Card,
   CardContent,
@@ -156,14 +157,22 @@ export default async function AdminPartnerDetailPage({
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {childLabel ? (
-                <Badge
-                  variant="outline"
-                  className="bg-primary/5 text-primary border-primary/20"
-                >
-                  <Users className="size-3 mr-1" />
-                  {(children ?? []).length} {childLabel}
-                  {(children ?? []).length === 1 ? "" : "s"}
-                </Badge>
+                <PartnerChildrenBadge
+                  partnerName={partner.name}
+                  childLabel={childLabel}
+                  grandchildLabel={
+                    childType && CHILD_TYPE[childType]
+                      ? TYPE_LABEL[CHILD_TYPE[childType]!]
+                      : null
+                  }
+                  items={(children ?? []).map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    mobile: c.mobile,
+                    status: c.status,
+                    downstream: downstreamCountById.get(c.id) ?? 0,
+                  }))}
+                />
               ) : null}
               <Badge
                 variant="secondary"
@@ -267,70 +276,6 @@ export default async function AdminPartnerDetailPage({
                     <p className="text-muted-foreground text-xs">
                       {members.map((m) => m.name).join(", ")}
                     </p>
-                  </div>
-                );
-              })
-            )}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {childLabel ? (
-        <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
-          <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-            <CardTitle>{childLabel}s referred by {partner.name}</CardTitle>
-            <CardDescription>
-              {(children ?? []).length} recruited so far
-              {CHILD_TYPE[childType!] ? " — click a name to see their own progress" : ""}.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="divide-y divide-border/50 p-0">
-            {(children ?? []).length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">
-                No {childLabel}s yet.
-              </p>
-            ) : (
-              (children ?? []).map((c) => {
-                const grandchildType = CHILD_TYPE[childType!];
-                const downstream = downstreamCountById.get(c.id) ?? 0;
-                return (
-                  <div
-                    key={c.id}
-                    className="flex flex-col items-start sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-3 sm:px-6"
-                  >
-                    <div className="min-w-0 w-full sm:w-auto">
-                      {grandchildType ? (
-                        <Link
-                          href={`/admin/partners/${c.id}`}
-                          className="font-medium text-primary hover:underline"
-                        >
-                          {c.name}
-                        </Link>
-                      ) : (
-                        <span className="font-medium">{c.name}</span>
-                      )}
-                      <p className="text-muted-foreground text-xs">{c.mobile}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {grandchildType ? (
-                        <Badge variant="outline" className="text-xs">
-                          {downstream} {TYPE_LABEL[grandchildType]}
-                          {downstream === 1 ? "" : "s"}
-                        </Badge>
-                      ) : null}
-                      <Badge
-                        variant="secondary"
-                        className={
-                          c.status === "approved"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize"
-                            : c.status === "rejected"
-                              ? "bg-destructive/10 text-destructive border-destructive/20 capitalize"
-                              : "capitalize"
-                        }
-                      >
-                        {c.status}
-                      </Badge>
-                    </div>
                   </div>
                 );
               })
