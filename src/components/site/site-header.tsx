@@ -7,13 +7,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MenuIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ContactModal } from "./contact-modal";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/#events", label: "Events" },
   { href: "/partner-program", label: "Partner Program" },
   { href: "/about", label: "About Us" },
+  { href: "/contact", label: "Contact Us" },
 ];
 
 // Portals need `document.body`, which doesn't exist during SSR — this
@@ -77,9 +77,6 @@ export function SiteHeader() {
             {link.label}
           </Link>
         ))}
-        <div className="mt-4 px-2 flex justify-center w-full">
-          <ContactModal />
-        </div>
       </nav>
     </div>,
     document.body
@@ -137,13 +134,6 @@ export function SiteHeader() {
                 {link.label}
               </Link>
             ))}
-            <ContactModal 
-              trigger={
-                <button type="button" className="relative px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300">
-                  Contact Us
-                </button>
-              }
-            />
           </nav>
 
           {mobileMenu}
@@ -180,7 +170,6 @@ export function SiteHeader() {
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-500 transition-[width] duration-300 group-hover:w-full"></span>
             </Link>
           ))}
-          <ContactModal />
         </nav>
         <button
           type="button"
