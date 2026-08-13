@@ -15,10 +15,15 @@ const CHILD_TYPE: Record<"campus" | "class", "class" | "classmate"> = {
   class: "classmate",
 };
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const referrerType = searchParams.get("type");
-  const referrerId = searchParams.get("id");
+// POST, not GET — this handler writes (upserts a college row), and a GET
+// with side effects is prefetchable and forgeable via a plain cross-site
+// request with no CSRF protection.
+export async function POST(request: Request) {
+  const body: { type?: string; id?: string } | null = await request
+    .json()
+    .catch(() => null);
+  const referrerType = body?.type;
+  const referrerId = body?.id;
 
   if (
     (referrerType !== "campus" && referrerType !== "class") ||

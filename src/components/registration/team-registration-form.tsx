@@ -152,9 +152,11 @@ export function TeamRegistrationForm({
     setLoadingSquad(true);
     setSquadError(null);
     try {
-      const res = await fetch(
-        `/api/partner-program/squad-source?type=${type}&id=${id}`,
-      );
+      const res = await fetch("/api/partner-program/squad-source", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, id }),
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setSquadError(data.error ?? "Could not load this squad");
