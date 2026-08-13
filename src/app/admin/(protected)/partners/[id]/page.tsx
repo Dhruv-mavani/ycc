@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, Users } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -154,18 +154,30 @@ export default async function AdminPartnerDetailPage({
                 ) : null}
               </CardDescription>
             </div>
-            <Badge
-              variant="secondary"
-              className={
-                partner.status === "approved"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize"
-                  : partner.status === "rejected"
-                    ? "bg-destructive/10 text-destructive border-destructive/20 capitalize"
-                    : "capitalize"
-              }
-            >
-              {partner.status}
-            </Badge>
+            <div className="flex items-center gap-2 shrink-0">
+              {childLabel ? (
+                <Badge
+                  variant="outline"
+                  className="bg-primary/5 text-primary border-primary/20"
+                >
+                  <Users className="size-3 mr-1" />
+                  {(children ?? []).length} {childLabel}
+                  {(children ?? []).length === 1 ? "" : "s"}
+                </Badge>
+              ) : null}
+              <Badge
+                variant="secondary"
+                className={
+                  partner.status === "approved"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize"
+                    : partner.status === "rejected"
+                      ? "bg-destructive/10 text-destructive border-destructive/20 capitalize"
+                      : "capitalize"
+                }
+              >
+                {partner.status}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
@@ -201,12 +213,7 @@ export default async function AdminPartnerDetailPage({
       {partner.team_code ? (
         <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
           <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
-              <CardTitle>Teams</CardTitle>
-              <span className="text-muted-foreground text-sm font-medium">
-                registered by {partner.name}
-              </span>
-            </div>
+            <CardTitle>Teams registered by {partner.name}</CardTitle>
             <CardDescription>
               {totalParticipants} {childLabel ?? "participant"}
               {totalParticipants === 1 ? "" : "s"} recruited, filed into{" "}
@@ -271,12 +278,7 @@ export default async function AdminPartnerDetailPage({
       {childLabel ? (
         <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
           <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
-              <CardTitle>{childLabel}s</CardTitle>
-              <span className="text-muted-foreground text-sm font-medium">
-                referred by {partner.name}
-              </span>
-            </div>
+            <CardTitle>{childLabel}s referred by {partner.name}</CardTitle>
             <CardDescription>
               {(children ?? []).length} recruited so far
               {CHILD_TYPE[childType!] ? " — click a name to see their own progress" : ""}.
