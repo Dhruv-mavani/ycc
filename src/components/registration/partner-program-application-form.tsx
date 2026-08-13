@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, MessageCircle, CheckCircle2 } from "lucide-react";
+import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +62,7 @@ export function PartnerProgramApplicationForm({
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<PartnerProgramApplicationInput>({
     resolver: zodResolver(partnerProgramApplicationSchema),
@@ -75,10 +77,12 @@ export function PartnerProgramApplicationForm({
       referredBy: "",
       referredById: undefined,
       agreedToTerms: false,
+      whatsappJoined: false,
     },
   });
 
   const agreedToTerms = useWatch({ control, name: "agreedToTerms" });
+  const whatsappJoined = useWatch({ control, name: "whatsappJoined" });
 
   const typeLabel =
     partnerType === "campus"
@@ -322,6 +326,40 @@ export function PartnerProgramApplicationForm({
       </Card>
 
       <Card>
+        <CardHeader>
+          <CardTitle>Join the WhatsApp channel</CardTitle>
+          <CardDescription>
+            Required before you can submit — follow the YCC Partners Group
+            channel for updates, coordination, and announcements.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            type="button"
+            variant={whatsappJoined ? "outline" : "default"}
+            className="h-auto w-full min-h-8 py-2 text-center leading-snug whitespace-normal"
+            nativeButton={false}
+            onClick={() => setValue("whatsappJoined", true, { shouldValidate: true })}
+            render={
+              <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                {whatsappJoined ? (
+                  <CheckCircle2 className="size-4 shrink-0" />
+                ) : (
+                  <MessageCircle className="size-4 shrink-0" />
+                )}
+                {whatsappJoined ? "Joined — open channel again" : "Join WhatsApp Channel"}
+              </a>
+            }
+          />
+          {errors.whatsappJoined ? (
+            <p className="text-destructive text-xs mt-1.5">
+              {errors.whatsappJoined.message}
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardContent>
           <Controller
             control={control}
@@ -362,7 +400,7 @@ export function PartnerProgramApplicationForm({
       <Button
         type="submit"
         className="w-full"
-        disabled={isSubmitting || !agreedToTerms}
+        disabled={isSubmitting || !agreedToTerms || !whatsappJoined}
       >
         {isSubmitting ? "Submitting..." : "Submit application"}
       </Button>

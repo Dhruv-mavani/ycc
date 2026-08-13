@@ -14,8 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-const WHATSAPP_CHANNEL_URL = "https://whatsapp.com/channel/0029VbARGeL7j6g6nUDmly3y";
+import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
 
 // Shown instead of the real dashboard until a partner confirms they've
 // followed the WhatsApp channel — compulsory for all three partner tiers.

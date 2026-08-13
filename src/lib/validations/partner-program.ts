@@ -26,6 +26,9 @@ export const partnerProgramApplicationSchema = partnerProgramFieldsSchema
     referredById: z.string().uuid().optional(),
     password: z.string().min(8, "Password must be at least 8 characters").max(72),
     confirmPassword: z.string().min(1, "Please re-enter your password"),
+    whatsappJoined: z.boolean().refine((v) => v === true, {
+      message: "Join the WhatsApp channel to continue",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
