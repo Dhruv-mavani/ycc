@@ -20,15 +20,19 @@ export function AdminNavButtons({
   const [newPartnerApplicationCount, setNewPartnerApplicationCount] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
     const since =
       localStorage.getItem(LAST_SEEN_PARTNER_PROGRAM_KEY) ?? new Date(0).toISOString();
-    fetch(`/api/admin/notifications/summary?since=${encodeURIComponent(since)}`)
+    fetch(`/api/admin/notifications/summary?since=${encodeURIComponent(since)}`, {
+      signal: controller.signal,
+    })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data) return;
         setNewPartnerApplicationCount(data.newPartnerApplicationCount ?? 0);
       })
       .catch(() => {});
+    return () => controller.abort();
   }, []);
 
   useAdminRealtime({

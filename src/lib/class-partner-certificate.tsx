@@ -255,8 +255,8 @@ function CertificateArt() {
           clipPath, when the clip rect's origin isn't (0,0), corrupts
           rotate-transform math on descendants) — coordinates just stay
           clear of the card's rounded corners. */}
-      {LEFT_ILLUSTRATION_PATHS.map((p, i) => (
-        <Path key={i} d={p.d} fill={p.fill} />
+      {LEFT_ILLUSTRATION_PATHS.map((p) => (
+        <Path key={p.d} d={p.d} fill={p.fill} />
       ))}
 
       {/* Ticket seam: dashed divider with punched notches, top & bottom */}

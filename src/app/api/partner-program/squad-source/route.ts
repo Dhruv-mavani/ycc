@@ -56,22 +56,24 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: roster } = await admin
-    .from("partner_program_applications")
-    .select("id, name, mobile")
-    .eq("referred_by_id", referrer.id)
-    .eq("partner_type", CHILD_TYPE[referrerType])
-    .eq("status", "approved")
-    .order("created_at", { ascending: true });
-
-  const { data: college, error: collegeError } = await admin
-    .from("colleges")
-    .upsert(
-      { name: referrer.name, initials: referrer.team_code, is_public: false },
-      { onConflict: "initials" },
-    )
-    .select("id")
-    .single();
+  const [{ data: roster }, { data: college, error: collegeError }] =
+    await Promise.all([
+      admin
+        .from("partner_program_applications")
+        .select("id, name, mobile")
+        .eq("referred_by_id", referrer.id)
+        .eq("partner_type", CHILD_TYPE[referrerType])
+        .eq("status", "approved")
+        .order("created_at", { ascending: true }),
+      admin
+        .from("colleges")
+        .upsert(
+          { name: referrer.name, initials: referrer.team_code, is_public: false },
+          { onConflict: "initials" },
+        )
+        .select("id")
+        .single(),
+    ]);
 
   if (collegeError || !college) {
     return NextResponse.json(

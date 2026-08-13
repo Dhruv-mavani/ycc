@@ -59,19 +59,27 @@ export function RazorpayCheckoutButton({
         },
         theme: { color: "#1d4ed8" },
         handler: async (response) => {
-          const verifyRes = await fetch("/api/razorpay/verify-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(response),
-          });
+          try {
+            const verifyRes = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(response),
+            });
 
-          if (verifyRes.ok) {
-            router.push(`/payment/success?registration=${registrationId}`);
-          } else {
+            if (verifyRes.ok) {
+              router.push(`/payment/success?registration=${registrationId}`);
+              return;
+            }
             toast.error(
               "Payment verification failed. Contact us with your registration ID: " +
                 registrationId,
             );
+          } catch {
+            toast.error(
+              "Could not verify payment — check your connection, then contact us with your registration ID: " +
+                registrationId,
+            );
+          } finally {
             setLoading(false);
           }
         },

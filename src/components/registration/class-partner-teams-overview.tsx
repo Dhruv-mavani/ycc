@@ -28,10 +28,12 @@ export function ClassPartnerTeamsOverview() {
   >(null);
 
   useEffect(() => {
-    fetch("/api/partner-program/class-teams")
-      .then((res) => res.json())
+    const controller = new AbortController();
+    fetch("/api/partner-program/class-teams", { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("request failed"))))
       .then((data) => setClassPartners(data.classPartners ?? []))
       .catch(() => setClassPartners([]));
+    return () => controller.abort();
   }, []);
 
   if (classPartners === null) {

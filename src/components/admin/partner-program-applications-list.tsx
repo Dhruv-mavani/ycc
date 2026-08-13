@@ -198,6 +198,7 @@ export function PartnerProgramApplicationsList({
                   {new Date(app.created_at).toLocaleString("en-IN", {
                     dateStyle: "medium",
                     timeStyle: "short",
+                    timeZone: "Asia/Kolkata",
                   })}
                 </span>
                 <span className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 mt-1">

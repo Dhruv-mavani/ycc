@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,21 +16,38 @@ const NAV_LINKS = [
   { href: "/about", label: "About Us" },
 ];
 
+// Portals need `document.body`, which doesn't exist during SSR — this
+// subscribes to nothing and just reports "mounted" once the client has
+// taken over, without the extra mount-effect render pass.
+const subscribeNoop = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function SiteHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeNoop,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!mobileOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setMobileOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
 
   const mobileMenu = mobileOpen && mounted ? createPortal(
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center sm:hidden">
-      <div 
-        className="absolute inset-0 bg-background/90 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-md animate-fade-in" 
-        onClick={() => setMobileOpen(false)} 
+      <div
+        className="absolute inset-0 bg-background/90 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-md animate-fade-in"
+        aria-hidden="true"
+        onClick={() => setMobileOpen(false)}
       />
       <nav className="animate-modal-enter relative z-10 flex w-[85%] max-w-sm flex-col items-stretch gap-2 rounded-3xl bg-background/95 supports-[backdrop-filter]:bg-background/80 supports-[backdrop-filter]:backdrop-blur-xl border p-6 text-lg font-medium shadow-2xl">
         <div className="flex w-full items-center justify-between mb-4 pb-4 border-b">
@@ -115,14 +132,14 @@ export function SiteHeader() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-300"
+                className="relative px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300"
               >
                 {link.label}
               </Link>
             ))}
             <ContactModal 
               trigger={
-                <button type="button" className="relative px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-300">
+                <button type="button" className="relative px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300">
                   Contact Us
                 </button>
               }

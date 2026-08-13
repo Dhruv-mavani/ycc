@@ -7,6 +7,18 @@ function csvEscape(value: string) {
   return value;
 }
 
+const CSV_HEADER = [
+  "razorpay_order_id",
+  "razorpay_payment_id",
+  "amount_rupees",
+  "paid_at",
+  "event",
+  "college",
+  "type",
+  "team_name",
+  "captain_name",
+];
+
 export async function GET() {
   const session = await getAdminSession();
   if (!session) {
@@ -42,18 +54,6 @@ export async function GET() {
   const eventNameById = new Map((events ?? []).map((e) => [e.id, e.name]));
   const collegeNameById = new Map((colleges ?? []).map((c) => [c.id, c.name]));
 
-  const header = [
-    "razorpay_order_id",
-    "razorpay_payment_id",
-    "amount_rupees",
-    "paid_at",
-    "event",
-    "college",
-    "type",
-    "team_name",
-    "captain_name",
-  ];
-
   const rows = (payments ?? []).map((p) => {
     const reg = registrationById.get(p.registration_id);
     return [
@@ -71,7 +71,7 @@ export async function GET() {
       .join(",");
   });
 
-  const csv = [header.join(","), ...rows].join("\n");
+  const csv = [CSV_HEADER.join(","), ...rows].join("\n");
 
   return new NextResponse(csv, {
     headers: {

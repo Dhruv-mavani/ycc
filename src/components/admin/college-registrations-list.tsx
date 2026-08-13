@@ -82,7 +82,7 @@ export function CollegeRegistrationsList({
               <CardDescription className="flex flex-col gap-1 mt-2">
                 <span className="flex items-center gap-1.5 text-foreground/80">
                   <CalendarDays className="size-3.5" />
-                  {new Date(reg.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                  {new Date(reg.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" })}
                 </span>
                 <span className="flex items-center gap-1.5 mt-1 flex-wrap">
                   <span className="flex items-center gap-1">
@@ -140,7 +140,7 @@ export function CollegeRegistrationsList({
                     {p.attendanceStatus === "present" && (p.markedByName || p.markedAt) ? (
                       <div className="text-[10px] text-muted-foreground text-right mt-0.5 max-w-[120px] leading-tight">
                         {p.markedByName ? <span className="block font-medium truncate">by {p.markedByName}</span> : null}
-                        {p.markedAt ? <span className="block opacity-80">{new Date(p.markedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span> : null}
+                        {p.markedAt ? <span className="block opacity-80">{new Date(p.markedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}</span> : null}
                       </div>
                     ) : null}
                   </div>

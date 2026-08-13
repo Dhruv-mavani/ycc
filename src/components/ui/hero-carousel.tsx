@@ -41,7 +41,7 @@ export function HeroCarousel() {
       {/* Images Container */}
       {images.map((src, idx) => (
         <div
-          key={idx}
+          key={src}
           className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
             idx === activeIndex ? "opacity-100 z-10" : "opacity-0 z-0"
           }`}
@@ -50,6 +50,7 @@ export function HeroCarousel() {
             src={src}
             alt={`Carousel image ${idx + 1}`}
             fill
+            sizes="100vw"
             className={`object-cover transition-transform duration-[10000ms] ease-out ${
               idx === activeIndex ? "scale-110" : "scale-100"
             }`}

@@ -42,6 +42,7 @@ export function WhatsappJoinGate({
       router.refresh();
     } catch {
       toast.error("Could not confirm — please try again");
+    } finally {
       setLoading(false);
     }
   }
