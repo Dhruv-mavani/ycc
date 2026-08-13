@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ContactModal } from "@/components/site/contact-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HeroCarousel } from "@/components/ui/hero-carousel";
@@ -197,8 +196,11 @@ export default async function HomePage() {
         </div>
         <div className="mt-8 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-4">
           <p>Still have questions?</p>
-          <ContactModal 
-            trigger={<Button variant="outline" className="font-semibold shadow-sm rounded-full px-6">Contact Us</Button>} 
+          <Button
+            variant="outline"
+            className="font-semibold shadow-sm rounded-full px-6"
+            nativeButton={false}
+            render={<Link href="/contact">Contact Us</Link>}
           />
         </div>
       </section>
