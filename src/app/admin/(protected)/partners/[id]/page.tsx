@@ -136,10 +136,10 @@ export default async function AdminPartnerDetailPage({
 
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <CardTitle className="text-2xl">{partner.name}</CardTitle>
-              <CardDescription>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <CardTitle className="text-2xl break-words">{partner.name}</CardTitle>
+              <CardDescription className="break-words">
                 {TYPE_LABEL[partner.partner_type]}
                 {referrer ? (
                   <>
@@ -155,7 +155,7 @@ export default async function AdminPartnerDetailPage({
                 ) : null}
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2">
               {childLabel ? (
                 <PartnerChildrenBadge
                   partnerName={partner.name}
@@ -189,7 +189,7 @@ export default async function AdminPartnerDetailPage({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Mobile</p>
             <p className="font-medium">{partner.mobile}</p>
@@ -255,7 +255,7 @@ export default async function AdminPartnerDetailPage({
                           {i + 1}. {t.team_name ?? `Team ${i + 1}`}
                         </span>
                       )}
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-emerald-600 font-semibold text-sm">
                           {formatRupees(t.amount_paise)}
                         </span>

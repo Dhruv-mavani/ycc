@@ -64,22 +64,18 @@ export function PartnerChildrenBadge({
             {items.map((c) => (
               <div
                 key={c.id}
-                className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                className="flex flex-col items-start gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="min-w-0">
-                  {grandchildLabel ? (
-                    <Link
-                      href={`/admin/partners/${c.id}`}
-                      className="font-medium text-sm text-primary hover:underline truncate block"
-                    >
-                      {c.name}
-                    </Link>
-                  ) : (
-                    <p className="font-medium text-sm truncate">{c.name}</p>
-                  )}
+                <div className="min-w-0 w-full sm:w-auto">
+                  <Link
+                    href={`/admin/partners/${c.id}`}
+                    className="font-medium text-sm text-primary hover:underline truncate block"
+                  >
+                    {c.name}
+                  </Link>
                   <p className="text-muted-foreground text-xs truncate">{c.mobile}</p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2">
                   {grandchildLabel ? (
                     <Badge variant="outline" className="text-xs">
                       {c.downstream} {grandchildLabel}
