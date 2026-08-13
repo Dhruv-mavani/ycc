@@ -221,7 +221,7 @@ export default async function AdminPartnerDetailPage({
                 );
                 return (
                   <div key={t.id} className="px-4 py-3 sm:px-6 space-y-2">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col items-start sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
                       <p className="font-medium">
                         {t.team_name ?? `Team ${i + 1}`}
                       </p>
@@ -275,9 +275,9 @@ export default async function AdminPartnerDetailPage({
                 return (
                   <div
                     key={c.id}
-                    className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6"
+                    className="flex flex-col items-start sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-3 sm:px-6"
                   >
-                    <div className="min-w-0">
+                    <div className="min-w-0 w-full sm:w-auto">
                       {grandchildType ? (
                         <Link
                           href={`/admin/partners/${c.id}`}
