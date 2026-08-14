@@ -110,9 +110,18 @@ export function CollegeRegistrationsList({
                         <Badge variant="secondary" className="px-1.5 py-0 text-[10px] uppercase tracking-wider bg-amber-50 text-amber-700 border-amber-200">Captain</Badge>
                       ) : null}
                       {p.uniqueId ? (
-                        <Badge variant="outline" className="font-mono text-xs bg-muted/30">
-                          {p.uniqueId}
-                        </Badge>
+                        <a
+                          href={`/api/participants/${p.id}/id-card?view=true`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 hover:opacity-80"
+                          title="View ID card"
+                        >
+                          <Badge variant="outline" className="font-mono text-xs bg-muted/30">
+                            {p.uniqueId}
+                          </Badge>
+                          <ExternalLink className="size-3 text-muted-foreground" />
+                        </a>
                       ) : (
                         <span className="text-muted-foreground text-xs italic">
                           No ID

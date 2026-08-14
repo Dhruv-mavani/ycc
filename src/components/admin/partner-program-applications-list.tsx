@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Mail, Phone, PencilIcon, Search, Trash2Icon, Users } from "lucide-react";
+import { Award, CalendarDays, Mail, Phone, PencilIcon, Search, Trash2Icon, Users } from "lucide-react";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 import { ConfirmDialog } from "@/components/site/confirm-dialog";
 import { EditPartnerProgramDialog } from "@/components/admin/edit-partner-program-dialog";
@@ -171,6 +171,24 @@ export function PartnerProgramApplicationsList({
                   >
                     {app.status}
                   </Badge>
+                  {app.partner_type !== "classmate" ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 w-7 p-0"
+                      nativeButton={false}
+                      aria-label="View certificate"
+                      render={
+                        <a
+                          href={`/api/partner-program/certificate/${app.id}/download?view=true`}
+                          target="_blank"
+                          rel="noreferrer"
+                        />
+                      }
+                    >
+                      <Award className="size-3.5" />
+                    </Button>
+                  ) : null}
                   <Button
                     size="sm"
                     variant="outline"

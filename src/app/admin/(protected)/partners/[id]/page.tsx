@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, Award } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -172,6 +172,23 @@ export default async function AdminPartnerDetailPage({
                     status: c.status,
                     downstream: downstreamCountById.get(c.id) ?? 0,
                   }))}
+                />
+              ) : null}
+              {partner.partner_type !== "classmate" && partner.team_code ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  nativeButton={false}
+                  render={
+                    <a
+                      href={`/api/partner-program/certificate/${partner.id}/download?view=true`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Award className="size-3.5" />
+                      Certificate
+                    </a>
+                  }
                 />
               ) : null}
               <Badge
