@@ -64,7 +64,7 @@ export function PartnerProgramTabs({
 
   return (
     <div>
-      <div className="mb-4 inline-flex max-w-full flex-wrap gap-1 rounded-lg border border-border/50 bg-muted p-1">
+      <div className="mb-4 flex w-fit max-w-full flex-wrap gap-1 rounded-lg border border-border/50 bg-muted p-1">
         {PARTNER_TYPES.map((type) => (
           <Button
             key={type.id}
