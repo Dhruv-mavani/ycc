@@ -22,7 +22,7 @@ export async function GET(
 
   const { data: application } = await admin
     .from("partner_program_applications")
-    .select("name, team_code, unique_id, partner_type")
+    .select("name, team_code, partner_type")
     .eq("id", id)
     .maybeSingle();
 
@@ -41,7 +41,6 @@ export async function GET(
   const pdfBuffer = await renderClassPartnerCertificatePdf({
     name: application.name,
     teamCode: application.team_code,
-    uniqueId: application.unique_id,
     qrDataUrl,
     partnerType: application.partner_type as "campus" | "class",
   });
