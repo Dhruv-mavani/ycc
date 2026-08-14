@@ -62,28 +62,33 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="relative z-0 flex flex-col items-center justify-center min-h-[90vh] overflow-hidden pt-32 pb-24 text-center tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000">
+      <section className="relative z-0 flex min-h-[100svh] flex-col items-center justify-center overflow-hidden pt-36 sm:pt-48 md:pt-56 pb-16 text-center tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000">
         <HeroCarousel />
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.5),transparent_60%)]"></div>
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/10 via-transparent to-background/50"></div>
-        
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 z-10 mt-32 sm:mt-48 md:mt-56">
-          
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight mb-6 drop-shadow-2xl">
-            Welcome to <br className="hidden sm:block"/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 drop-shadow-md">Yuva Champions Cricket</span>
+        {/* Cinematic vignette — keeps the headline legible over any carousel frame */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/15 to-black/70"></div>
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_65%_55%_at_50%_48%,transparent,rgba(0,0,0,0.6))]"></div>
+
+        <div className="relative z-10 mx-auto flex max-w-4xl lg:max-w-6xl xl:max-w-7xl flex-col items-center px-4">
+          <span className="mb-3 sm:mb-4 text-[10px] min-[380px]:text-xs font-bold uppercase tracking-[0.4em] text-amber-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+            Welcome to
+          </span>
+
+          <h1 className="font-black uppercase text-white leading-[0.92] tracking-tight text-4xl min-[320px]:text-[2.6rem] min-[380px]:text-6xl min-[480px]:text-7xl sm:text-8xl xl:text-9xl drop-shadow-[0_8px_30px_rgba(0,0,0,0.7)]">
+            <span className="block">Yuva Champions</span>
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-amber-300">Cricket</span>
           </h1>
-          
-          <p className="text-slate-200 font-medium max-w-2xl text-base sm:text-lg md:text-xl leading-relaxed text-center drop-shadow-md px-2">
+
+          <p className="mt-6 sm:mt-8 text-slate-200/90 font-medium max-w-xl text-sm min-[380px]:text-base sm:text-lg leading-relaxed text-center drop-shadow-md px-2">
             Register your team for the cricket championship, or enter
             solo for the quiz competition. Fast registration, instant QR-coded
             receipt.
           </p>
-          
-          <div className="flex flex-col min-[400px]:flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 mt-12 sm:mt-20 pt-3 sm:pt-6 w-full max-w-[260px] min-[320px]:max-w-xs min-[400px]:max-w-none mx-auto">
-            <Button size="lg" className="w-full min-[400px]:w-auto rounded-full shadow-xl shadow-primary/40 hover:shadow-primary/60 hover:-translate-y-1 hover:scale-105 transition-[transform,box-shadow] duration-300 font-bold text-xs min-[320px]:text-sm sm:text-lg px-4 py-4 min-[320px]:px-5 min-[320px]:py-5 sm:px-8 sm:py-7 flex items-center justify-center gap-2 group border border-primary/50" nativeButton={false} render={<Link href="/partner-program">
+
+          <div className="flex flex-col min-[400px]:flex-row items-center justify-center gap-4 sm:gap-6 mt-9 sm:mt-12 w-full max-w-[260px] min-[320px]:max-w-xs min-[400px]:max-w-none mx-auto">
+            <Button size="lg" className="w-full min-[400px]:w-auto rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white border border-white/10 shadow-xl shadow-blue-600/40 hover:shadow-blue-500/60 hover:-translate-y-1 hover:scale-105 hover:from-blue-400 hover:to-indigo-500 transition-[transform,box-shadow,background] duration-300 font-bold text-xs min-[320px]:text-sm sm:text-lg px-5 py-4 min-[320px]:px-6 min-[320px]:py-5 sm:px-9 sm:py-7 flex items-center justify-center gap-2 group" nativeButton={false} render={<Link href="/partner-program">
               <Trophy className="size-3.5 min-[320px]:size-4 sm:size-5 group-hover:scale-110 transition-transform" /> Register Now
             </Link>} />
-            <Button size="lg" variant="outline" className="w-full min-[400px]:w-auto rounded-full font-bold text-xs min-[320px]:text-sm sm:text-lg px-4 py-4 min-[320px]:px-5 min-[320px]:py-5 sm:px-8 sm:py-7 flex items-center justify-center gap-2 bg-slate-800/80 backdrop-blur-md border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-300 shadow-lg" nativeButton={false} render={<Link href="/receipt">
+            <Button size="lg" variant="ghost" className="w-full min-[400px]:w-auto rounded-full font-bold text-xs min-[320px]:text-sm sm:text-lg px-5 py-4 min-[320px]:px-6 min-[320px]:py-5 sm:px-9 sm:py-7 flex items-center justify-center gap-2 text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300" nativeButton={false} render={<Link href="/receipt">
               <Download className="size-3.5 min-[320px]:size-4 sm:size-5" /> Download Receipt
             </Link>} />
           </div>
@@ -128,9 +133,9 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-4 min-[380px]:gap-5 sm:gap-8 max-w-5xl mx-auto">
             {(!events || events.length === 0) && (
-              <div className="sm:col-span-2 rounded-3xl border border-dashed border-blue-200 p-16 text-center bg-white/50 backdrop-blur-md">
+              <div className="min-[380px]:col-span-2 rounded-3xl border border-dashed border-blue-200 p-16 text-center bg-white/50 backdrop-blur-md">
                 <p className="text-slate-500 text-xl font-medium">
                   No events are open for registration right now. Check back soon!
                 </p>
