@@ -35,7 +35,6 @@ export function SiteHeader() {
     pathname.startsWith("/partner-program");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
 
   const mounted = useSyncExternalStore(
     subscribeNoop,
@@ -44,23 +43,10 @@ export function SiteHeader() {
   );
 
   useEffect(() => {
-    let lastScrollY = window.pageYOffset;
-    
-    const updateScrollDirection = () => {
-      const scrollY = window.pageYOffset;
-      const direction = scrollY > lastScrollY ? "down" : "up";
-      if (direction !== scrollDirection && (scrollY - lastScrollY > 10 || scrollY - lastScrollY < -10)) {
-        setScrollDirection(direction);
-      }
-      lastScrollY = scrollY > 0 ? scrollY : 0;
-      setIsScrolled(scrollY > 200);
-    };
-    
-    window.addEventListener("scroll", updateScrollDirection);
-    return () => {
-      window.removeEventListener("scroll", updateScrollDirection);
-    }
-  }, [scrollDirection]);
+    const updateIsScrolled = () => setIsScrolled(window.pageYOffset > 200);
+    window.addEventListener("scroll", updateIsScrolled);
+    return () => window.removeEventListener("scroll", updateIsScrolled);
+  }, []);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -203,9 +189,9 @@ export function SiteHeader() {
         className={cn(
           "z-50 transition-transform duration-300",
           hasPillHeader ? "fixed top-0 w-full" : "sticky top-0 bg-background/95 border-b backdrop-blur",
-          // Hide while scrolling down, reveal on scroll up — same rule at
-          // every screen size, once past the pill header at the top.
-          hasPillHeader && (!isScrolled || scrollDirection === "down") ? "-translate-y-full" : "translate-y-0"
+          // Swaps in once you've scrolled past the top pill header, then
+          // just stays visible — no hide/show while scrolling further.
+          hasPillHeader && !isScrolled ? "-translate-y-full" : "translate-y-0"
         )}
       >
       {hasPillHeader ? (
