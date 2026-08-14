@@ -70,7 +70,7 @@ export default async function HomePage() {
         <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 z-10 mt-32 sm:mt-48 md:mt-56">
           
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight mb-6 drop-shadow-2xl">
-            Welcome to <br className="hidden sm:block"/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-400 to-amber-400">Yuva Champions Cricket</span>
+            Welcome to <br className="hidden sm:block"/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 drop-shadow-md">Yuva Champions Cricket</span>
           </h1>
           
           <p className="text-slate-200 font-medium max-w-2xl text-base sm:text-lg md:text-xl leading-relaxed text-center drop-shadow-md px-2">
