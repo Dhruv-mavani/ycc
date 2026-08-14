@@ -69,7 +69,11 @@ export default async function HomePage() {
         
         <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 z-10 mt-32 sm:mt-48 md:mt-56">
           
-          <p className="text-blue-400 font-semibold max-w-3xl text-sm min-[320px]:text-base min-[380px]:text-lg sm:text-xl md:text-2xl leading-relaxed text-center [text-shadow:_0_2px_4px_rgba(0,0,0,1),_0_0_12px_rgba(0,0,0,1)] px-2">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight mb-6 drop-shadow-2xl">
+            Welcome to <br className="hidden sm:block"/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-400 to-amber-400">Yuva Champions Cricket</span>
+          </h1>
+          
+          <p className="text-slate-200 font-medium max-w-2xl text-base sm:text-lg md:text-xl leading-relaxed text-center drop-shadow-md px-2">
             Register your team for the cricket championship, or enter
             solo for the quiz competition. Fast registration, instant QR-coded
             receipt.
@@ -90,19 +94,35 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="events" className="relative w-full py-24 scroll-mt-24 bg-blue-50/50 border-t border-blue-100/50">
-        {/* Background Effects */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Benefits Marquee / Divider Band */}
+      <div className="relative border-y border-blue-600 bg-blue-600 py-3 sm:py-4 overflow-hidden flex whitespace-nowrap shadow-md z-20">
+        <div className="animate-marquee inline-flex gap-8 items-center font-bold text-xs sm:text-sm tracking-[0.15em] text-white uppercase">
+          {[...Array(6)].map((_, i) => (
+            <span key={i} className="inline-flex gap-8 items-center">
+              <span>WIN EXCITING PRIZES</span> <span className="text-blue-300">✦</span>
+              <span>TRIP TO GOA</span> <span className="text-blue-300">✦</span>
+              <span>LAKHS IN PRIZE MONEY</span> <span className="text-blue-300">✦</span>
+              <span>CHAMPIONSHIP TROPHIES</span> <span className="text-blue-300">✦</span>
+              <span>MAN OF THE MATCH REWARDS</span> <span className="text-blue-300">✦</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <section id="events" className="relative w-full py-24 scroll-mt-24 bg-slate-50 border-t border-slate-200 overflow-hidden">
+        {/* Background Grid & Effects */}
+        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-blue-400/10 rounded-full blur-[120px]"></div>
           <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-sky-300/10 rounded-full blur-[100px]"></div>
         </div>
 
         <div className="mx-auto max-w-6xl px-4 relative z-10">
           <div className="flex flex-col items-center text-center mb-16">
-            <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 border border-blue-200 shadow-[0_0_30px_rgba(59,130,246,0.15)]">
-              <CalendarDays className="w-8 h-8 text-blue-600" />
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 border border-slate-200 shadow-sm">
+              <CalendarDays className="w-8 h-8 text-slate-700" />
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-blue-950">Events</h2>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-slate-900">Events</h2>
             <p className="text-slate-600 text-lg max-w-2xl">
               Select an active event below to securely complete your team registration and payments.
             </p>
@@ -197,17 +217,17 @@ export default async function HomePage() {
         </div>
       </section>
       {/* Backed By The Best Section */}
-      <section className="w-full relative overflow-hidden bg-[#0b1120] py-20 mt-10 border-t border-border/50">
-        <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+      <section className="w-full relative overflow-hidden bg-slate-50 py-20 mt-10 border-t border-slate-200">
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
         <div className="mx-auto max-w-6xl px-4 relative z-10">
           <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
             {/* Left side text */}
             <div className="lg:w-1/3 space-y-6 text-center lg:text-left">
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
                 Backed By<br />
-                <span className="text-primary">The Best</span>
+                <span className="text-blue-600">The Best</span>
               </h2>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
                 Yuva Champions Cricket is supported and partnered with top institutions. Our commitment to partnering with the finest ensures you receive an exceptional tournament experience on your journey to sporting success.
               </p>
             </div>
@@ -234,9 +254,9 @@ export default async function HomePage() {
                   { name: "Neha Gupta", role: "Media Relations", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop" },
                   { name: "Amit Shah", role: "Sponsorships", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop" }
                 ].map((profile, i) => (
-                  <div key={i} className="relative aspect-[3/4] w-[160px] sm:w-[180px] shrink-0 rounded-2xl overflow-hidden bg-slate-800 border border-slate-700/50 shadow-lg group">
+                  <div key={i} className="relative aspect-[3/4] w-[160px] sm:w-[180px] shrink-0 rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-lg group">
                     <img src={profile.image} alt={profile.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b1120] via-[#0b1120]/40 to-transparent z-10 pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent z-10 pointer-events-none"></div>
                     <div className="absolute bottom-4 left-4 z-20">
                       <p className="text-sm font-bold text-white leading-tight">{profile.name}</p>
                       <p className="text-xs text-slate-300 mt-1">{profile.role}</p>
@@ -249,10 +269,10 @@ export default async function HomePage() {
 
           {/* Featured Locally & Globally */}
           <div className="mt-24 text-center">
-            <h3 className="text-2xl md:text-3xl font-semibold mb-10 text-white">Featured locally & globally</h3>
+            <h3 className="text-2xl md:text-3xl font-semibold mb-10 text-slate-900">Featured locally & globally</h3>
             <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-5xl mx-auto">
               {["The Times of India", "Sports Insider", "Cricket Monthly", "ESPNcricinfo", "Local News", "Sports Today", "Youth Athletics", "Daily Sports", "The Hindu", "News18"].map((pub, i) => (
-                <div key={i} className="bg-white text-slate-900 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-sm hover:-translate-y-1 transition-transform border-b-4 border-slate-200 cursor-default">
+                <div key={i} className="bg-white text-slate-900 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-sm hover:-translate-y-1 transition-transform border border-slate-200 cursor-default">
                   {pub}
                 </div>
               ))}
@@ -282,17 +302,15 @@ export default async function HomePage() {
         </div>
 
         {/* Main Content Box */}
-        <div className="bg-[#0b1120] relative overflow-hidden w-full">
+        <div className="bg-white relative overflow-hidden w-full border-t border-slate-100">
           {/* Subtle grid background for the dark section (BOTTOM LAYER) */}
-          <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+          <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
           
-
-
           {/* Text Content (TOP LAYER) */}
           <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20 relative z-20">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
               {/* Left Column: Text */}
-              <div className="flex flex-col justify-between h-full gap-6 text-slate-300 text-sm sm:text-base leading-relaxed">
+              <div className="flex flex-col justify-between h-full gap-6 text-slate-600 text-sm sm:text-base leading-relaxed">
                 <p>
                   In a sporting landscape that constantly adapts to new formats and growing competition, young cricketers must stay ahead of the curve to make their mark.
                 </p>
@@ -306,15 +324,15 @@ export default async function HomePage() {
 
               {/* Right Column: Highlight Cards */}
               <div className="flex flex-col justify-between h-full gap-4">
-                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border-2 border-indigo-100 shadow-[0_0_15px_rgba(79,70,229,0.15)] transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
+                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border border-slate-200 shadow-sm transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
                   <h4 className="text-2xl font-bold text-slate-900">50+ Colleges</h4>
                   <p className="text-slate-600 text-sm mt-1">Participating across our network</p>
                 </div>
-                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border-2 border-indigo-100 shadow-[0_0_15px_rgba(79,70,229,0.15)] transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
+                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border border-slate-200 shadow-sm transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
                   <h4 className="text-2xl font-bold text-slate-900">1st Premium Platform</h4>
                   <p className="text-slate-600 text-sm mt-1">For youth cricket in the region</p>
                 </div>
-                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border-2 border-indigo-100 shadow-[0_0_15px_rgba(79,70,229,0.15)] transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
+                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border border-slate-200 shadow-sm transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
                   <h4 className="text-2xl font-bold text-slate-900">#1 Most Engaging</h4>
                   <p className="text-slate-600 text-sm mt-1">Tournament experience for students</p>
                 </div>
@@ -323,10 +341,10 @@ export default async function HomePage() {
 
             {/* Large Number Section */}
             <div className="mt-16 sm:mt-24 text-center relative z-10">
-              <h2 className="text-5xl sm:text-7xl font-extrabold text-white tracking-tighter">
-                10,000<span className="text-primary">+</span>
+              <h2 className="text-5xl sm:text-7xl font-extrabold text-slate-900 tracking-tighter">
+                10,000<span className="text-blue-600">+</span>
               </h2>
-              <p className="text-slate-300 mt-3 text-base sm:text-lg">
+              <p className="text-slate-600 mt-3 text-base sm:text-lg">
                 Players and spectators engaged across exciting formats like
               </p>
             </div>
@@ -334,7 +352,7 @@ export default async function HomePage() {
             {/* Tags Grid */}
             <div className="mt-10 flex flex-wrap justify-center gap-3 relative z-10">
               {["Box Cricket", "Tennis Ball", "General Knowledge Quiz", "Sports Quiz", "Knockouts", "League Matches", "Man of the Match", "Best Bowler", "Best Batsman", "Fair Play Award", "Cash Prizes", "Trophies"].map((tag, i) => (
-                <span key={i} className="px-4 py-2 bg-gradient-to-r from-primary/20 to-indigo-600/20 border border-primary/40 text-blue-100 rounded-xl text-sm font-medium hover:bg-primary/40 hover:border-primary/50 transition-colors cursor-default">
+                <span key={i} className="px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm font-medium hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-default">
                   {tag}
                 </span>
               ))}
@@ -344,18 +362,18 @@ export default async function HomePage() {
       </section>
 
       {/* Why Choose YCC Section - Interactive CoverFlow */}
-      <section className="w-full relative bg-[#0b1120] py-20 md:py-32 border-t border-border/50 overflow-hidden">
+      <section className="w-full relative bg-slate-50 py-20 md:py-32 border-t border-slate-200 overflow-hidden">
         {/* Background Grid */}
-        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
         
         <div className="mx-auto max-w-4xl px-4 text-center mb-10 md:mb-16 relative z-10">
-          <div className="bg-white/10 text-emerald-400 font-bold px-4 py-1.5 rounded-full inline-block text-sm mb-6 shadow-sm border border-emerald-500/30">
+          <div className="bg-emerald-50 text-emerald-600 font-bold px-4 py-1.5 rounded-full inline-block text-sm mb-6 shadow-sm border border-emerald-200">
             Why Choose YCC?
           </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight leading-[1.1]">
-            Built for <span className="text-emerald-400">Champions.</span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight leading-[1.1]">
+            Built for <span className="text-emerald-600">Champions.</span>
           </h2>
-          <p className="text-base md:text-lg text-slate-400 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
             Local tournaments offer a pitch, but they often lack the scale and professionalism needed to truly shine. We bring the stadium experience to grassroots cricket.
           </p>
         </div>
@@ -364,35 +382,40 @@ export default async function HomePage() {
         <WhyChooseCarousel />
       </section>
 
-      <section id="faq" className="mx-auto max-w-3xl px-4 pb-24 scroll-mt-24 pt-16">
-        <div className="flex flex-col items-center justify-center mb-10 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Frequently Asked Questions</h2>
-          <p className="text-muted-foreground mt-3 max-w-xl">
-            Everything you need to know about the Yuva Champions Cricket events and registration process.
-          </p>
-        </div>
-        <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 sm:p-8 shadow-sm">
-          <Accordion className="w-full">
-            {FAQS.map((faq, i) => (
-              <AccordionItem key={faq.question} value={`item-${i}`} className="border-b-border/40">
-                <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors text-base sm:text-lg">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-        <div className="mt-8 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-4">
-          <p>Still have questions?</p>
-          <Button
-            variant="outline"
-            className="font-semibold shadow-sm rounded-full px-6"
-            nativeButton={false}
-            render={<Link href="/contact">Contact Us</Link>}
-          />
+      <section id="faq" className="relative w-full py-24 scroll-mt-24 bg-slate-50 border-t border-slate-200 overflow-hidden">
+        {/* Background Grid */}
+        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        
+        <div className="mx-auto max-w-3xl px-4 relative z-10">
+          <div className="flex flex-col items-center justify-center mb-10 text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Frequently Asked Questions</h2>
+            <p className="text-slate-600 mt-3 max-w-xl">
+              Everything you need to know about the Yuva Champions Cricket events and registration process.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+            <Accordion className="w-full">
+              {FAQS.map((faq, i) => (
+                <AccordionItem key={faq.question} value={`item-${i}`} className="border-b-slate-100">
+                  <AccordionTrigger className="text-left font-semibold hover:text-blue-600 text-slate-900 transition-colors text-base sm:text-lg">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-slate-600 leading-relaxed text-sm sm:text-base">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+          <div className="mt-8 text-center text-sm text-slate-600 flex flex-col items-center justify-center gap-4">
+            <p>Still have questions?</p>
+            <Button
+              variant="outline"
+              className="font-semibold shadow-sm rounded-full px-6 border-slate-200 text-slate-700 bg-white hover:bg-slate-50"
+              nativeButton={false}
+              render={<Link href="/contact">Contact Us</Link>}
+            />
+          </div>
         </div>
       </section>
     </div>

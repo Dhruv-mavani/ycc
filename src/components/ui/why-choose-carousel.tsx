@@ -57,26 +57,28 @@ export function WhyChooseCarousel() {
     });
   };
 
-  // Auto-scroll every 10 seconds
+  // Auto-scroll every 10 seconds (only on mobile)
   useEffect(() => {
     const interval = setInterval(() => {
-      const nextIndex = (activeIndex + 1) % CARDS.length;
-      scrollTo(nextIndex);
+      if (window.innerWidth < 1024) {
+        const nextIndex = (activeIndex + 1) % CARDS.length;
+        scrollTo(nextIndex);
+      }
     }, 10000);
 
     return () => clearInterval(interval);
   }, [activeIndex]);
 
   return (
-    <div className="w-full max-w-6xl overflow-hidden mx-auto relative group py-12 md:py-16">
+    <div className="w-full max-w-6xl mx-auto relative group py-12 md:py-16 px-4">
       
       {/* Desktop Backdrop Glow */}
-      <div className="hidden md:block absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.05)_0%,transparent_70%)] rounded-[3rem] pointer-events-none"></div>
+      <div className="hidden lg:block absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.05)_0%,transparent_70%)] rounded-[3rem] pointer-events-none"></div>
 
-      {/* Scrollable Container with edge fading for large screens */}
+      {/* Scrollable Container (Flex Carousel on Mobile, CSS Grid on Desktop) */}
       <div 
         ref={scrollRef}
-        className="flex overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative z-10 w-full md:[mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+        className="flex lg:grid lg:grid-cols-3 gap-6 lg:gap-8 overflow-x-auto lg:overflow-visible snap-x snap-mandatory lg:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative z-10 w-full"
       >
         {CARDS.map((card, i) => {
           const isActive = i === activeIndex;
@@ -85,35 +87,34 @@ export function WhyChooseCarousel() {
           return (
             <div 
               key={i} 
-              className="w-full sm:w-[85%] md:w-[70%] lg:w-[60%] shrink-0 snap-center flex items-center justify-center px-4 transition-all duration-500 ease-out"
-              style={{
-                 transform: isActive ? 'scale(1)' : 'scale(0.88)',
-                 opacity: isActive ? 1 : 0.3,
-              }}
+              className={cn(
+                "w-full sm:w-[85%] md:w-[70%] lg:w-auto shrink-0 snap-center transition-all duration-500 ease-out",
+                isActive ? "scale-100 opacity-100" : "scale-90 opacity-30 lg:scale-100 lg:opacity-100"
+              )}
             >
               <div className={cn(
-                "w-full bg-slate-900/90 backdrop-blur-xl border p-6 sm:p-8 md:p-12 rounded-3xl relative overflow-hidden transition-all duration-500",
-                isActive ? "shadow-[0_20px_40px_-15px_rgba(0,0,0,0.8)] border-slate-700/60" : "shadow-none border-transparent"
+                "w-full h-full bg-white border border-slate-200 p-6 sm:p-8 md:p-10 rounded-3xl relative overflow-hidden transition-all duration-500",
+                isActive ? "shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border-slate-300" : "shadow-none border-transparent lg:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] lg:border-slate-300"
               )}>
                 <div className={cn(
                   "absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 rounded-full blur-3xl transition-all duration-700",
-                  isActive ? "opacity-20 scale-100" : "opacity-0 scale-50",
-                  card.color === "blue" && "bg-blue-500",
-                  card.color === "emerald" && "bg-emerald-500",
-                  card.color === "indigo" && "bg-indigo-500"
+                  isActive ? "opacity-20 scale-100" : "opacity-0 scale-50 lg:opacity-20 lg:scale-100",
+                  card.color === "blue" && "bg-blue-400",
+                  card.color === "emerald" && "bg-emerald-400",
+                  card.color === "indigo" && "bg-indigo-400"
                 )}></div>
                 
                 <div className={cn(
-                  "w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-6 sm:mb-8 border transition-colors duration-500",
-                  card.color === "blue" && "bg-blue-500/20 border-blue-500/30 text-blue-400",
-                  card.color === "emerald" && "bg-emerald-500/20 border-emerald-500/30 text-emerald-400",
-                  card.color === "indigo" && "bg-indigo-500/20 border-indigo-500/30 text-indigo-400"
+                  "w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-6 sm:mb-8 border transition-colors duration-500 relative z-10",
+                  card.color === "blue" && "bg-blue-50 border-blue-200 text-blue-600",
+                  card.color === "emerald" && "bg-emerald-50 border-emerald-200 text-emerald-600",
+                  card.color === "indigo" && "bg-indigo-50 border-indigo-200 text-indigo-600"
                 )}>
                   <Icon className="w-6 h-6 sm:w-8 sm:h-8" />
                 </div>
                 
-                <h3 className="text-xl min-[320px]:text-2xl md:text-4xl font-bold text-white mb-4 sm:mb-6 leading-tight">{card.title}</h3>
-                <p className="text-slate-300 text-base sm:text-lg md:text-xl leading-relaxed font-medium">
+                <h3 className="text-xl min-[320px]:text-2xl font-bold text-slate-900 mb-4 sm:mb-6 leading-tight relative z-10">{card.title}</h3>
+                <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-medium relative z-10">
                   {card.description}
                 </p>
               </div>
@@ -122,15 +123,15 @@ export function WhyChooseCarousel() {
         })}
       </div>
 
-      {/* Pagination Dots */}
-      <div className="flex justify-center gap-3 mt-10">
+      {/* Pagination Dots (Mobile Only) */}
+      <div className="flex lg:hidden justify-center gap-3 mt-10">
         {CARDS.map((_, i) => (
           <button
             key={i}
             onClick={() => scrollTo(i)}
             className={cn(
               "h-2.5 rounded-full transition-all duration-500 ease-out",
-              i === activeIndex ? "bg-emerald-400 w-10 shadow-[0_0_10px_rgba(52,211,153,0.5)]" : "bg-slate-700 w-2.5 hover:bg-slate-600"
+              i === activeIndex ? "bg-emerald-500 w-10 shadow-sm" : "bg-slate-200 w-2.5 hover:bg-slate-300"
             )}
             aria-label={`Go to slide ${i + 1}`}
           />
