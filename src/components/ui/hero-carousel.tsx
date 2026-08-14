@@ -50,6 +50,7 @@ export function HeroCarousel() {
             src={src}
             alt={`Carousel image ${idx + 1}`}
             fill
+            unoptimized={true}
             sizes="100vw"
             className={`object-cover transition-transform duration-[10000ms] ease-out ${
               idx === activeIndex ? "scale-110" : "scale-100"
