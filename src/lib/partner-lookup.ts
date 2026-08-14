@@ -1,12 +1,11 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AttendanceStatus, PartnerTeam } from "@/lib/supabase/types";
+import type { AttendanceStatus } from "@/lib/supabase/types";
 
 export interface LookupTeamMember {
   id: string;
   name: string;
   mobile: string;
-  team: PartnerTeam | null;
   attendanceStatus: AttendanceStatus;
 }
 
@@ -83,7 +82,7 @@ export async function searchClassPartners(
 
   const { data: members } = await admin
     .from("partner_program_applications")
-    .select("id, name, mobile, team, attendance_status, referred_by_id")
+    .select("id, name, mobile, attendance_status, referred_by_id")
     .in(
       "referred_by_id",
       classPartners.map((c) => c.id),
@@ -105,7 +104,6 @@ export async function searchClassPartners(
         id: m.id,
         name: m.name,
         mobile: m.mobile,
-        team: m.team,
         attendanceStatus: m.attendance_status ?? "absent",
       })),
   }));

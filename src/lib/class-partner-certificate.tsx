@@ -139,6 +139,27 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
     color: TEXT_DARK,
   },
+  entryIdLabel: {
+    position: "absolute",
+    top: 858,
+    left: 460,
+    width: 600,
+    textAlign: "center",
+    fontFamily: "Times-Italic",
+    fontSize: 16,
+    color: GRAY_TEXT,
+  },
+  entryIdValue: {
+    position: "absolute",
+    top: 880,
+    left: 460,
+    width: 600,
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
+    fontSize: 24,
+    letterSpacing: 2,
+    color: TEXT_DARK,
+  },
   stubYcc: {
     position: "absolute",
     top: 148,
@@ -315,6 +336,8 @@ export interface ClassPartnerCertificateData {
   /** Defaults to "class" (YCC Co-Partner) — the original design this
    * certificate was built for. Pass "campus" for a YCC Partner instead. */
   partnerType?: "campus" | "class";
+  /** Personal event check-in code — distinct from the shared team code. */
+  uniqueId?: string | null;
 }
 
 function ClassPartnerCertificateDocument({
@@ -344,6 +367,12 @@ function ClassPartnerCertificateDocument({
 
         <Text style={styles.codeLabel}>{codeLabel}</Text>
         <Text style={styles.codeValue}>{data.teamCode}</Text>
+        {data.uniqueId ? (
+          <>
+            <Text style={styles.entryIdLabel}>Your Entry ID</Text>
+            <Text style={styles.entryIdValue}>{data.uniqueId}</Text>
+          </>
+        ) : null}
 
         <Text style={styles.stubYcc}>YCC</Text>
         <Text style={styles.stubYccSub}>CRICKET LEAGUE</Text>

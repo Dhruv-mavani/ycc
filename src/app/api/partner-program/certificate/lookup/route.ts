@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isRateLimited } from "@/lib/rate-limit";
 import { partnerCertificateLookupSchema } from "@/lib/validations/partner-program";
@@ -13,11 +12,10 @@ function getClientIp(request: Request) {
 }
 
 /**
- * Resolves a mobile number + password to an applicationId, so the client
- * can redirect to the no-auth certificate download route. Verifies the
- * password via a throwaway (non-persisting) Supabase client — deliberately
- * not the request-bound server client, so this never mutates the caller's
- * own browser session with someone else's login.
+ * Resolves a mobile number to an applicationId, so the client can redirect
+ * to the no-auth certificate download route. No password check — the
+ * team code printed on the certificate is meant to be shared with
+ * downstream partners anyway, so this isn't guarding anything sensitive.
  */
 export async function POST(request: Request) {
   const ip = getClientIp(request);
@@ -33,16 +31,16 @@ export async function POST(request: Request) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid mobile number or password" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid mobile number" },
       { status: 400 },
     );
   }
 
-  const { mobile, password } = parsed.data;
+  const { mobile } = parsed.data;
   const admin = createAdminClient();
   const { data: application } = await admin
     .from("partner_program_applications")
-    .select("id, email, partner_type")
+    .select("id")
     .eq("mobile", mobile)
     .in("partner_type", ["campus", "class"])
     .order("created_at", { ascending: false })
@@ -54,20 +52,6 @@ export async function POST(request: Request) {
       { error: "No certificate found for that mobile number" },
       { status: 404 },
     );
-  }
-
-  const authClient = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
-  const { error: authError } = await authClient.auth.signInWithPassword({
-    email: application.email,
-    password,
-  });
-
-  if (authError) {
-    return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
   }
 
   return NextResponse.json({ applicationId: application.id });

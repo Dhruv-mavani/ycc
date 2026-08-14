@@ -45,7 +45,6 @@ interface LookupTeamMember {
   id: string;
   name: string;
   mobile: string;
-  team: "A" | "B" | null;
   attendanceStatus: "present" | "absent";
 }
 
@@ -327,72 +326,61 @@ export function StaffLookupPanel({
                 </div>
               </div>
 
-              {(["A", "B", null] as const).map((team) => {
-                const teamMembers = cp.members.filter((m) => m.team === team);
-                if (teamMembers.length === 0) return null;
-                return (
-                  <div key={team ?? "unassigned"}>
-                    <p className="bg-muted/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {team ? `Team ${team}` : "Unassigned"}
-                    </p>
-                    {teamMembers.map((m) => (
-                      <div
-                        key={m.id}
-                        className={cn(
-                          "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b last:border-b-0 transition-colors",
-                          m.attendanceStatus === "present"
-                            ? "bg-emerald-50/50 dark:bg-emerald-950/10"
-                            : "hover:bg-muted/30",
-                        )}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div
-                            className={cn(
-                              "p-2 rounded-full mt-1",
-                              m.attendanceStatus === "present"
-                                ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400"
-                                : "bg-muted text-muted-foreground",
-                            )}
-                          >
-                            {m.attendanceStatus === "present" ? (
-                              <UserCheck className="size-5" />
-                            ) : (
-                              <UserX className="size-5" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-base font-semibold text-foreground break-words max-w-full">
-                              {m.name}
-                            </p>
-                            <p className="text-muted-foreground font-mono text-sm mt-0.5">
-                              {m.mobile}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 self-end sm:self-auto shrink-0 bg-background rounded-lg border p-2 sm:p-0 sm:border-0 sm:bg-transparent">
-                          <span
-                            className={cn(
-                              "text-sm font-semibold uppercase tracking-wider",
-                              m.attendanceStatus === "present"
-                                ? "text-emerald-600"
-                                : "text-muted-foreground",
-                            )}
-                          >
-                            {m.attendanceStatus === "present" ? "Present" : "Absent"}
-                          </span>
-                          <Switch
-                            checked={m.attendanceStatus === "present"}
-                            onCheckedChange={(checked) =>
-                              togglePartnerAttendance(m.id, checked)
-                            }
-                            className={m.attendanceStatus === "present" ? "data-[state=checked]:bg-emerald-500" : ""}
-                          />
-                        </div>
-                      </div>
-                    ))}
+              {cp.members.map((m) => (
+                <div
+                  key={m.id}
+                  className={cn(
+                    "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b last:border-b-0 transition-colors",
+                    m.attendanceStatus === "present"
+                      ? "bg-emerald-50/50 dark:bg-emerald-950/10"
+                      : "hover:bg-muted/30",
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={cn(
+                        "p-2 rounded-full mt-1",
+                        m.attendanceStatus === "present"
+                          ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {m.attendanceStatus === "present" ? (
+                        <UserCheck className="size-5" />
+                      ) : (
+                        <UserX className="size-5" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-base font-semibold text-foreground break-words max-w-full">
+                        {m.name}
+                      </p>
+                      <p className="text-muted-foreground font-mono text-sm mt-0.5">
+                        {m.mobile}
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
+                  <div className="flex items-center gap-3 self-end sm:self-auto shrink-0 bg-background rounded-lg border p-2 sm:p-0 sm:border-0 sm:bg-transparent">
+                    <span
+                      className={cn(
+                        "text-sm font-semibold uppercase tracking-wider",
+                        m.attendanceStatus === "present"
+                          ? "text-emerald-600"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {m.attendanceStatus === "present" ? "Present" : "Absent"}
+                    </span>
+                    <Switch
+                      checked={m.attendanceStatus === "present"}
+                      onCheckedChange={(checked) =>
+                        togglePartnerAttendance(m.id, checked)
+                      }
+                      className={m.attendanceStatus === "present" ? "data-[state=checked]:bg-emerald-500" : ""}
+                    />
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         ))}

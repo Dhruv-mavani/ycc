@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +21,6 @@ import {
 } from "@/lib/validations/partner-program";
 
 export default function PartnerCertificateLookupPage() {
-  const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const {
@@ -31,7 +29,7 @@ export default function PartnerCertificateLookupPage() {
     formState: { errors, isSubmitting },
   } = useForm<PartnerCertificateLookupInput>({
     resolver: zodResolver(partnerCertificateLookupSchema),
-    defaultValues: { mobile: "", password: "" },
+    defaultValues: { mobile: "" },
   });
 
   async function onSubmit(values: PartnerCertificateLookupInput) {
@@ -70,8 +68,8 @@ export default function PartnerCertificateLookupPage() {
         <CardHeader>
           <CardTitle>Re-download your certificate</CardTitle>
           <CardDescription>
-            For YCC Partners and YCC Co-Partners. Enter the mobile number and
-            password you applied with.
+            For YCC Partners and YCC Co-Partners. Enter the mobile number you
+            applied with.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -89,36 +87,6 @@ export default function PartnerCertificateLookupPage() {
               {errors.mobile ? (
                 <p className="text-destructive text-xs">
                   {errors.mobile.message}
-                </p>
-              ) : null}
-            </div>
-            <div className="space-y-1.5">
-              <Label>Password</Label>
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  className="pr-10"
-                  aria-invalid={!!errors.password}
-                  {...register("password", {
-                    onChange: () => setFormError(null),
-                  })}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-4" />
-                  ) : (
-                    <Eye className="size-4" />
-                  )}
-                </button>
-              </div>
-              {errors.password ? (
-                <p className="text-destructive text-xs">
-                  {errors.password.message}
                 </p>
               ) : null}
             </div>

@@ -7,8 +7,8 @@ import { renderClassPartnerCertificatePdf } from "@/lib/class-partner-certificat
  * No-auth certificate download, keyed by applicationId (an unguessable
  * UUID) — same trust model as the tournament receipt/ID-card routes.
  * Used both for the instant auto-download right after signup and by the
- * public mobile+password lookup page (which resolves to this URL once
- * credentials check out).
+ * public mobile-number lookup page (which resolves to this URL once the
+ * mobile number matches).
  */
 export async function GET(
   request: Request,
@@ -22,7 +22,7 @@ export async function GET(
 
   const { data: application } = await admin
     .from("partner_program_applications")
-    .select("name, team_code, partner_type")
+    .select("name, team_code, unique_id, partner_type")
     .eq("id", id)
     .maybeSingle();
 
@@ -41,6 +41,7 @@ export async function GET(
   const pdfBuffer = await renderClassPartnerCertificatePdf({
     name: application.name,
     teamCode: application.team_code,
+    uniqueId: application.unique_id,
     qrDataUrl,
     partnerType: application.partner_type as "campus" | "class",
   });

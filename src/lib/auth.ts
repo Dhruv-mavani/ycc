@@ -2,11 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type {
-  PartnerApplicationStatus,
-  PartnerType,
-  StaffStatus,
-} from "@/lib/supabase/types";
+import type { StaffStatus } from "@/lib/supabase/types";
 
 export async function getStaffSession() {
   const supabase = await createClient();
@@ -83,78 +79,6 @@ export async function getStaffAccessStatus(): Promise<
     .single();
 
   return { state: "pending", user, staffName: created?.name ?? name };
-}
-
-/**
- * Used by the /partner-program/status page. A partner's Supabase Auth
- * account is created up front at application time (unlike staff, there's
- * no self-service "first sign-in creates a pending row" step), so this
- * just looks up their existing application by user_id.
- */
-export async function getPartnerAccessStatus(): Promise<
-  | { state: "unauthenticated" }
-  | { state: "no_application"; user: { id: string; email?: string } }
-  | {
-      state: PartnerApplicationStatus;
-      user: { id: string; email?: string };
-      application: {
-        id: string;
-        name: string;
-        partnerType: PartnerType;
-        teamCode: string | null;
-        uniqueId: string | null;
-        whatsappJoinedAt: string | null;
-      };
-    }
-> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { state: "unauthenticated" };
-
-  const { data: application } = await supabase
-    .from("partner_program_applications")
-    .select("id, name, partner_type, status, team_code, unique_id, whatsapp_joined_at")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!application) return { state: "no_application", user };
-
-  return {
-    state: application.status,
-    user,
-    application: {
-      id: application.id,
-      name: application.name,
-      partnerType: application.partner_type,
-      teamCode: application.team_code,
-      uniqueId: application.unique_id,
-      whatsappJoinedAt: application.whatsapp_joined_at,
-    },
-  };
-}
-
-/**
- * Used by the dedicated per-type dashboard pages (/campus-partner,
- * /class-partner, /classmate-partner). Redirects anyone who isn't an
- * approved partner of exactly this type back to the shared status page
- * (or the apply/login page if not signed in at all).
- */
-export async function requirePartnerOfType(expectedType: PartnerType) {
-  const access = await getPartnerAccessStatus();
-
-  if (access.state === "unauthenticated") {
-    redirect("/partner-program");
-  }
-  if (access.state === "no_application") {
-    redirect("/partner-program/status");
-  }
-  if (access.state !== "approved" || access.application.partnerType !== expectedType) {
-    redirect("/partner-program/status");
-  }
-
-  return access;
 }
 
 export async function getAdminSession() {

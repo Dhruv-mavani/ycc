@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Eye, EyeOff, MessageCircle, CheckCircle2 } from "lucide-react";
+import { MessageCircle, CheckCircle2 } from "lucide-react";
 import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,8 +54,6 @@ export function PartnerProgramApplicationForm({
 }) {
   const [submitted, setSubmitted] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
 
   const {
@@ -70,8 +68,6 @@ export function PartnerProgramApplicationForm({
       partnerType,
       name: "",
       email: "",
-      password: "",
-      confirmPassword: "",
       mobile: "",
       instagramHandle: "",
       referredBy: "",
@@ -145,7 +141,7 @@ export function PartnerProgramApplicationForm({
                 >
                   the certificate lookup page
                 </Link>{" "}
-                with your mobile number and password.
+                with your mobile number.
               </>
             )}
           </CardDescription>
@@ -182,53 +178,6 @@ export function PartnerProgramApplicationForm({
           </Field>
           <Field label="Email" error={errors.email?.message}>
             <Input type="email" {...register("email")} />
-          </Field>
-          <Field label="Password" error={errors.password?.message}>
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                className="pr-10"
-                {...register("password")}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff className="size-4" />
-                ) : (
-                  <Eye className="size-4" />
-                )}
-              </button>
-            </div>
-          </Field>
-          <Field
-            label="Re-enter password"
-            error={errors.confirmPassword?.message}
-          >
-            <div className="relative">
-              <Input
-                type={showConfirmPassword ? "text" : "password"}
-                className="pr-10"
-                {...register("confirmPassword")}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
-                aria-label={
-                  showConfirmPassword ? "Hide password" : "Show password"
-                }
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="size-4" />
-                ) : (
-                  <Eye className="size-4" />
-                )}
-              </button>
-            </div>
           </Field>
           <Field label="Mobile / WhatsApp number" error={errors.mobile?.message}>
             <Input

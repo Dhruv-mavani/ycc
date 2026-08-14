@@ -6,8 +6,6 @@ import Link from "next/link";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PartnerProgramApplicationForm } from "@/components/registration/partner-program-application-form";
-import { PartnerLoginForm } from "@/components/registration/partner-login-form";
-import { PartnerForgotPasswordForm } from "@/components/registration/partner-forgot-password-form";
 
 interface ReferrerOption {
   id: string;
@@ -54,7 +52,6 @@ export function PartnerProgramTabs({
   const router = useRouter();
   const [activeId, setActiveId] =
     useState<(typeof PARTNER_TYPES)[number]["id"]>(initialType);
-  const [mode, setMode] = useState<"apply" | "login" | "forgot">("apply");
   const active = PARTNER_TYPES.find((t) => t.id === activeId)!;
 
   const referrerOptions =
@@ -64,59 +61,6 @@ export function PartnerProgramTabs({
         ? classPartners
         : [];
   const referrerLabel = activeId === "class" ? "YCC Partner" : "YCC Co-Partner";
-
-  if (mode === "forgot") {
-    return (
-      <div>
-        <p className="mb-4 text-sm text-muted-foreground">
-          <button
-            type="button"
-            className="text-primary underline underline-offset-2"
-            onClick={() => setMode("login")}
-          >
-            Back to login
-          </button>
-        </p>
-        <h1 className="mb-1 text-xl font-bold">Reset your password</h1>
-        <p className="text-muted-foreground mb-6 text-sm">
-          Enter your email and we&apos;ll send you a link to reset your
-          password.
-        </p>
-        <PartnerForgotPasswordForm />
-      </div>
-    );
-  }
-
-  if (mode === "login") {
-    return (
-      <div>
-        <p className="mb-4 text-sm text-muted-foreground">
-          New applicant?{" "}
-          <button
-            type="button"
-            className="text-primary underline underline-offset-2"
-            onClick={() => setMode("apply")}
-          >
-            Apply here
-          </button>
-        </p>
-        <h1 className="mb-1 text-xl font-bold">Partner login</h1>
-        <p className="text-muted-foreground mb-6 text-sm">
-          Sign in with the email and password you used when you applied.
-        </p>
-        <PartnerLoginForm />
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          <button
-            type="button"
-            className="text-primary underline underline-offset-2"
-            onClick={() => setMode("forgot")}
-          >
-            Forgot password?
-          </button>
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -138,17 +82,6 @@ export function PartnerProgramTabs({
           </Button>
         ))}
       </div>
-
-      <p className="mb-3 text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <button
-          type="button"
-          className="text-primary underline underline-offset-2"
-          onClick={() => setMode("login")}
-        >
-          Login here
-        </button>
-      </p>
 
       {activeId !== "classmate" ? (
         <Button

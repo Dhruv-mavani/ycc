@@ -51,29 +51,16 @@ export async function POST(request: Request) {
     }
   }
 
-  const { data: authUser, error: authError } = await admin.auth.admin.createUser({
-    email: input.email,
-    password: input.password,
-    email_confirm: true,
-    user_metadata: { name: input.name },
-  });
-
-  if (authError || !authUser.user) {
-    const message = authError?.message.includes("already been registered")
-      ? "An account with this email already exists — try logging in instead"
-      : "Could not create your account";
-    return NextResponse.json({ error: message }, { status: 409 });
-  }
-
   // Every partner type is active the moment they apply — no referrer or
   // admin review gate — so they can get their code and certificate
-  // immediately.
+  // immediately. No account/login is created — the certificate download
+  // (right after this call) and the mobile-number lookup page are the
+  // only ways this application is ever retrieved again.
   const { data: application, error } = await admin
     .from("partner_program_applications")
     .insert({
       name: input.name,
       email: input.email,
-      user_id: authUser.user.id,
       partner_type: input.partnerType,
       mobile: input.mobile,
       age: input.age,
@@ -89,8 +76,6 @@ export async function POST(request: Request) {
     .single();
 
   if (error || !application) {
-    // Don't leave an orphaned login with no application behind.
-    await admin.auth.admin.deleteUser(authUser.user.id);
     return NextResponse.json(
       { error: "Could not submit application" },
       { status: 500 },
