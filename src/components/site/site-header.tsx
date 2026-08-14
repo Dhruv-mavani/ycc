@@ -121,7 +121,7 @@ export function SiteHeader() {
           >
             <div
               className={cn(
-                "flex w-full items-center justify-between sm:justify-center",
+                "relative flex w-full items-center justify-start min-[380px]:justify-center",
                 isHome ? "-mt-8 sm:-mt-14 translate-y-2 sm:translate-y-0" : "",
               )}
             >
@@ -146,7 +146,7 @@ export function SiteHeader() {
                 aria-label="Toggle menu"
                 aria-expanded={mobileOpen}
                 className={cn(
-                  "shrink-0 rounded-md p-2 min-[380px]:hidden",
+                  "absolute right-0 shrink-0 rounded-md p-2 min-[380px]:hidden",
                   isHome ? "text-primary" : "text-foreground",
                 )}
               >
@@ -160,7 +160,7 @@ export function SiteHeader() {
 
             <nav
               className={cn(
-                "relative z-20 hidden min-[380px]:flex items-center flex-wrap justify-center gap-2 md:gap-4 text-sm font-semibold bg-black/20 backdrop-blur-xl border border-white/10 rounded-full px-6 py-2.5 shadow-2xl",
+                "relative z-20 hidden min-[380px]:flex items-center flex-nowrap justify-center whitespace-nowrap gap-0.5 min-[480px]:gap-1 md:gap-4 text-[11px] min-[480px]:text-xs md:text-sm font-semibold bg-black/20 backdrop-blur-xl border border-white/10 rounded-full px-2.5 py-1.5 md:px-6 md:py-2.5 shadow-2xl",
                 isHome ? "-mt-8 sm:-mt-14" : "",
               )}
             >
@@ -168,7 +168,7 @@ export function SiteHeader() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="relative px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300"
+                  className="relative rounded-full px-1.5 py-1 min-[480px]:px-2.5 min-[480px]:py-1.5 md:px-4 md:py-2 text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300"
                 >
                   {link.label}
                 </Link>
