@@ -4,7 +4,6 @@ import { Trophy, Download, ChevronDown, Star, Users, CalendarDays } from "lucide
 import { createClient } from "@/lib/supabase/server";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -160,8 +159,7 @@ export default async function HomePage() {
                     </div>
                     <CardDescription className="text-xs sm:text-base mt-2 sm:mt-3 text-slate-600 leading-relaxed break-words">{event.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-1 px-4 sm:px-8" />
-                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 border-t border-slate-100 bg-slate-50 mt-4">
+                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-6 border-t border-slate-100 bg-slate-50">
                     <Button
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)] transition-all font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-lg px-2"
                       nativeButton={false}
@@ -183,8 +181,7 @@ export default async function HomePage() {
                     </div>
                     <CardDescription className="text-xs sm:text-base mt-2 sm:mt-3 text-slate-500 leading-relaxed break-words">{event.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-1 px-4 sm:px-8" />
-                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 border-t border-slate-100 bg-slate-50/50 mt-4">
+                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-6 border-t border-slate-100 bg-slate-50/50">
                     <Button
                       disabled
                       variant="outline"
@@ -211,8 +208,7 @@ export default async function HomePage() {
                 </div>
                 <CardDescription className="text-xs sm:text-base mt-2 sm:mt-3 text-slate-500 leading-relaxed break-words">The flagship tournament returning next year with even bigger prizes.</CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 px-4 sm:px-8" />
-              <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 border-t border-slate-100 bg-slate-50/50 mt-4">
+              <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-6 border-t border-slate-100 bg-slate-50/50">
                 <Button className="w-full border-slate-200 text-slate-400 bg-transparent rounded-xl h-11 sm:h-12 text-sm sm:text-lg font-semibold px-2" variant="outline" disabled>
                   Stay Tuned
                 </Button>
