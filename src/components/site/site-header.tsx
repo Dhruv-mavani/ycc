@@ -26,12 +26,13 @@ const getServerSnapshot = () => false;
 export function SiteHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
-  // These pages share the floating pill nav look — everything else (forms,
-  // receipts, admin/staff tools, etc.) keeps the plain always-visible bar.
+  // These pages share the floating pill nav look — everything else (admin/
+  // staff tools, registration forms, etc.) keeps the plain always-visible bar.
   const hasPillHeader =
     isHome ||
     pathname === "/about" ||
     pathname === "/contact" ||
+    pathname === "/receipt" ||
     pathname.startsWith("/partner-program");
   const [mobileOpen, setMobileOpen] = useState(false);
 
