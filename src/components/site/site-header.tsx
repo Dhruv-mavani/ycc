@@ -26,12 +26,41 @@ const getServerSnapshot = () => false;
 export function SiteHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  // These pages share the floating pill nav look — everything else (forms,
+  // receipts, admin/staff tools, etc.) keeps the plain always-visible bar.
+  const hasPillHeader =
+    isHome ||
+    pathname === "/about" ||
+    pathname === "/contact" ||
+    pathname.startsWith("/partner-program");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
+
   const mounted = useSyncExternalStore(
     subscribeNoop,
     getClientSnapshot,
     getServerSnapshot,
   );
+
+  useEffect(() => {
+    let lastScrollY = window.pageYOffset;
+    
+    const updateScrollDirection = () => {
+      const scrollY = window.pageYOffset;
+      const direction = scrollY > lastScrollY ? "down" : "up";
+      if (direction !== scrollDirection && (scrollY - lastScrollY > 10 || scrollY - lastScrollY < -10)) {
+        setScrollDirection(direction);
+      }
+      lastScrollY = scrollY > 0 ? scrollY : 0;
+      setIsScrolled(scrollY > 200);
+    };
+    
+    window.addEventListener("scroll", updateScrollDirection);
+    return () => {
+      window.removeEventListener("scroll", updateScrollDirection);
+    }
+  }, [scrollDirection]);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -43,7 +72,7 @@ export function SiteHeader() {
   }, [mobileOpen]);
 
   const mobileMenu = mobileOpen && mounted ? createPortal(
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center sm:hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center min-[380px]:hidden">
       <div
         className="absolute inset-0 bg-background/90 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-md animate-fade-in"
         aria-hidden="true"
@@ -92,101 +121,175 @@ export function SiteHeader() {
     setMobileOpen(false);
   }
 
-  if (isHome) {
-    return (
-      <header className="absolute top-0 w-full z-50 px-4 pt-0 pb-2 flex justify-center">
-        <div className="w-full max-w-2xl px-4 sm:px-6 pb-4 flex flex-col items-center justify-center gap-0">
-          <div className="flex w-full items-center justify-between sm:justify-center -mt-8 sm:-mt-14">
-            <Link href="/" className="flex shrink-0 items-center justify-center group z-10 translate-y-2 sm:translate-y-0">
-              <div className="transition-transform duration-300 group-hover:scale-105">
-                <Image
-                  src="/brand/ycc-logo-bgless.png"
-                  alt="Yuva Champions Cricket"
-                  width={250}
-                  height={90}
-                  className="h-auto w-[160px] object-contain sm:w-[250px]"
-                  priority
-                />
-              </div>
-            </Link>
-            <button
-              type="button"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label="Toggle menu"
-              aria-expanded={mobileOpen}
-              className="text-primary shrink-0 rounded-md p-2 sm:hidden"
-            >
-              {mobileOpen ? (
-                <XIcon className="size-6" />
-              ) : (
-                <MenuIcon className="size-6" />
+  // Home floats this over the hero photo (absolute, pulled up tight with
+  // negative margins to sit snug against the art). The other pill pages
+  // have no photo to float over, so they get the same look sitting in
+  // normal flow at the top instead — same nav, no overlap trickery needed.
+  return (
+    <>
+      {hasPillHeader && (
+        <header
+          className={cn(
+            "w-full z-50 px-4 pb-2 flex justify-center",
+            isHome ? "absolute top-0 pt-0" : "relative pt-6",
+          )}
+        >
+          <div
+            className={cn(
+              "w-full max-w-2xl px-4 sm:px-6 pb-4 flex flex-col items-center justify-center gap-0",
+              !isHome && "gap-3",
+            )}
+          >
+            <div
+              className={cn(
+                "flex w-full items-center justify-between sm:justify-center",
+                isHome ? "-mt-8 sm:-mt-14 translate-y-2 sm:translate-y-0" : "",
               )}
-            </button>
-          </div>
+            >
+              <Link href="/" className="flex shrink-0 items-center justify-center group z-10">
+                <div className="transition-transform duration-300 group-hover:scale-105">
+                  <Image
+                    src="/brand/ycc-logo-bgless.png"
+                    alt="Yuva Champions Cricket"
+                    width={250}
+                    height={90}
+                    className={cn(
+                      "h-auto object-contain",
+                      isHome ? "w-[160px] sm:w-[250px]" : "w-[140px] sm:w-[180px]",
+                    )}
+                    priority={isHome}
+                  />
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setMobileOpen((v) => !v)}
+                aria-label="Toggle menu"
+                aria-expanded={mobileOpen}
+                className={cn(
+                  "shrink-0 rounded-md p-2 min-[380px]:hidden",
+                  isHome ? "text-primary" : "text-foreground",
+                )}
+              >
+                {mobileOpen ? (
+                  <XIcon className="size-6" />
+                ) : (
+                  <MenuIcon className="size-6" />
+                )}
+              </button>
+            </div>
 
-          <nav className="relative z-20 hidden sm:flex items-center flex-wrap justify-center gap-2 md:gap-4 text-sm font-semibold -mt-8 sm:-mt-14 bg-black/20 backdrop-blur-xl border border-white/10 rounded-full px-6 py-2.5 shadow-2xl">
+            <nav
+              className={cn(
+                "relative z-20 hidden min-[380px]:flex items-center flex-wrap justify-center gap-2 md:gap-4 text-sm font-semibold bg-black/20 backdrop-blur-xl border border-white/10 rounded-full px-6 py-2.5 shadow-2xl",
+                isHome ? "-mt-8 sm:-mt-14" : "",
+              )}
+            >
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="relative px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </header>
+      )}
+
+      <header
+        className={cn(
+          "z-50 transition-transform duration-300",
+          hasPillHeader ? "fixed top-0 w-full" : "sticky top-0 bg-background/95 border-b backdrop-blur",
+          // Hide while scrolling down, reveal on scroll up — same rule at
+          // every screen size, once past the pill header at the top.
+          hasPillHeader && (!isScrolled || scrollDirection === "down") ? "-translate-y-full" : "translate-y-0"
+        )}
+      >
+      {hasPillHeader ? (
+        // Compact stand-in for the pill header once it's scrolled out of
+        // view — same dark blurred-pill styling, just condensed to one row,
+        // so the look never switches to a different style mid-scroll.
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
+            <Image
+              src="/brand/ycc-logo-bgless.png"
+              alt="Yuva Champions Cricket"
+              width={110}
+              height={40}
+              className="h-auto w-[90px] object-contain sm:w-[110px]"
+            />
+          </Link>
+          <nav className="hidden min-[380px]:flex items-center gap-1 text-xs font-semibold bg-black/20 backdrop-blur-xl border border-white/10 rounded-full px-2 py-1.5 shadow-2xl sm:gap-2 sm:text-sm sm:px-3 sm:py-2">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300"
+                className="relative px-2.5 py-1.5 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors duration-300 sm:px-3.5 sm:py-2"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
-
-          {mobileMenu}
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+            className="text-foreground shrink-0 rounded-md p-2 min-[380px]:hidden"
+          >
+            {mobileOpen ? (
+              <XIcon className="size-6" />
+            ) : (
+              <MenuIcon className="size-6" />
+            )}
+          </button>
         </div>
-      </header>
-    );
-  }
-
-  // Inner pages have no hero section to float over — a normal in-flow
-  // sticky header avoids overlapping page content.
-  return (
-    <header className="bg-background/95 sticky top-0 z-50 border-b backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/brand/ycc-logo-bgless.png"
-            alt="Yuva Champions Cricket"
-            width={130}
-            height={46}
-            className="object-contain"
-            priority
-          />
-        </Link>
-        <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "relative group text-primary hover:text-blue-500 transition-colors py-0.5",
-              )}
-            >
-              {link.label}
-              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-500 transition-[width] duration-300 group-hover:w-full"></span>
-            </Link>
-          ))}
-        </nav>
-        <button
-          type="button"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Toggle menu"
-          aria-expanded={mobileOpen}
-          className="text-primary shrink-0 rounded-md p-2 sm:hidden"
-        >
-          {mobileOpen ? (
-            <XIcon className="size-6" />
-          ) : (
-            <MenuIcon className="size-6" />
-          )}
-        </button>
-      </div>
-
-      {mobileMenu}
+      ) : (
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/brand/ycc-logo-bgless.png"
+              alt="Yuva Champions Cricket"
+              width={130}
+              height={46}
+              className="object-contain"
+              priority
+            />
+          </Link>
+          <nav className="hidden min-[380px]:flex items-center gap-6 text-sm font-medium">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "relative group text-primary hover:text-blue-500 transition-colors py-0.5",
+                )}
+              >
+                {link.label}
+                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-500 transition-[width] duration-300 group-hover:w-full"></span>
+              </Link>
+            ))}
+          </nav>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+            className="text-primary shrink-0 rounded-md p-2 min-[380px]:hidden"
+          >
+            {mobileOpen ? (
+              <XIcon className="size-6" />
+            ) : (
+              <MenuIcon className="size-6" />
+            )}
+          </button>
+        </div>
+      )}
     </header>
+    {mobileMenu}
+    </>
   );
 }
