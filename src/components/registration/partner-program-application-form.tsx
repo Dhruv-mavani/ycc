@@ -22,6 +22,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -121,9 +122,9 @@ export function PartnerProgramApplicationForm({
 
   if (submitted) {
     return (
-      <Card>
+      <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden bg-white text-center py-10">
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="text-3xl font-extrabold text-slate-800 mb-2">
             {partnerType === "classmate"
               ? "Thanks for applying!"
               : "You're in!"}
@@ -168,11 +169,11 @@ export function PartnerProgramApplicationForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Your details</CardTitle>
+      <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden bg-white">
+        <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-6 px-6 sm:px-10 pt-8">
+          <CardTitle className="text-2xl font-bold text-slate-800">Your details</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5 px-6 sm:px-10 py-8">
           <Field label="Full name" error={errors.name?.message}>
             <Input {...register("name")} />
           </Field>
@@ -344,15 +345,16 @@ export function PartnerProgramApplicationForm({
             )}
           />
         </CardContent>
+        <CardFooter className="bg-slate-50/50 border-t border-slate-100 px-6 sm:px-10 py-6">
+          <Button
+            type="submit"
+            className="w-full sm:w-auto px-8 h-12 rounded-xl text-base font-semibold shadow-md hover:shadow-lg transition-all"
+            disabled={isSubmitting || !agreedToTerms || !whatsappJoined}
+          >
+            {isSubmitting ? "Submitting..." : "Submit Application"}
+          </Button>
+        </CardFooter>
       </Card>
-
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={isSubmitting || !agreedToTerms || !whatsappJoined}
-      >
-        {isSubmitting ? "Submitting..." : "Submit application"}
-      </Button>
 
       <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">

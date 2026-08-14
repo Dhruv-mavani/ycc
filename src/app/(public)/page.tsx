@@ -217,12 +217,12 @@ export default async function HomePage() {
         </div>
       </section>
       {/* Backed By The Best Section */}
-      <section className="w-full relative overflow-hidden bg-slate-50 py-20 mt-10 border-t border-slate-200">
+      <section className="w-full relative overflow-hidden bg-white py-20 -mt-8 md:-mt-16 rounded-t-[2.5rem] md:rounded-t-[4rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.05)] border-t border-slate-200 z-20">
         <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
         <div className="mx-auto max-w-6xl px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center lg:items-stretch">
             {/* Left side text */}
-            <div className="lg:w-1/3 space-y-6 text-center lg:text-left">
+            <div className="lg:w-1/3 flex flex-col justify-between space-y-6 lg:space-y-0 text-center lg:text-left py-1">
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
                 Backed By<br />
                 <span className="text-blue-600">The Best</span>
@@ -302,7 +302,7 @@ export default async function HomePage() {
         </div>
 
         {/* Main Content Box */}
-        <div className="bg-white relative overflow-hidden w-full border-t border-slate-100">
+        <div className="bg-slate-50 relative overflow-hidden w-full border-t border-slate-200">
           {/* Subtle grid background for the dark section (BOTTOM LAYER) */}
           <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
           
@@ -324,17 +324,20 @@ export default async function HomePage() {
 
               {/* Right Column: Highlight Cards */}
               <div className="flex flex-col justify-between h-full gap-4">
-                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border border-slate-200 shadow-sm transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
-                  <h4 className="text-2xl font-bold text-slate-900">50+ Colleges</h4>
-                  <p className="text-slate-600 text-sm mt-1">Participating across our network</p>
+                <div className="flex-1 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 md:p-6 shadow-md border border-blue-500 transform transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col justify-center relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <h4 className="text-2xl font-bold text-white relative z-10">50+ Colleges</h4>
+                  <p className="text-blue-100 text-sm mt-1 relative z-10">Participating across our network</p>
                 </div>
-                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border border-slate-200 shadow-sm transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
-                  <h4 className="text-2xl font-bold text-slate-900">1st Premium Platform</h4>
-                  <p className="text-slate-600 text-sm mt-1">For youth cricket in the region</p>
+                <div className="flex-1 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 md:p-6 shadow-md border border-blue-500 transform transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col justify-center relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <h4 className="text-2xl font-bold text-white relative z-10">1st Premium Platform</h4>
+                  <p className="text-blue-100 text-sm mt-1 relative z-10">For youth cricket in the region</p>
                 </div>
-                <div className="flex-1 bg-white rounded-2xl p-5 md:p-6 border border-slate-200 shadow-sm transform transition-transform hover:-translate-y-1 flex flex-col justify-center">
-                  <h4 className="text-2xl font-bold text-slate-900">#1 Most Engaging</h4>
-                  <p className="text-slate-600 text-sm mt-1">Tournament experience for students</p>
+                <div className="flex-1 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 md:p-6 shadow-md border border-blue-500 transform transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col justify-center relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <h4 className="text-2xl font-bold text-white relative z-10">#1 Most Engaging</h4>
+                  <p className="text-blue-100 text-sm mt-1 relative z-10">Tournament experience for students</p>
                 </div>
               </div>
             </div>
@@ -362,7 +365,7 @@ export default async function HomePage() {
       </section>
 
       {/* Why Choose YCC Section - Interactive CoverFlow */}
-      <section className="w-full relative bg-slate-50 py-20 md:py-32 border-t border-slate-200 overflow-hidden">
+      <section className="w-full relative bg-white py-20 md:py-32 -mt-8 md:-mt-16 rounded-t-[2.5rem] md:rounded-t-[4rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.05)] border-t border-slate-200 overflow-hidden z-20">
         {/* Background Grid */}
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
         
@@ -386,28 +389,34 @@ export default async function HomePage() {
         {/* Background Grid */}
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
         
-        <div className="mx-auto max-w-3xl px-4 relative z-10">
-          <div className="flex flex-col items-center justify-center mb-10 text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Frequently Asked Questions</h2>
-            <p className="text-slate-600 mt-3 max-w-xl">
+        <div className="mx-auto max-w-4xl px-4 relative z-10">
+          <div className="flex flex-col items-center justify-center mb-12 text-center">
+            <div className="bg-blue-50 text-blue-600 font-bold px-4 py-1.5 rounded-full inline-block text-sm mb-4 shadow-sm border border-blue-200">
+              Got Questions?
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+              Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Questions</span>
+            </h2>
+            <p className="text-slate-600 mt-6 max-w-xl text-lg">
               Everything you need to know about the Yuva Champions Cricket events and registration process.
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div className="rounded-[2rem] border border-slate-200/80 bg-white p-6 sm:p-10 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-30"></div>
             <Accordion className="w-full">
               {FAQS.map((faq, i) => (
-                <AccordionItem key={faq.question} value={`item-${i}`} className="border-b-slate-100">
-                  <AccordionTrigger className="text-left font-semibold hover:text-blue-600 text-slate-900 transition-colors text-base sm:text-lg">
+                <AccordionItem key={faq.question} value={`item-${i}`} className="border-b-slate-100 last:border-0 py-1">
+                  <AccordionTrigger className="text-left font-bold hover:text-blue-600 hover:bg-slate-50/50 px-3 rounded-xl text-slate-800 transition-all text-base sm:text-lg">
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-600 leading-relaxed text-sm sm:text-base">
+                  <AccordionContent className="text-slate-600 leading-relaxed text-sm sm:text-base px-3 pt-2 pb-4">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
           </div>
-          <div className="mt-8 text-center text-sm text-slate-600 flex flex-col items-center justify-center gap-4">
+          <div className="mt-12 text-center text-sm text-slate-600 flex flex-col items-center justify-center gap-4">
             <p>Still have questions?</p>
             <Button
               variant="outline"

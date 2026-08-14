@@ -40,14 +40,20 @@ export default async function PartnerProgramPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      <BackButton className="mb-4" />
-      <PartnerProgramTabs
-        key={partnerType}
-        initialType={partnerType}
-        campusPartners={campusPartners ?? []}
-        classPartners={classPartners ?? []}
-      />
+    <div className="relative min-h-screen pb-20">
+      {/* Background grid */}
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_100%_50%_at_50%_50%,#000_60%,transparent_100%)]"></div>
+      
+      <div className="mx-auto max-w-3xl px-4 py-12 md:py-20 relative z-10">
+        <BackButton className="mb-6" />
+        <PartnerProgramTabs
+          key={partnerType}
+          initialType={partnerType}
+          campusPartners={campusPartners ?? []}
+          classPartners={classPartners ?? []}
+        />
+      </div>
     </div>
   );
 }
+

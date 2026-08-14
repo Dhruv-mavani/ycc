@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PartnerProgramApplicationForm } from "@/components/registration/partner-program-application-form";
+import { cn } from "@/lib/utils";
 
 interface ReferrerOption {
   id: string;
@@ -64,14 +65,26 @@ export function PartnerProgramTabs({
 
   return (
     <div>
-      <div className="mb-4 flex w-fit max-w-full flex-wrap gap-1 rounded-lg border border-border/50 bg-muted p-1">
+      <div className="mb-10 text-center">
+        <h1 className="mb-4 text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+          {active.heading.split(' ').map((word, i, arr) => 
+            i === arr.length - 1 ? <span key={i} className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{word}</span> : word + " "
+          )}
+        </h1>
+        <p className="text-slate-600 text-lg max-w-xl mx-auto">{active.description}</p>
+      </div>
+
+      <div className="mb-8 flex w-full flex-col sm:flex-row gap-2 rounded-[1.25rem] border border-slate-200/60 bg-white p-2 shadow-sm">
         {PARTNER_TYPES.map((type) => (
           <Button
             key={type.id}
             type="button"
-            size="sm"
-            variant={type.id === activeId ? "default" : "ghost"}
-            className={type.id === activeId ? "" : "border border-border/50"}
+            className={cn(
+              "flex-1 rounded-xl text-sm font-semibold transition-all h-11",
+              type.id === activeId 
+                ? "bg-blue-600 text-white shadow-md hover:bg-blue-700" 
+                : "bg-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            )}
             onClick={() => {
               setActiveId(type.id);
               router.push(`/partner-program/${type.slug}`);
@@ -84,22 +97,20 @@ export function PartnerProgramTabs({
       </div>
 
       {activeId !== "classmate" ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="mb-6 w-full sm:w-auto"
-          nativeButton={false}
-          render={
-            <Link href="/partner-program/certificate">
-              <Download className="size-4" />
-              Download your certificate
-            </Link>
-          }
-        />
+        <div className="flex justify-center mb-10">
+          <Button
+            variant="outline"
+            className="rounded-full px-8 h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
+            nativeButton={false}
+            render={
+              <Link href="/partner-program/certificate" className="flex items-center gap-2">
+                <Download className="size-4 text-blue-600" />
+                Download your certificate
+              </Link>
+            }
+          />
+        </div>
       ) : null}
-
-      <h1 className="mb-1 text-xl font-bold">{active.heading}</h1>
-      <p className="text-muted-foreground mb-6 text-sm">{active.description}</p>
 
       <PartnerProgramApplicationForm
         key={activeId}

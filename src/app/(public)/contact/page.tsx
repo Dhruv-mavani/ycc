@@ -49,11 +49,8 @@ export default function ContactPage() {
 
   return (
     <div className="relative min-h-screen pb-20">
-      {/* Background decorations */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-1/4 -top-40 h-[500px] w-[500px] rounded-full bg-blue-500/10 blur-[100px]" />
-        <div className="absolute right-0 top-40 h-[400px] w-[400px] rounded-full bg-indigo-500/10 blur-[100px]" />
-      </div>
+      {/* Background grid */}
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_100%_50%_at_50%_50%,#000_60%,transparent_100%)]"></div>
 
       <div className="relative mx-auto max-w-3xl px-4 min-[320px]:px-6 pt-10">
         <BackButton className="mb-6 sm:mb-10" />
