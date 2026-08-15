@@ -33,6 +33,7 @@ export function SiteHeader() {
     pathname === "/about" ||
     pathname === "/contact" ||
     pathname === "/receipt" ||
+    pathname.startsWith("/events") ||
     pathname.startsWith("/partner-program");
   const [mobileOpen, setMobileOpen] = useState(false);
 
