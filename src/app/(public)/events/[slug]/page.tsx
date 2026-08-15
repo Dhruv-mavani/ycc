@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BackButton } from "@/components/site/back-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
-import { Banknote, Users, ScrollText, AlertCircle, Trophy, Sparkles } from "lucide-react";
+import { Banknote, Users, ScrollText, AlertCircle, Trophy } from "lucide-react";
+import { EventRegisterCta } from "@/components/registration/event-register-cta";
 
 function formatRupees(paise: number) {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
@@ -47,7 +48,7 @@ export default async function EventDetailPage({
           {/* Banner Image for Quiz */}
           {isQuiz && (
             <div className="w-full relative border-b border-slate-100 bg-slate-100 flex">
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent z-10 pointer-events-none opacity-80"></div>
+
               <Image
                 src="/ycc_quiz_banner.png"
                 alt={`${event.name} Banner`}
@@ -167,11 +168,7 @@ export default async function EventDetailPage({
                     />
                   </div>
                 ) : (
-                  <Button
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base sm:text-lg h-14 sm:h-16 rounded-xl sm:rounded-2xl shadow-[0_10px_20px_rgba(16,185,129,0.2)] hover:shadow-[0_15px_30px_rgba(16,185,129,0.3)] hover:-translate-y-1 transition-all px-2"
-                    nativeButton={false}
-                    render={<Link href={`/register/${event.slug}`} className="flex items-center justify-center gap-2 w-full h-full text-center"><Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" /> Register Now & Pay</Link>}
-                  />
+                  <EventRegisterCta eventSlug={event.slug} />
                 )}
               </div>
             </div>
