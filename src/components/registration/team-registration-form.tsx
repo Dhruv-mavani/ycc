@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Card,
   CardContent,
@@ -273,38 +274,22 @@ export function TeamRegistrationForm({
               label={`${referrerLabel}'s name/code`}
               error={errors.collegeId?.message}
             >
-              <Select
-                value={referrerId}
-                onValueChange={(val) => {
+              <SearchableSelect
+                value={referrerId || null}
+                onChange={(val) => {
                   if (!val) return;
                   setReferrerId(val);
                   loadSquad(referrerType, val);
                 }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={`Select your ${referrerLabel}`}>
-                    {(value: string | null) => {
-                      const match = referrerOptions.find((o) => o.id === value);
-                      if (!match) return `Select your ${referrerLabel}`;
-                      return match.team_code
-                        ? `${match.name} (${match.team_code})`
-                        : match.name;
-                    }}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {referrerOptions.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      {r.name}
-                      {r.team_code ? (
-                        <span className="ml-1.5 font-mono text-xs text-muted-foreground">
-                          {r.team_code}
-                        </span>
-                      ) : null}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder={`Search for your ${referrerLabel}...`}
+                emptyText="No match found."
+                options={referrerOptions.map((r) => ({
+                  value: r.id,
+                  label: r.name,
+                  sublabel: r.team_code ?? undefined,
+                  searchText: r.team_code ?? undefined,
+                }))}
+              />
               {referrerOptions.length === 0 ? (
                 <p className="text-muted-foreground text-xs">
                   No approved {referrerLabel}s found yet.

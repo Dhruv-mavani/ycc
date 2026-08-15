@@ -87,6 +87,7 @@ export interface Database {
           captain_email: string | null;
           amount_paise: number;
           status: RegistrationStatus;
+          referred_by_partner_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -101,6 +102,7 @@ export interface Database {
           captain_email?: string | null;
           amount_paise: number;
           status?: RegistrationStatus;
+          referred_by_partner_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };

@@ -83,6 +83,7 @@ export async function POST(request: Request) {
       captain_email: null,
       amount_paise: gst.totalPaise,
       status: "pending_payment",
+      referred_by_partner_id: input.referredByPartnerId ?? null,
     })
     .select("*")
     .single();

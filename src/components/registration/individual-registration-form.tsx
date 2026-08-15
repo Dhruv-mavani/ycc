@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Card,
   CardContent,
@@ -28,16 +29,25 @@ import {
 import { RazorpayCheckoutButton } from "@/components/registration/razorpay-checkout-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
 
+interface PartnerOption {
+  id: string;
+  name: string;
+  team_code: string | null;
+  type: "campus" | "class";
+}
+
 export function IndividualRegistrationForm({
   eventId,
   eventName,
   feePaise,
   colleges,
+  partnerOptions,
 }: {
   eventId: string;
   eventName: string;
   feePaise: number;
   colleges: { id: string; name: string }[];
+  partnerOptions: PartnerOption[];
 }) {
   const [submitted, setSubmitted] = useState<{
     registrationId: string;
@@ -62,6 +72,7 @@ export function IndividualRegistrationForm({
       collegeId: "",
       name: "",
       phone: "",
+      referredByPartnerId: null,
     },
   });
 
@@ -127,28 +138,23 @@ export function IndividualRegistrationForm({
               control={control}
               name="collegeId"
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select your college">
-                      {(value: string | null) =>
-                        colleges.find((c) => c.id === value)?.name ??
-                        "Select your college"
-                      }
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {collegeOptions.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                    {individualOption ? (
-                      <SelectItem value={individualOption.id}>
-                        Not from a college (Individual)
-                      </SelectItem>
-                    ) : null}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={field.value}
+                  onChange={(v) => field.onChange(v ?? "")}
+                  placeholder="Search for your college..."
+                  emptyText="No college matches — try a different search."
+                  options={[
+                    ...collegeOptions.map((c) => ({ value: c.id, label: c.name })),
+                    ...(individualOption
+                      ? [
+                          {
+                            value: individualOption.id,
+                            label: "Not from a college (Individual)",
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
               )}
             />
           </Field>
@@ -191,6 +197,29 @@ export function IndividualRegistrationForm({
               />
             </Field>
           </div>
+
+          {partnerOptions.length > 0 ? (
+            <Field label="Referred by a YCC Partner / Co-Partner? (optional)">
+              <Controller
+                control={control}
+                name="referredByPartnerId"
+                render={({ field }) => (
+                  <SearchableSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Search by name or code..."
+                    emptyText="No match found."
+                    options={partnerOptions.map((o) => ({
+                      value: o.id,
+                      label: o.name,
+                      sublabel: `${o.type === "campus" ? "YCC Partner" : "YCC Co-Partner"}${o.team_code ? ` · ${o.team_code}` : ""}`,
+                      searchText: o.team_code ?? undefined,
+                    }))}
+                  />
+                )}
+              />
+            </Field>
+          ) : null}
         </CardContent>
       </Card>
 

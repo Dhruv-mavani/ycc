@@ -40,6 +40,11 @@ export default async function RegisterPage({
 
   if (!event) notFound();
 
+  const partnerOptions = [
+    ...(campusPartners ?? []).map((p) => ({ ...p, type: "campus" as const })),
+    ...(classPartners ?? []).map((p) => ({ ...p, type: "class" as const })),
+  ];
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden pb-24">
       {/* Background grid */}
@@ -78,6 +83,7 @@ export default async function RegisterPage({
                 eventName={event.name}
                 feePaise={event.fee_paise}
                 colleges={colleges ?? []}
+                partnerOptions={partnerOptions}
               />
             )}
           </div>
