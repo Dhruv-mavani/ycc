@@ -352,7 +352,7 @@ export function TeamRegistrationForm({
                 return (
                   <label
                     key={member.id}
-                    className={`flex items-center justify-between gap-3 rounded-lg border p-3 ${
+                    className={`flex flex-col min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between gap-2 min-[380px]:gap-3 rounded-lg border p-3 ${
                       disabled && !checked
                         ? "opacity-50"
                         : "cursor-pointer hover:bg-muted/40"
@@ -369,7 +369,7 @@ export function TeamRegistrationForm({
                         <p className="text-muted-foreground text-xs">{member.phone}</p>
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
+                    <div className="flex shrink-0 items-center gap-1.5 flex-wrap pl-7 min-[380px]:pl-0">
                       {member.role === "co-partner" ? (
                         <Badge variant="secondary" className="shrink-0 text-xs">
                           Co-Partner
