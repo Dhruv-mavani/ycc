@@ -305,6 +305,7 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
           city: data.collegeCity,
           uniqueId: p.uniqueId,
           qrDataUrl: p.qrDataUrl,
+          teamName: data.teamName,
         };
         return data.eventType === "quiz" ? (
           <QuizIdCardPage key={p.uniqueId} data={cardData} />

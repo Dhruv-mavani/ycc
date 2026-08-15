@@ -29,7 +29,7 @@ export async function GET(
 
   const { data: registration, error: regError } = await admin
     .from("registrations")
-    .select("event_id, college_id, status")
+    .select("event_id, college_id, status, team_name")
     .eq("id", participant.registration_id)
     .eq("status", "confirmed")
     .single();
@@ -51,18 +51,24 @@ export async function GET(
   }
 
   const qrDataUrl = await generateQrDataUrl(participant.unique_id);
-  const data = {
-    playerName: participant.name,
-    collegeName: college.name,
-    city: college.city,
-    uniqueId: participant.unique_id,
-    qrDataUrl,
-  };
 
   const pdfBuffer =
     event.type === "quiz"
-      ? await renderQuizIdCardPdf(data)
-      : await renderBoxCricketIdCardPdf(data);
+      ? await renderQuizIdCardPdf({
+          playerName: participant.name,
+          collegeName: college.name,
+          city: college.city,
+          uniqueId: participant.unique_id,
+          qrDataUrl,
+        })
+      : await renderBoxCricketIdCardPdf({
+          playerName: participant.name,
+          collegeName: college.name,
+          city: college.city,
+          uniqueId: participant.unique_id,
+          qrDataUrl,
+          teamName: registration.team_name,
+        });
 
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {

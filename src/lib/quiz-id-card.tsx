@@ -11,12 +11,15 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 
-// Same approach as box-cricket-id-card.tsx: the whole design is the
-// original asset (assets/quiz_idcard.svg), rendered once to a high-res
-// PNG and used as a full-page background — pixel-identical to the
-// source. Only the dynamic parts (college/city, player name, unique ID,
+// The whole card (logo, tagline, banners, icons, QR frame, mandatory-QR
+// text, corner art) is the original design's own asset, rendered once at
+// build time to a high-res PNG and used as a full-page background —
+// pixel-identical to public/clean_ID_cards/quiz_ycc_team_name_id_card.svg
+// (a cleaner redesign supplied to replace the original template). Only
+// the truly dynamic parts (college/city, player name, the unique ID, the
 // real QR) are drawn on top, each preceded by a solid rect that repaints
-// over the original's placeholder content in that zone.
+// over the original's placeholder content in that zone — coordinates
+// re-measured against the new art (not reused from the old template).
 const bgDataUri = (() => {
   const buffer = fs.readFileSync(
     path.join(process.cwd(), "public/brand/quiz-id-card-bg.png"),
@@ -24,17 +27,16 @@ const bgDataUri = (() => {
   return `data:image/png;base64,${buffer.toString("base64")}`;
 })();
 
-// Native canvas size of assets/quiz_idcard.svg — the background PNG was
-// rendered at exactly 2x this, so it stays crisp at native size. Every
-// coordinate below was measured against this native canvas.
-const ART_WIDTH = 1004;
-const ART_HEIGHT = 1567;
+// Native canvas size of the new SVG source. Every coordinate below was
+// measured against this native canvas.
+const ART_WIDTH = 1023;
+const ART_HEIGHT = 1537;
 
 // Page matches the receipt/invitation-letter A4 size, rather than the
-// card art's own native portrait ratio (which is taller/narrower than A4)
-// — the art is scaled to fit fully inside the page (letterboxed on the
-// sides here since it's height-constrained) instead of being a
-// differently-sized outlier page in the combined PDF.
+// card art's own native portrait ratio — the art is scaled to fit fully
+// inside the page (letterboxed on the sides here since it's
+// height-constrained) instead of being a differently-sized outlier page
+// in the combined PDF.
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 // A background sized to exactly match the page's height triggers a
@@ -50,19 +52,17 @@ const ART_LEFT = (PAGE_WIDTH - ART_WIDTH * SCALE) / 2;
 const ART_TOP = (PAGE_HEIGHT - ART_HEIGHT * SCALE) / 2;
 const s = (value: number) => value * SCALE;
 
-const BLACK_BANNER = "#030303";
-const GOLD = "#EAA803";
-const PAGE_BG = "#FCFCFC";
+const BLACK_BANNER = "#000000";
 const BLACK_TEXT = "#0a0a0a";
+const GOLD = "#ffaa00";
+const PAGE_BG = "#fdfdfd";
 
-// QR frame — measured off the background PNG (native coords).
-const QR_CLEAR_X = 274;
-const QR_CLEAR_Y = 1125;
-const QR_CLEAR_W = 370;
-const QR_CLEAR_H = 386;
-const QR_SIZE = 335;
-const QR_X = QR_CLEAR_X + (QR_CLEAR_W - QR_SIZE) / 2;
-const QR_Y = QR_CLEAR_Y + (QR_CLEAR_H - QR_SIZE) / 2;
+// QR frame — measured off the new background PNG (native coords), inset
+// from the frame's own border so the real QR sits centered inside it
+// instead of crowding/overlapping the border.
+const QR_X = 325;
+const QR_Y = 1178;
+const QR_SIZE = 320;
 
 const styles = StyleSheet.create({
   page: { position: "relative" },
@@ -73,72 +73,72 @@ const styles = StyleSheet.create({
     width: s(ART_WIDTH),
     height: s(ART_HEIGHT),
   },
+  // Tight to the banner's own uniform-fill core (measured via a
+  // row-variance scan of the background PNG — anything looser lands in
+  // the frayed brush-stroke edge and leaves a visible hard-edged rect
+  // sitting on top of the soft texture).
   collegeClear: {
     position: "absolute",
-    top: ART_TOP + s(548),
-    left: ART_LEFT + s(255),
-    width: s(655),
-    height: s(118),
+    top: ART_TOP + s(602),
+    left: ART_LEFT + s(40),
+    width: s(944),
+    height: s(120),
     backgroundColor: BLACK_BANNER,
   },
   collegeName: {
     position: "absolute",
-    top: ART_TOP + s(558),
-    left: ART_LEFT + s(255),
-    width: s(655),
+    top: ART_TOP + s(612),
+    left: ART_LEFT + s(40),
+    width: s(944),
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
     color: "#ffffff",
   },
   city: {
     position: "absolute",
-    top: ART_TOP + s(628),
-    left: ART_LEFT + s(255),
-    width: s(655),
+    top: ART_TOP + s(680),
+    left: ART_LEFT + s(40),
+    width: s(944),
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: s(22),
+    fontSize: s(20),
     letterSpacing: s(1),
     color: GOLD,
   },
-  // Tall enough for a 2-line name at the smallest tier below, without
-  // reaching the college banner above (ends ~666) or the organized-by
-  // text below (starts ~934).
   nameClear: {
     position: "absolute",
-    top: ART_TOP + s(700),
-    left: ART_LEFT + s(60),
-    width: s(884),
-    height: s(205),
+    top: ART_TOP + s(790),
+    left: ART_LEFT + s(40),
+    width: s(944),
+    height: s(130),
     backgroundColor: PAGE_BG,
   },
   playerName: {
     position: "absolute",
-    left: ART_LEFT + s(30),
+    left: ART_LEFT + s(40),
     width: s(944),
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
     color: BLACK_TEXT,
   },
+  uniqueIdClear: {
+    position: "absolute",
+    top: ART_TOP + s(1122),
+    left: ART_LEFT + s(390),
+    width: s(244),
+    height: s(38),
+    backgroundColor: PAGE_BG,
+  },
   uniqueId: {
     position: "absolute",
-    top: ART_TOP + s(1093),
-    left: ART_LEFT + s(60),
-    width: s(884),
+    top: ART_TOP + s(1128),
+    left: ART_LEFT + s(40),
+    width: s(944),
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
     fontSize: s(22),
     letterSpacing: s(2),
     color: GOLD,
-  },
-  qrClear: {
-    position: "absolute",
-    top: ART_TOP + s(QR_CLEAR_Y),
-    left: ART_LEFT + s(QR_CLEAR_X),
-    width: s(QR_CLEAR_W),
-    height: s(QR_CLEAR_H),
-    borderRadius: s(20),
-    backgroundColor: "#ffffff",
   },
   qr: {
     position: "absolute",
@@ -152,9 +152,9 @@ const styles = StyleSheet.create({
 // Long names wrap to 2+ lines at a fixed font size and spill into
 // neighboring zones — scale down and shift up as length grows.
 function playerNameStyle(name: string) {
-  if (name.length <= 16) return { fontSize: s(72), top: ART_TOP + s(750) };
-  if (name.length <= 24) return { fontSize: s(54), top: ART_TOP + s(735) };
-  return { fontSize: s(42), top: ART_TOP + s(715) };
+  if (name.length <= 16) return { fontSize: s(66), top: ART_TOP + s(815) };
+  if (name.length <= 24) return { fontSize: s(50), top: ART_TOP + s(798) };
+  return { fontSize: s(40), top: ART_TOP + s(782) };
 }
 
 function collegeNameFontSize(name: string) {
@@ -197,9 +197,9 @@ export function QuizIdCardPage({ data }: { data: QuizIdCardData }) {
         {data.playerName.toUpperCase()}
       </Text>
 
+      <View style={styles.uniqueIdClear} />
       <Text style={styles.uniqueId}>{data.uniqueId}</Text>
 
-      <View style={styles.qrClear} />
       {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
       <Image src={data.qrDataUrl} style={styles.qr} />
     </Page>
