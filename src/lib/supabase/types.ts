@@ -268,6 +268,7 @@ export interface Database {
           attendance_marked_by: string | null;
           attendance_marked_at: string | null;
           whatsapp_joined_at: string | null;
+          instagram_joined_at: string | null;
           team_a_registration_id: string | null;
           team_b_registration_id: string | null;
           dues_paid: boolean;
@@ -296,6 +297,7 @@ export interface Database {
           attendance_marked_by?: string | null;
           attendance_marked_at?: string | null;
           whatsapp_joined_at?: string | null;
+          instagram_joined_at?: string | null;
           team_a_registration_id?: string | null;
           team_b_registration_id?: string | null;
           dues_paid?: boolean;

@@ -26,6 +26,9 @@ export const partnerProgramApplicationSchema = partnerProgramFieldsSchema
     whatsappJoined: z.boolean().refine((v) => v === true, {
       message: "Join the WhatsApp channel to continue",
     }),
+    instagramJoined: z.boolean().refine((v) => v === true, {
+      message: "Join our Instagram to continue",
+    }),
   })
   .refine((data) => data.partnerType === "campus" || !!data.referredById, {
     message: "Select who referred you",

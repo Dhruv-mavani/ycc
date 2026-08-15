@@ -70,6 +70,7 @@ export async function POST(request: Request) {
       referred_by_id: input.partnerType === "campus" ? null : input.referredById,
       agreed_to_terms: input.agreedToTerms,
       whatsapp_joined_at: new Date().toISOString(),
+      instagram_joined_at: new Date().toISOString(),
       status: "approved",
     })
     .select("id")

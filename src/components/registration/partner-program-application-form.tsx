@@ -7,6 +7,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { MessageCircle, CheckCircle2 } from "lucide-react";
 import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
+
+const INSTAGRAM_URL = "https://instagram.com/ycct10";
+
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <path d="M17.5 6.5h.01" />
+    </svg>
+  );
+}
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,11 +97,13 @@ export function PartnerProgramApplicationForm({
       referredById: undefined,
       agreedToTerms: false,
       whatsappJoined: false,
+      instagramJoined: false,
     },
   });
 
   const agreedToTerms = useWatch({ control, name: "agreedToTerms" });
   const whatsappJoined = useWatch({ control, name: "whatsappJoined" });
+  const instagramJoined = useWatch({ control, name: "instagramJoined" });
 
   const typeLabel =
     partnerType === "campus"
@@ -265,35 +288,62 @@ export function PartnerProgramApplicationForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Join the WhatsApp channel</CardTitle>
+          <CardTitle>Join our communities</CardTitle>
           <CardDescription>
             Required before you can submit — follow the YCC Partners Group
-            channel for updates, coordination, and announcements.
+            channel and our Instagram for updates, coordination, and
+            announcements.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button
-            type="button"
-            variant={whatsappJoined ? "outline" : "default"}
-            className="h-auto w-full min-h-8 py-2 text-center leading-snug whitespace-normal"
-            nativeButton={false}
-            onClick={() => setValue("whatsappJoined", true, { shouldValidate: true })}
-            render={
-              <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
-                {whatsappJoined ? (
-                  <CheckCircle2 className="size-4 shrink-0" />
-                ) : (
-                  <MessageCircle className="size-4 shrink-0" />
-                )}
-                {whatsappJoined ? "Joined — open channel again" : "Join WhatsApp Channel"}
-              </a>
-            }
-          />
-          {errors.whatsappJoined ? (
-            <p className="text-destructive text-xs mt-1.5">
-              {errors.whatsappJoined.message}
-            </p>
-          ) : null}
+        <CardContent className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
+          <div>
+            <Button
+              type="button"
+              variant={whatsappJoined ? "outline" : "default"}
+              className="h-auto w-full min-h-8 py-2 text-center leading-snug whitespace-normal"
+              nativeButton={false}
+              onClick={() => setValue("whatsappJoined", true, { shouldValidate: true })}
+              render={
+                <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                  {whatsappJoined ? (
+                    <CheckCircle2 className="size-4 shrink-0" />
+                  ) : (
+                    <MessageCircle className="size-4 shrink-0" />
+                  )}
+                  {whatsappJoined ? "Joined — open channel again" : "Join WhatsApp Channel"}
+                </a>
+              }
+            />
+            {errors.whatsappJoined ? (
+              <p className="text-destructive text-xs mt-1.5">
+                {errors.whatsappJoined.message}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <Button
+              type="button"
+              variant={instagramJoined ? "outline" : "default"}
+              className="h-auto w-full min-h-8 py-2 text-center leading-snug whitespace-normal"
+              nativeButton={false}
+              onClick={() => setValue("instagramJoined", true, { shouldValidate: true })}
+              render={
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+                  {instagramJoined ? (
+                    <CheckCircle2 className="size-4 shrink-0" />
+                  ) : (
+                    <InstagramIcon className="size-4 shrink-0" />
+                  )}
+                  {instagramJoined ? "Joined — open Instagram again" : "Join Instagram"}
+                </a>
+              }
+            />
+            {errors.instagramJoined ? (
+              <p className="text-destructive text-xs mt-1.5">
+                {errors.instagramJoined.message}
+              </p>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 
@@ -337,7 +387,7 @@ export function PartnerProgramApplicationForm({
           <Button
             type="submit"
             className="w-full sm:w-auto px-8 h-12 rounded-xl text-base font-semibold shadow-md hover:shadow-lg transition-all"
-            disabled={isSubmitting || !agreedToTerms || !whatsappJoined}
+            disabled={isSubmitting || !agreedToTerms || !whatsappJoined || !instagramJoined}
           >
             {isSubmitting ? "Submitting..." : "Submit Application"}
           </Button>
