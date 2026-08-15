@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { generateQrDataUrl } from "@/lib/qr";
 import { renderClassPartnerCertificatePdf } from "@/lib/class-partner-certificate";
 
 /**
@@ -37,11 +36,9 @@ export async function GET(
     );
   }
 
-  const qrDataUrl = await generateQrDataUrl(application.team_code);
   const pdfBuffer = await renderClassPartnerCertificatePdf({
     name: application.name,
     teamCode: application.team_code,
-    qrDataUrl,
     partnerType: application.partner_type as "campus" | "class",
   });
 

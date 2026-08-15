@@ -5,7 +5,6 @@ import { InvitationLetterPage } from "@/lib/invitation-letter";
 export interface ClassPartnerCertificateData {
   name: string;
   teamCode: string;
-  qrDataUrl: string;
   partnerType: "campus" | "class";
 }
 
@@ -18,7 +17,6 @@ function ClassPartnerCertificateDocument({
     <Document>
       <InvitationLetterPage
         name={data.name}
-        qrDataUrl={data.qrDataUrl}
         code={data.teamCode}
         partnerType={data.partnerType}
       />

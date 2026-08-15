@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     color: TEXT_DARK,
     textAlign: "center",
   },
-  qrCode: {
+  codeLabel: {
     position: "absolute",
     left: s(BLOCK_X),
     width: s(BLOCK_W),
@@ -142,22 +142,6 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     fontSize: s(20),
     letterSpacing: s(2),
-    color: NAVY,
-  },
-  qr: {
-    position: "absolute",
-    left: s(BLOCK_X + BLOCK_W / 2 - 70),
-    width: s(140),
-    height: s(140),
-  },
-  qrCaption: {
-    position: "absolute",
-    left: s(BLOCK_X),
-    width: s(BLOCK_W),
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold",
-    fontSize: s(11),
-    letterSpacing: s(1.5),
     color: NAVY,
   },
 });
@@ -191,14 +175,12 @@ function NameUnderline({ top }: { top: number }) {
 
 export interface InvitationLetterData {
   name: string;
-  qrDataUrl: string;
   code: string;
   partnerType: "campus" | "class";
 }
 
 export function InvitationLetterPage({
   name,
-  qrDataUrl,
   code,
   partnerType,
 }: InvitationLetterData) {
@@ -226,24 +208,14 @@ export function InvitationLetterPage({
       <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
         <Text style={styles.noticeTitle}>Share Your Code</Text>
         <Text style={styles.noticeBody}>
-          Pass your code (or QR) to everyone joining under you — it&apos;s
-          how they&apos;ll register. Keep this certificate handy until your
+          Pass your code to everyone joining under you — it&apos;s how
+          they&apos;ll register. Keep this certificate handy until your
           squad is complete!
         </Text>
       </View>
 
-      <Text style={[styles.qrCode, { top: ART_TOP + s(BLOCK_Y + 388) }]}>
+      <Text style={[styles.codeLabel, { top: ART_TOP + s(BLOCK_Y + 388) }]}>
         {code}
-      </Text>
-      {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
-      <Image
-        src={qrDataUrl}
-        style={[styles.qr, { top: ART_TOP + s(BLOCK_Y + 416) }]}
-      />
-      <Text
-        style={[styles.qrCaption, { top: ART_TOP + s(BLOCK_Y + 416 + 148) }]}
-      >
-        YOUR PERSONALIZED QR
       </Text>
     </Page>
   );
