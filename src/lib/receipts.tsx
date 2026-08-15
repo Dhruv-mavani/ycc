@@ -13,7 +13,6 @@ import path from "node:path";
 import { calculateGst } from "@/lib/gst";
 import { BoxCricketIdCardPage } from "@/lib/box-cricket-id-card";
 import { QuizIdCardPage } from "@/lib/quiz-id-card";
-import { InvitationLetterPage } from "@/lib/invitation-letter";
 
 // Read via fs.readFileSync (statically analyzable path) so Next's file
 // tracing bundles the logo into serverless functions; react-pdf's own file
@@ -166,16 +165,12 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
     data.type === "team"
       ? `${data.eventName} — ${data.teamName ?? "Team Registration"}`
       : `${data.eventName} — Individual Entry`;
-  const invitationName =
-    data.captainName ?? data.participants[0]?.name ?? "Champion";
 
   const gst = calculateGst(data.basePaise);
   const totalTaxPaise = gst.cgstPaise + gst.sgstPaise + gst.igstPaise;
 
   return (
     <Document>
-      <InvitationLetterPage name={invitationName} />
-
       <Page size="A4" style={styles.page}>
         <View style={styles.topRow}>
           <View style={styles.orgBlock}>

@@ -7,6 +7,8 @@ import {
   Image,
   Font,
   StyleSheet,
+  Svg,
+  Line,
   renderToBuffer,
 } from "@react-pdf/renderer";
 import fs from "node:fs";
@@ -35,9 +37,10 @@ const bgDataUri = (() => {
   return `data:image/jpeg;base64,${buffer.toString("base64")}`;
 })();
 
-// Page matches the receipt page's A4 size, rather than the art's native
-// 1254x1254 square — the letter was previously rendered at that huge native
-// size, making it a giant outlier page next to the A4 receipt/ID cards.
+// Page matches the Class Partner certificate's other pages — this letter
+// is now the opening page of that same combined PDF (see
+// src/lib/class-partner-certificate.tsx), rather than a standalone A4
+// page, so it stays consistent alongside the certificate ticket page.
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 
@@ -65,7 +68,7 @@ const TEXT_DARK = "#2a2118";
 // where the card tucks into the envelope's front flap (~y 1130), measured
 // the same way.
 const BLOCK_X = 140;
-const BLOCK_Y = 500;
+const BLOCK_Y = 540;
 const BLOCK_W = ART_NATIVE - BLOCK_X * 2; // 974
 
 const styles = StyleSheet.create({
@@ -77,15 +80,25 @@ const styles = StyleSheet.create({
     width: ART_SIZE,
     height: ART_SIZE,
   },
-  greeting: {
+  dearLine: {
     position: "absolute",
-    top: ART_TOP + s(BLOCK_Y + 40),
+    top: ART_TOP + s(BLOCK_Y),
     left: s(BLOCK_X),
     width: s(BLOCK_W),
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: s(56),
+    fontSize: s(38),
     color: LOGO_BLUE,
+  },
+  name: {
+    position: "absolute",
+    top: ART_TOP + s(BLOCK_Y + 46),
+    left: s(BLOCK_X),
+    width: s(BLOCK_W),
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
+    fontSize: s(36),
+    color: NAVY,
   },
   paragraph: {
     position: "absolute",
@@ -121,69 +134,124 @@ const styles = StyleSheet.create({
     color: TEXT_DARK,
     textAlign: "center",
   },
-  signoffLine: {
+  qrCode: {
     position: "absolute",
     left: s(BLOCK_X),
     width: s(BLOCK_W),
     textAlign: "center",
-    fontFamily: "Alex Brush",
-    fontSize: s(30),
+    fontFamily: "Helvetica-Bold",
+    fontSize: s(20),
+    letterSpacing: s(2),
     color: NAVY,
   },
-  signoffName: {
+  qr: {
+    position: "absolute",
+    left: s(BLOCK_X + BLOCK_W / 2 - 70),
+    width: s(140),
+    height: s(140),
+  },
+  qrCaption: {
     position: "absolute",
     left: s(BLOCK_X),
     width: s(BLOCK_W),
     textAlign: "center",
-    fontFamily: "Alex Brush",
-    fontSize: s(42),
+    fontFamily: "Helvetica-Bold",
+    fontSize: s(11),
+    letterSpacing: s(1.5),
     color: NAVY,
   },
 });
 
-export function InvitationLetterPage({ name }: { name: string }) {
+// Underline width in native (1254) units — a fixed, generous width reads
+// as a deliberate signature-line accent regardless of how long the name
+// is, rather than trying to hug the text exactly.
+const UNDERLINE_W = 340;
+
+function NameUnderline({ top }: { top: number }) {
+  const x1 = BLOCK_X + BLOCK_W / 2 - UNDERLINE_W / 2;
+  const x2 = BLOCK_X + BLOCK_W / 2 + UNDERLINE_W / 2;
+  return (
+    <Svg
+      style={{ position: "absolute", top, left: 0 }}
+      width={PAGE_WIDTH}
+      height={s(6)}
+    >
+      <Line
+        x1={s(x1)}
+        y1={s(3)}
+        x2={s(x2)}
+        y2={s(3)}
+        stroke={LOGO_BLUE}
+        strokeWidth={s(2.5)}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+export interface InvitationLetterData {
+  name: string;
+  qrDataUrl: string;
+  code: string;
+}
+
+export function InvitationLetterPage({
+  name,
+  qrDataUrl,
+  code,
+}: InvitationLetterData) {
   return (
     <Page size="A4" style={styles.page}>
       {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
       <Image src={bgDataUri} style={styles.background} />
 
-      <Text style={styles.greeting}>Dear {name},</Text>
+      <Text style={styles.dearLine}>Dear Partner,</Text>
+      <Text style={styles.name}>{name}</Text>
+      <NameUnderline top={ART_TOP + s(BLOCK_Y + 92)} />
 
-      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 120) }]}>
+      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 122) }]}>
         Welcome to Yuva Champions Cricket! We&apos;re thrilled to have you
         with us — your registration is confirmed, and the countdown to game
         day has begun.
       </Text>
 
-      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 230) }]}>
-        Right below this letter, you&apos;ll find your official Payment
-        Receipt and your personalized ID Card.
+      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 210) }]}>
+        This letter is your official Partner Certificate — your unique
+        code and QR are just below.
       </Text>
 
-      <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 320) }]}>
-        <Text style={styles.noticeTitle}>Before You Head Out</Text>
+      <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
+        <Text style={styles.noticeTitle}>Share Your Code</Text>
         <Text style={styles.noticeBody}>
-          Carry your ID Card to the venue — printed, or saved as this PDF on
-          your phone. Entry and attendance will be marked Present or Absent
-          strictly on the basis of this card, so please don&apos;t forget
-          it on the big day!
+          Pass your code (or QR) to everyone joining under you — it&apos;s
+          how they&apos;ll register. Keep this certificate handy until your
+          squad is complete!
         </Text>
       </View>
 
-      <Text style={[styles.signoffLine, { top: ART_TOP + s(BLOCK_Y + 505) }]}>
-        See you on the field,
+      <Text style={[styles.qrCode, { top: ART_TOP + s(BLOCK_Y + 388) }]}>
+        {code}
       </Text>
-      <Text style={[styles.signoffName, { top: ART_TOP + s(BLOCK_Y + 550) }]}>
-        Team YCC
+      {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
+      <Image
+        src={qrDataUrl}
+        style={[styles.qr, { top: ART_TOP + s(BLOCK_Y + 416) }]}
+      />
+      <Text
+        style={[styles.qrCaption, { top: ART_TOP + s(BLOCK_Y + 416 + 148) }]}
+      >
+        YOUR PERSONALIZED QR
       </Text>
     </Page>
   );
 }
 
-export async function renderInvitationLetterPdf(name: string): Promise<Buffer> {
+export async function renderInvitationLetterPdf(
+  data: InvitationLetterData,
+): Promise<Buffer> {
   return renderToBuffer(
     <Document>
-      <InvitationLetterPage name={name} />
+      <InvitationLetterPage {...data} />
     </Document>,
   );
 }
