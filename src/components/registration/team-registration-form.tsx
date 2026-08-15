@@ -42,6 +42,7 @@ interface RosterMember {
   id: string;
   name: string;
   phone: string;
+  role: "co-partner" | "squad";
   alreadyAllotted: boolean;
 }
 
@@ -103,7 +104,7 @@ export function TeamRegistrationForm({
         : "";
   const childLabel =
     referrerType === "campus"
-      ? "Co-Partners"
+      ? "Co-Partners & Squad Members"
       : referrerType === "class"
         ? "Classmate Partners"
         : "";
@@ -368,11 +369,18 @@ export function TeamRegistrationForm({
                         <p className="text-muted-foreground text-xs">{member.phone}</p>
                       </div>
                     </div>
-                    {member.alreadyAllotted ? (
-                      <Badge variant="outline" className="shrink-0 text-xs">
-                        Already in a team
-                      </Badge>
-                    ) : null}
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      {member.role === "co-partner" ? (
+                        <Badge variant="secondary" className="shrink-0 text-xs">
+                          Co-Partner
+                        </Badge>
+                      ) : null}
+                      {member.alreadyAllotted ? (
+                        <Badge variant="outline" className="shrink-0 text-xs">
+                          Already in a team
+                        </Badge>
+                      ) : null}
+                    </div>
                   </label>
                 );
               })}

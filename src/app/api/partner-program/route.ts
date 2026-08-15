@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { partnerProgramApplicationSchema } from "@/lib/validations/partner-program";
 import { isRateLimited } from "@/lib/rate-limit";
 import { generatePartnerCode } from "@/lib/partner-approval";
+import type { PartnerType } from "@/lib/supabase/types";
 
 function getClientIp(request: Request) {
   return (
@@ -35,13 +36,16 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
 
   if (input.partnerType !== "campus") {
-    const parentType = input.partnerType === "class" ? "campus" : "class";
+    // A Co-Partner's referrer must be a Partner. A Squad member can attach
+    // to either a Co-Partner or, skipping a level, a Partner directly.
+    const allowedParentTypes: PartnerType[] =
+      input.partnerType === "class" ? ["campus"] : ["campus", "class"];
     const { data: referrer } = input.referredById
       ? await admin
           .from("partner_program_applications")
           .select("id")
           .eq("id", input.referredById)
-          .eq("partner_type", parentType)
+          .in("partner_type", allowedParentTypes)
           .eq("status", "approved")
           .maybeSingle()
       : { data: null };

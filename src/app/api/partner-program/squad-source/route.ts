@@ -1,19 +1,82 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/types";
 
 // Squad-building for the general Box Cricket Championship's team
 // registration form: pick a YCC Partner or YCC Co-Partner, and their
-// direct downstream roster (Co-Partners for a Partner, Classmate Partners
-// for a Co-Partner — never two levels deep) becomes the squad to trim
-// down to size. registrations.college_id is required but Partner Program
-// applications don't collect one, so each referrer gets its own
-// find-or-create college row keyed by their team_code (guaranteed unique),
-// which also gives each referrer their own unique-ID group series instead
-// of sharing one bucket.
-const CHILD_TYPE: Record<"campus" | "class", "class" | "classmate"> = {
-  campus: "class",
-  class: "classmate",
-};
+// downstream roster becomes the squad to trim down to size.
+//
+// A Co-Partner's roster is their direct Squad members (one level).
+// A Partner's roster is broader: their direct Co-Partners, PLUS every
+// Squad member recruited by any of those Co-Partners, PLUS any Squad
+// member who attached directly to the Partner (skipping the Co-Partner
+// level). `role` on each roster entry tells the UI which kind it is.
+//
+// registrations.college_id is required but Partner Program applications
+// don't collect one, so each referrer gets its own find-or-create college
+// row keyed by their team_code (guaranteed unique), which also gives each
+// referrer their own unique-ID group series instead of sharing one bucket.
+
+type RosterRole = "co-partner" | "squad";
+interface RosterEntry {
+  id: string;
+  name: string;
+  mobile: string;
+  role: RosterRole;
+}
+
+async function buildRoster(
+  admin: SupabaseClient<Database>,
+  referrerType: "campus" | "class",
+  referrerId: string,
+): Promise<RosterEntry[]> {
+  if (referrerType === "class") {
+    const { data } = await admin
+      .from("partner_program_applications")
+      .select("id, name, mobile")
+      .eq("referred_by_id", referrerId)
+      .eq("partner_type", "classmate")
+      .eq("status", "approved")
+      .order("created_at", { ascending: true });
+    return (data ?? []).map((m) => ({ ...m, role: "squad" as const }));
+  }
+
+  const [{ data: coPartners }, { data: directSquad }] = await Promise.all([
+    admin
+      .from("partner_program_applications")
+      .select("id, name, mobile")
+      .eq("referred_by_id", referrerId)
+      .eq("partner_type", "class")
+      .eq("status", "approved")
+      .order("created_at", { ascending: true }),
+    admin
+      .from("partner_program_applications")
+      .select("id, name, mobile")
+      .eq("referred_by_id", referrerId)
+      .eq("partner_type", "classmate")
+      .eq("status", "approved")
+      .order("created_at", { ascending: true }),
+  ]);
+
+  const coPartnerIds = (coPartners ?? []).map((c) => c.id);
+  const { data: squadViaCoPartners } =
+    coPartnerIds.length > 0
+      ? await admin
+          .from("partner_program_applications")
+          .select("id, name, mobile")
+          .in("referred_by_id", coPartnerIds)
+          .eq("partner_type", "classmate")
+          .eq("status", "approved")
+          .order("created_at", { ascending: true })
+      : { data: [] as { id: string; name: string; mobile: string }[] };
+
+  return [
+    ...(coPartners ?? []).map((c) => ({ ...c, role: "co-partner" as const })),
+    ...(squadViaCoPartners ?? []).map((m) => ({ ...m, role: "squad" as const })),
+    ...(directSquad ?? []).map((m) => ({ ...m, role: "squad" as const })),
+  ];
+}
 
 // POST, not GET — this handler writes (upserts a college row), and a GET
 // with side effects is prefetchable and forgeable via a plain cross-site
@@ -56,24 +119,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const [{ data: roster }, { data: college, error: collegeError }] =
-    await Promise.all([
-      admin
-        .from("partner_program_applications")
-        .select("id, name, mobile")
-        .eq("referred_by_id", referrer.id)
-        .eq("partner_type", CHILD_TYPE[referrerType])
-        .eq("status", "approved")
-        .order("created_at", { ascending: true }),
-      admin
-        .from("colleges")
-        .upsert(
-          { name: referrer.name, initials: referrer.team_code, is_public: false },
-          { onConflict: "initials" },
-        )
-        .select("id")
-        .single(),
-    ]);
+  const [roster, { data: college, error: collegeError }] = await Promise.all([
+    buildRoster(admin, referrerType, referrer.id),
+    admin
+      .from("colleges")
+      .upsert(
+        { name: referrer.name, initials: referrer.team_code, is_public: false },
+        { onConflict: "initials" },
+      )
+      .select("id")
+      .single(),
+  ]);
 
   if (collegeError || !college) {
     return NextResponse.json(
@@ -108,10 +164,11 @@ export async function POST(request: Request) {
   return NextResponse.json({
     collegeId: college.id,
     captain: { name: referrer.name, phone: referrer.mobile },
-    roster: (roster ?? []).map((r) => ({
+    roster: roster.map((r) => ({
       id: r.id,
       name: r.name,
       phone: r.mobile,
+      role: r.role,
       alreadyAllotted: allottedPhones.has(r.mobile),
     })),
   });

@@ -64,6 +64,7 @@ interface ReferrerOption {
   id: string;
   name: string;
   team_code?: string | null;
+  type?: "campus" | "class";
 }
 
 export function PartnerProgramApplicationForm({
@@ -248,14 +249,18 @@ export function PartnerProgramApplicationForm({
           </Field>
           {partnerType === "campus" ? (
             <Field
-              label="Name of YCC Partner (referred you) — optional"
+              label="Name of YCC Partner (referred you)"
               error={errors.referredBy?.message}
             >
               <Input {...register("referredBy")} />
             </Field>
           ) : (
             <Field
-              label={`${referrerLabel}'s name/code`}
+              label={
+                partnerType === "classmate"
+                  ? "Enter Your Partner's name/code"
+                  : `${referrerLabel}'s name/code`
+              }
               error={errors.referredById?.message}
             >
               <Controller
@@ -265,12 +270,26 @@ export function PartnerProgramApplicationForm({
                   <SearchableSelect
                     value={field.value ?? null}
                     onChange={(v) => field.onChange(v ?? "")}
-                    placeholder={`Search for your ${referrerLabel}...`}
+                    placeholder={
+                      partnerType === "classmate"
+                        ? "Search for your Partner..."
+                        : `Search for your ${referrerLabel}...`
+                    }
                     emptyText="No match found."
                     options={referrerOptions.map((r) => ({
                       value: r.id,
                       label: r.name,
-                      sublabel: r.team_code ?? undefined,
+                      sublabel:
+                        [
+                          r.type === "campus"
+                            ? "YCC Partner"
+                            : r.type === "class"
+                              ? "YCC Co-Partner"
+                              : null,
+                          r.team_code,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || undefined,
                       searchText: r.team_code ?? undefined,
                     }))}
                   />
@@ -278,7 +297,9 @@ export function PartnerProgramApplicationForm({
               />
               {referrerOptions.length === 0 ? (
                 <p className="text-muted-foreground text-xs">
-                  No approved {referrerLabel}s found yet.
+                  {partnerType === "classmate"
+                    ? "No approved Partners found yet."
+                    : `No approved ${referrerLabel}s found yet.`}
                 </p>
               ) : null}
             </Field>

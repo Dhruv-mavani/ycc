@@ -72,7 +72,7 @@ export function IndividualRegistrationForm({
       collegeId: "",
       name: "",
       phone: "",
-      referredByPartnerId: null,
+      referredByPartnerId: "",
     },
   });
 
@@ -198,28 +198,34 @@ export function IndividualRegistrationForm({
             </Field>
           </div>
 
-          {partnerOptions.length > 0 ? (
-            <Field label="Referred by a YCC Partner / Co-Partner? (optional)">
-              <Controller
-                control={control}
-                name="referredByPartnerId"
-                render={({ field }) => (
-                  <SearchableSelect
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Search by name or code..."
-                    emptyText="No match found."
-                    options={partnerOptions.map((o) => ({
-                      value: o.id,
-                      label: o.name,
-                      sublabel: `${o.type === "campus" ? "YCC Partner" : "YCC Co-Partner"}${o.team_code ? ` · ${o.team_code}` : ""}`,
-                      searchText: o.team_code ?? undefined,
-                    }))}
-                  />
-                )}
-              />
-            </Field>
-          ) : null}
+          <Field
+            label="Referred by a YCC Partner / Co-Partner?"
+            error={errors.referredByPartnerId?.message}
+          >
+            <Controller
+              control={control}
+              name="referredByPartnerId"
+              render={({ field }) => (
+                <SearchableSelect
+                  value={field.value}
+                  onChange={(v) => field.onChange(v ?? "")}
+                  placeholder="Search by name or code..."
+                  emptyText="No match found."
+                  options={partnerOptions.map((o) => ({
+                    value: o.id,
+                    label: o.name,
+                    sublabel: `${o.type === "campus" ? "YCC Partner" : "YCC Co-Partner"}${o.team_code ? ` · ${o.team_code}` : ""}`,
+                    searchText: o.team_code ?? undefined,
+                  }))}
+                />
+              )}
+            />
+            {partnerOptions.length === 0 ? (
+              <p className="text-muted-foreground text-xs">
+                No approved Partners found yet.
+              </p>
+            ) : null}
+          </Field>
         </CardContent>
       </Card>
 

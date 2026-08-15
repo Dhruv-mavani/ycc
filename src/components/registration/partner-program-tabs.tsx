@@ -12,6 +12,7 @@ interface ReferrerOption {
   id: string;
   name: string;
   team_code: string | null;
+  type?: "campus" | "class";
 }
 
 const PARTNER_TYPES = [
@@ -34,10 +35,10 @@ const PARTNER_TYPES = [
   {
     id: "classmate",
     slug: "Classmate-partner",
-    label: "Their Squad",
-    heading: "Their Squad Program",
+    label: "Squad",
+    heading: "Squad Program",
     description:
-      "Apply to join Their Squad and help us bring events to your classmates. Fill in your details below.",
+      "Apply to join Squad and help us bring events to your classmates. Fill in your details below.",
   },
 ] as const;
 
@@ -57,9 +58,12 @@ export function PartnerProgramTabs({
 
   const referrerOptions =
     activeId === "class"
-      ? campusPartners
+      ? campusPartners.map((p) => ({ ...p, type: "campus" as const }))
       : activeId === "classmate"
-        ? classPartners
+        ? [
+            ...campusPartners.map((p) => ({ ...p, type: "campus" as const })),
+            ...classPartners.map((p) => ({ ...p, type: "class" as const })),
+          ]
         : [];
   const referrerLabel = activeId === "class" ? "YCC Partner" : "YCC Co-Partner";
 

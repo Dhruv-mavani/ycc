@@ -30,6 +30,10 @@ export const partnerProgramApplicationSchema = partnerProgramFieldsSchema
       message: "Join our Instagram to continue",
     }),
   })
+  .refine((data) => data.partnerType !== "campus" || !!data.referredBy?.trim(), {
+    message: "Enter who referred you",
+    path: ["referredBy"],
+  })
   .refine((data) => data.partnerType === "campus" || !!data.referredById, {
     message: "Select who referred you",
     path: ["referredById"],

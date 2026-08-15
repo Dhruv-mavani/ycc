@@ -39,7 +39,10 @@ export const individualRegistrationSchema = z.object({
   phone: phoneSchema,
   age: ageSchema,
   gender: genderSchema,
-  referredByPartnerId: z.string().uuid().nullable().optional(),
+  referredByPartnerId: z
+    .string()
+    .min(1, "Select who referred you")
+    .uuid("Select who referred you"),
 });
 
 export const registrationRequestSchema = z.discriminatedUnion("type", [
