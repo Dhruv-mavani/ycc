@@ -57,12 +57,17 @@ const BLACK_TEXT = "#0a0a0a";
 const GOLD = "#ffaa00";
 const PAGE_BG = "#fdfdfd";
 
-// QR frame — measured off the new background PNG (native coords), inset
-// from the frame's own border so the real QR sits centered inside it
-// instead of crowding/overlapping the border.
-const QR_X = 325;
-const QR_Y = 1178;
-const QR_SIZE = 320;
+// QR frame border — measured off the new background PNG via a clean
+// per-row/column pixel scan (native coords: left 307, top 1169, right
+// 681, bottom 1504). The QR itself is inset and centered within that
+// border rather than matching it exactly, so it never crowds the frame.
+const QR_BORDER_X = 307;
+const QR_BORDER_Y = 1169;
+const QR_BORDER_W = 681 - 307;
+const QR_BORDER_H = 1504 - 1169;
+const QR_SIZE = 300;
+const QR_X = QR_BORDER_X + (QR_BORDER_W - QR_SIZE) / 2;
+const QR_Y = QR_BORDER_Y + (QR_BORDER_H - QR_SIZE) / 2;
 
 const styles = StyleSheet.create({
   page: { position: "relative" },
@@ -85,25 +90,16 @@ const styles = StyleSheet.create({
     height: s(120),
     backgroundColor: BLACK_BANNER,
   },
+  // Vertically centered in the collegeClear zone — no city sub-line
+  // beneath it any more, so the name alone owns the full banner height.
   collegeName: {
     position: "absolute",
-    top: ART_TOP + s(612),
+    top: ART_TOP + s(640),
     left: ART_LEFT + s(40),
     width: s(944),
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
     color: "#ffffff",
-  },
-  city: {
-    position: "absolute",
-    top: ART_TOP + s(680),
-    left: ART_LEFT + s(40),
-    width: s(944),
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold",
-    fontSize: s(20),
-    letterSpacing: s(1),
-    color: GOLD,
   },
   nameClear: {
     position: "absolute",
@@ -188,9 +184,6 @@ export function QuizIdCardPage({ data }: { data: QuizIdCardData }) {
       >
         {data.collegeName.toUpperCase()}
       </Text>
-      {data.city ? (
-        <Text style={styles.city}>{data.city.toUpperCase()}</Text>
-      ) : null}
 
       <View style={styles.nameClear} />
       <Text style={[styles.playerName, playerNameStyle(data.playerName)]}>

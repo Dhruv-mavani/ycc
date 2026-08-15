@@ -59,12 +59,17 @@ const ID_BANNER_BLUE = "#003bc1";
 const PAGE_BG = "#fafafa";
 const BANNER_TEXT_WHITE = "#ffffff";
 
-// QR frame — measured off the new background PNG (native coords), inset
-// from the frame's own border so the real QR sits centered inside it
-// instead of crowding/overlapping the border.
-const QR_X = 325;
-const QR_Y = 1160;
-const QR_SIZE = 300;
+// QR frame border — measured off the new background PNG via a clean
+// per-row/column pixel scan (native coords: left 338, top 1163, right
+// 685, bottom 1483). The QR itself is inset and centered within that
+// border rather than matching it exactly, so it never crowds the frame.
+const QR_BORDER_X = 338;
+const QR_BORDER_Y = 1163;
+const QR_BORDER_W = 685 - 338;
+const QR_BORDER_H = 1483 - 1163;
+const QR_SIZE = 290;
+const QR_X = QR_BORDER_X + (QR_BORDER_W - QR_SIZE) / 2;
+const QR_Y = QR_BORDER_Y + (QR_BORDER_H - QR_SIZE) / 2;
 
 const styles = StyleSheet.create({
   page: { position: "relative" },
