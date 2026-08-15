@@ -235,21 +235,42 @@ export default async function HomePage() {
             </div>
 
             {/* Right side profiles */}
-            <div className="lg:w-2/3 w-full mt-6 lg:mt-20 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]">
-              <div className="flex w-max animate-marquee [animation-duration:20s] gap-4 sm:gap-6 pb-4 pt-2 hover:[animation-play-state:paused] items-center">
+            <div className="lg:w-2/3 w-full mt-6 lg:mt-20 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)] flex flex-col gap-4 sm:gap-6">
+              {/* Row 1: Right to Left */}
+              <div className="flex w-max animate-marquee [animation-duration:20s] gap-2 min-[400px]:gap-4 sm:gap-6 hover:[animation-play-state:paused] items-center">
                 {[
-                  "Abhi Chaudhari", "Yash Patel", "Nirmal Chaudhari", "Snehal Vasava",
-                  "Abhi Chaudhari", "Yash Patel", "Nirmal Chaudhari", "Snehal Vasava",
-                  "Abhi Chaudhari", "Yash Patel", "Nirmal Chaudhari", "Snehal Vasava"
+                  "Abhi Chaudhari", "Nirmal Chaudhari", "Yash Patel", "Dhruv Patel", "Snehal Vasava", "Jay Vasava", "Rahul Patel",
+                  "Abhi Chaudhari", "Nirmal Chaudhari", "Yash Patel", "Dhruv Patel", "Snehal Vasava", "Jay Vasava", "Rahul Patel"
                 ].map((name, i) => (
-                  <div key={i} className="flex items-center gap-3 sm:gap-4 px-6 sm:px-8 py-4 sm:py-5 shrink-0 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-amber-300 transition-all cursor-default group">
-                    <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 drop-shadow-sm group-hover:scale-110 transition-transform">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                    <p className="text-base sm:text-xl font-bold text-slate-800 group-hover:text-amber-600 transition-colors">{name}</p>
-                    <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 drop-shadow-sm group-hover:scale-110 transition-transform">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
+                  <div key={`r1-${i}`} className="flex items-center shrink-0 cursor-default group px-2 sm:px-4">
+                    <p className="text-lg min-[400px]:text-2xl sm:text-4xl font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors uppercase tracking-widest">{name}</p>
+                    <div className="w-1.5 h-1.5 min-[400px]:w-2 min-[400px]:h-2 sm:w-3 sm:h-3 rounded-full bg-slate-200 mx-4 min-[400px]:mx-6 sm:mx-10 group-hover:bg-blue-600 transition-colors"></div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Row 2: Left to Right (Reverse) */}
+              <div className="flex w-max animate-marquee-reverse [animation-duration:22s] gap-2 min-[400px]:gap-4 sm:gap-6 hover:[animation-play-state:paused] items-center">
+                {[
+                  "Abhi Patel", "Nisarg Patel", "Vandan Vasava", "Jayesh Baldaniya", "Ayush Sharma", "Jay Rana", "Manthan Modi",
+                  "Abhi Patel", "Nisarg Patel", "Vandan Vasava", "Jayesh Baldaniya", "Ayush Sharma", "Jay Rana", "Manthan Modi"
+                ].map((name, i) => (
+                  <div key={`r2-${i}`} className="flex items-center shrink-0 cursor-default group px-2 sm:px-4">
+                    <p className="text-lg min-[400px]:text-2xl sm:text-4xl font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors uppercase tracking-widest">{name}</p>
+                    <div className="w-1.5 h-1.5 min-[400px]:w-2 min-[400px]:h-2 sm:w-3 sm:h-3 rounded-full bg-slate-200 mx-4 min-[400px]:mx-6 sm:mx-10 group-hover:bg-blue-600 transition-colors"></div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Row 3: Right to Left */}
+              <div className="flex w-max animate-marquee [animation-duration:18s] gap-2 min-[400px]:gap-4 sm:gap-6 hover:[animation-play-state:paused] items-center">
+                {[
+                  "Fiyansh Patel", "Jayesh Patil", "Simandhar Patel", "Dhyey Gameti", "Jay Patel", "Aryan Kotak",
+                  "Fiyansh Patel", "Jayesh Patil", "Simandhar Patel", "Dhyey Gameti", "Jay Patel", "Aryan Kotak"
+                ].map((name, i) => (
+                  <div key={`r3-${i}`} className="flex items-center shrink-0 cursor-default group px-2 sm:px-4">
+                    <p className="text-lg min-[400px]:text-2xl sm:text-4xl font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors uppercase tracking-widest">{name}</p>
+                    <div className="w-1.5 h-1.5 min-[400px]:w-2 min-[400px]:h-2 sm:w-3 sm:h-3 rounded-full bg-slate-200 mx-4 min-[400px]:mx-6 sm:mx-10 group-hover:bg-blue-600 transition-colors"></div>
                   </div>
                 ))}
               </div>
@@ -283,8 +304,14 @@ export default async function HomePage() {
           
           <div className="text-center mb-16">
             <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 mb-4 tracking-widest px-3 py-1 min-[400px]:px-4 min-[400px]:py-1.5 uppercase font-bold text-[10px] min-[400px]:text-xs shadow-sm">EXPANDING BEYOND BOUNDARIES</Badge>
-            <h2 className="text-3xl min-[400px]:text-4xl md:text-6xl font-bold tracking-tight text-slate-900 mb-6">
-              From Gujarat to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">the World</span>
+            <h2 className="text-3xl min-[400px]:text-4xl md:text-6xl font-bold tracking-tight text-slate-900 mb-6 flex flex-wrap items-center justify-center gap-2 min-[400px]:gap-3 md:gap-4">
+              <span>From Gujarat to</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">the World</span>
+              <img 
+                src="/brand/realistic_globe.png" 
+                alt="Realistic Globe" 
+                className="w-14 h-14 min-[400px]:w-16 min-[400px]:h-16 md:w-24 md:h-24 object-contain animate-[spin_60s_linear_infinite] mix-blend-multiply rounded-full [clip-path:circle(48%_at_50%_50%)]"
+              />
             </h2>
           </div>
 
