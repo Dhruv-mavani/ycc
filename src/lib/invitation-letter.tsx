@@ -23,12 +23,11 @@ const alexBrushFontPath = path.join(
 Font.register({ family: "Alex Brush", src: alexBrushFontPath });
 
 // Background is a photo of an opened envelope + card (public/invitation_sample/
-// invitation-card-bg.jpg), native 1254x1254. It ships with the YCC logo
-// already printed at the top; the rest of the card was a generic template
-// ("Dear Sophia... my new Lou Camera Bag..."), which we paint over with a
-// solid rect matching the paper tone (measured off the image, not eyeballed)
-// and replace with real, personalized copy — same "clear-and-redraw"
-// approach as the ID card backgrounds.
+// invitation-card-bg.jpg), native 1254x1254 square. The YCC logo is printed
+// top-left; the rest of the card is genuinely blank cream paper (this is
+// the second, cleaned-up version of the source asset — no baked-in
+// placeholder text to paint over anymore), so we just place real,
+// personalized copy directly onto it.
 const bgDataUri = (() => {
   const buffer = fs.readFileSync(
     path.join(process.cwd(), "public/invitation_sample/invitation-card-bg.jpg"),
@@ -36,127 +35,132 @@ const bgDataUri = (() => {
   return `data:image/jpeg;base64,${buffer.toString("base64")}`;
 })();
 
-const PAGE_WIDTH = 1254;
-const PAGE_HEIGHT = 1254;
+// Page matches the receipt page's A4 size, rather than the art's native
+// 1254x1254 square — the letter was previously rendered at that huge native
+// size, making it a giant outlier page next to the A4 receipt/ID cards.
+const PAGE_WIDTH = 595.28;
+const PAGE_HEIGHT = 841.89;
 
-// Paper tone sampled from the card's blank margins, clear of any of the
-// template's original text — see conversation notes; this keeps the
-// repainted block indistinguishable from the surrounding card.
-const PAPER = "#ede6db";
+// The square art is scaled to fill the page width and centered vertically,
+// so the whole envelope+card stays visible (no cropping) and every
+// coordinate below — copied from the original 1254-native layout — is
+// scaled by the same factor via `s()`.
+const ART_NATIVE = 1254;
+const SCALE = PAGE_WIDTH / ART_NATIVE;
+const ART_SIZE = PAGE_WIDTH;
+const ART_TOP = (PAGE_HEIGHT - ART_SIZE) / 2;
+const s = (value: number) => value * SCALE;
+
 const NAVY = "#173a8f";
+// Averaged from the "YCC" wordmark's own pixels (sampled from the source
+// image) so the greeting reads as part of the same brand mark, not a
+// mismatched blue.
+const LOGO_BLUE = "#2a5e9a";
 const TEXT_DARK = "#2a2118";
 
-// Bounds of the original template's text block (from just below the "YUVA
-// CHAMPIONS CRICKET" wordmark to just above where the card tucks into the
-// envelope's front flap), measured the same way.
+// Bounds of the blank writable area, in the art's native 1254-space: the
+// logo occupies roughly x 380-1180, y 170-410 (measured by pixel-scanning
+// the source image), so the block starts with enough clearance below it to
+// avoid crowding the subtitle; the bottom stays clear of the fold shadow
+// where the card tucks into the envelope's front flap (~y 1130), measured
+// the same way.
 const BLOCK_X = 140;
-const BLOCK_Y = 300;
-const BLOCK_W = PAGE_WIDTH - BLOCK_X * 2; // 974
-const BLOCK_H = 760;
+const BLOCK_Y = 500;
+const BLOCK_W = ART_NATIVE - BLOCK_X * 2; // 974
 
 const styles = StyleSheet.create({
   page: { position: "relative" },
   background: {
     position: "absolute",
-    top: 0,
+    top: ART_TOP,
     left: 0,
-    width: PAGE_WIDTH,
-    height: PAGE_HEIGHT,
-  },
-  clear: {
-    position: "absolute",
-    top: BLOCK_Y,
-    left: BLOCK_X,
-    width: BLOCK_W,
-    height: BLOCK_H,
-    backgroundColor: PAPER,
+    width: ART_SIZE,
+    height: ART_SIZE,
   },
   greeting: {
     position: "absolute",
-    top: BLOCK_Y + 45,
-    left: BLOCK_X,
-    width: BLOCK_W,
+    top: ART_TOP + s(BLOCK_Y + 40),
+    left: s(BLOCK_X),
+    width: s(BLOCK_W),
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: 56,
-    color: NAVY,
+    fontSize: s(56),
+    color: LOGO_BLUE,
   },
   paragraph: {
     position: "absolute",
-    left: BLOCK_X + 90,
-    width: BLOCK_W - 180,
+    left: s(BLOCK_X + 90),
+    width: s(BLOCK_W - 180),
     textAlign: "center",
     fontFamily: "Times-Italic",
-    fontSize: 21,
+    fontSize: s(21),
     lineHeight: 1.5,
     color: TEXT_DARK,
   },
   noticeBox: {
     position: "absolute",
-    left: BLOCK_X + 75,
-    width: BLOCK_W - 150,
-    border: `1.5 solid ${NAVY}`,
-    borderRadius: 6,
-    paddingVertical: 16,
-    paddingHorizontal: 22,
+    left: s(BLOCK_X + 75),
+    width: s(BLOCK_W - 150),
+    border: `${s(1.5)} solid ${NAVY}`,
+    borderRadius: s(6),
+    paddingVertical: s(16),
+    paddingHorizontal: s(22),
   },
   noticeTitle: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 14,
-    letterSpacing: 1.5,
+    fontSize: s(14),
+    letterSpacing: s(1.5),
     color: NAVY,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: s(8),
   },
   noticeBody: {
     fontFamily: "Helvetica",
-    fontSize: 12.5,
+    fontSize: s(12.5),
     lineHeight: 1.5,
     color: TEXT_DARK,
     textAlign: "center",
   },
   signoffLine: {
     position: "absolute",
-    left: BLOCK_X,
-    width: BLOCK_W,
+    left: s(BLOCK_X),
+    width: s(BLOCK_W),
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: 30,
+    fontSize: s(30),
     color: NAVY,
   },
   signoffName: {
     position: "absolute",
-    left: BLOCK_X,
-    width: BLOCK_W,
+    left: s(BLOCK_X),
+    width: s(BLOCK_W),
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: 42,
+    fontSize: s(42),
     color: NAVY,
   },
 });
 
 export function InvitationLetterPage({ name }: { name: string }) {
   return (
-    <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
+    <Page size="A4" style={styles.page}>
       {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
       <Image src={bgDataUri} style={styles.background} />
 
-      <View style={styles.clear} />
-
       <Text style={styles.greeting}>Dear {name},</Text>
 
-      <Text style={[styles.paragraph, { top: BLOCK_Y + 130 }]}>
+      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 120) }]}>
         Welcome to Yuva Champions Cricket! We&apos;re thrilled to have you
         with us — your registration is confirmed, and the countdown to game
         day has begun.
       </Text>
 
-      <Text style={[styles.paragraph, { top: BLOCK_Y + 245 }]}>
+      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 230) }]}>
         Right below this letter, you&apos;ll find your official Payment
         Receipt and your personalized ID Card.
       </Text>
 
-      <View style={[styles.noticeBox, { top: BLOCK_Y + 335 }]}>
+      <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 320) }]}>
         <Text style={styles.noticeTitle}>Before You Head Out</Text>
         <Text style={styles.noticeBody}>
           Carry your ID Card to the venue — printed, or saved as this PDF on
@@ -166,10 +170,10 @@ export function InvitationLetterPage({ name }: { name: string }) {
         </Text>
       </View>
 
-      <Text style={[styles.signoffLine, { top: BLOCK_Y + 545 }]}>
+      <Text style={[styles.signoffLine, { top: ART_TOP + s(BLOCK_Y + 505) }]}>
         See you on the field,
       </Text>
-      <Text style={[styles.signoffName, { top: BLOCK_Y + 595 }]}>
+      <Text style={[styles.signoffName, { top: ART_TOP + s(BLOCK_Y + 550) }]}>
         Team YCC
       </Text>
     </Page>
