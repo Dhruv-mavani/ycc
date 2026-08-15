@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     left: s(BLOCK_X),
     width: s(BLOCK_W),
     textAlign: "center",
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Alex Brush",
     fontSize: s(36),
     color: NAVY,
   },
@@ -193,31 +193,34 @@ export interface InvitationLetterData {
   name: string;
   qrDataUrl: string;
   code: string;
+  partnerType: "campus" | "class";
 }
 
 export function InvitationLetterPage({
   name,
   qrDataUrl,
   code,
+  partnerType,
 }: InvitationLetterData) {
+  const roleLabel = partnerType === "class" ? "Co-Partner" : "Partner";
   return (
     <Page size="A4" style={styles.page}>
       {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
       <Image src={bgDataUri} style={styles.background} />
 
-      <Text style={styles.dearLine}>Dear Partner,</Text>
+      <Text style={styles.dearLine}>Dear, {roleLabel}</Text>
       <Text style={styles.name}>{name}</Text>
       <NameUnderline top={ART_TOP + s(BLOCK_Y + 92)} />
 
       <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 122) }]}>
-        Welcome to Yuva Champions Cricket! We&apos;re thrilled to have you
-        with us — your registration is confirmed, and the countdown to game
-        day has begun.
+        You are warmly invited to join the YCC Partner Program as an
+        official YCC {roleLabel}.
       </Text>
 
-      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 210) }]}>
-        This letter is your official Partner Certificate — your unique
-        code and QR are just below.
+      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 178) }]}>
+        We look forward to building a strong collaboration and growing
+        together through YCC events, campaigns, tournaments and special
+        partner activities.
       </Text>
 
       <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>

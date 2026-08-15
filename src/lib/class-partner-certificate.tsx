@@ -6,9 +6,7 @@ export interface ClassPartnerCertificateData {
   name: string;
   teamCode: string;
   qrDataUrl: string;
-  /** Kept for the route's typing; the invitation letter's wording no
-   * longer varies by partner type. */
-  partnerType?: "campus" | "class";
+  partnerType: "campus" | "class";
 }
 
 function ClassPartnerCertificateDocument({
@@ -22,6 +20,7 @@ function ClassPartnerCertificateDocument({
         name={data.name}
         qrDataUrl={data.qrDataUrl}
         code={data.teamCode}
+        partnerType={data.partnerType}
       />
     </Document>
   );
