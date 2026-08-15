@@ -55,6 +55,7 @@ interface LookupClassPartner {
   uniqueId: string | null;
   teamCode: string | null;
   attendanceStatus: "present" | "absent";
+  type: "campus" | "class";
   members: LookupTeamMember[];
 }
 
@@ -264,7 +265,7 @@ export function StaffLookupPanel({
                     variant="outline"
                     className="bg-amber-50 text-amber-600 border-amber-200 whitespace-nowrap"
                   >
-                    YCC Co-Partner (Captain)
+                    {cp.type === "campus" ? "YCC Partner (Captain)" : "YCC Co-Partner (Captain)"}
                   </Badge>
                 </CardTitle>
                 <Badge variant="secondary" className="w-fit bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 font-mono">

@@ -16,17 +16,21 @@ export interface LookupClassPartner {
   uniqueId: string | null;
   teamCode: string | null;
   attendanceStatus: AttendanceStatus;
+  type: "campus" | "class";
   members: LookupTeamMember[];
 }
 
 /**
  * Mirrors searchParticipants' shape/fast-path but over the partner-program
  * hierarchy: an exact team_code or unique_id match (the QR-scan fast path)
- * first, then a fuzzy name/mobile/code match. Only approved YCC Co-Partners
- * are searchable — scanning/searching a captain surfaces their whole
- * approved Classmate Partner roster, same "search one, see the team"
- * pattern as the participant lookup. No college filter — Co-Partners don't
- * collect one.
+ * first, then a fuzzy name/mobile/code match. Approved YCC Partners and
+ * Co-Partners are both searchable as "captains" — scanning/searching one
+ * surfaces the Squad members who attached directly to them, same
+ * "search one, see the team" pattern as the participant lookup. A Squad
+ * member can attach to either tier (they're allowed to skip their
+ * Co-Partner and pick a Partner directly), so this has to cover both to
+ * make every Squad member reachable through some captain. No college
+ * filter — Partners/Co-Partners don't collect one.
  */
 export async function searchClassPartners(
   query: string,
@@ -34,70 +38,71 @@ export async function searchClassPartners(
   const admin = createAdminClient();
   const trimmed = query.trim();
 
-  let classPartnerIds: string[] = [];
+  let captainIds: string[] = [];
 
   if (!trimmed) {
     const { data } = await admin
       .from("partner_program_applications")
       .select("id")
-      .eq("partner_type", "class")
+      .in("partner_type", ["campus", "class"])
       .eq("status", "approved")
       .order("created_at", { ascending: false })
       .limit(200);
-    classPartnerIds = (data ?? []).map((r) => r.id);
+    captainIds = (data ?? []).map((r) => r.id);
   } else {
     const upper = trimmed.toUpperCase();
     const { data: exact } = await admin
       .from("partner_program_applications")
       .select("id")
-      .eq("partner_type", "class")
+      .in("partner_type", ["campus", "class"])
       .eq("status", "approved")
       .or(`team_code.eq.${upper},unique_id.eq.${upper}`)
       .maybeSingle();
 
     if (exact) {
-      classPartnerIds = [exact.id];
+      captainIds = [exact.id];
     } else {
       const { data: fuzzy } = await admin
         .from("partner_program_applications")
         .select("id")
-        .eq("partner_type", "class")
+        .in("partner_type", ["campus", "class"])
         .eq("status", "approved")
         .or(
           `name.ilike.%${trimmed}%,mobile.ilike.%${trimmed}%,team_code.ilike.%${trimmed}%,unique_id.ilike.%${trimmed}%`,
         )
         .limit(50);
-      classPartnerIds = (fuzzy ?? []).map((r) => r.id);
+      captainIds = (fuzzy ?? []).map((r) => r.id);
     }
   }
 
-  if (classPartnerIds.length === 0) return [];
+  if (captainIds.length === 0) return [];
 
-  const { data: classPartners } = await admin
+  const { data: captains } = await admin
     .from("partner_program_applications")
-    .select("id, name, mobile, unique_id, team_code, attendance_status")
-    .in("id", classPartnerIds);
+    .select("id, name, mobile, unique_id, team_code, attendance_status, partner_type")
+    .in("id", captainIds);
 
-  if (!classPartners || classPartners.length === 0) return [];
+  if (!captains || captains.length === 0) return [];
 
   const { data: members } = await admin
     .from("partner_program_applications")
     .select("id, name, mobile, attendance_status, referred_by_id")
     .in(
       "referred_by_id",
-      classPartners.map((c) => c.id),
+      captains.map((c) => c.id),
     )
     .eq("partner_type", "classmate")
     .eq("status", "approved")
     .order("name");
 
-  return classPartners.map((cp) => ({
+  return captains.map((cp) => ({
     applicationId: cp.id,
     name: cp.name,
     mobile: cp.mobile,
     uniqueId: cp.unique_id,
     teamCode: cp.team_code,
     attendanceStatus: cp.attendance_status ?? "absent",
+    type: cp.partner_type as "campus" | "class",
     members: (members ?? [])
       .filter((m) => m.referred_by_id === cp.id)
       .map((m) => ({
