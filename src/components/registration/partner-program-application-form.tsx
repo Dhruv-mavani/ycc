@@ -49,12 +49,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   partnerProgramApplicationSchema,
   type PartnerProgramApplicationInput,
 } from "@/lib/validations/partner-program";
@@ -78,7 +72,6 @@ export function PartnerProgramApplicationForm({
 }) {
   const [submitted, setSubmitted] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
-  const [termsOpen, setTermsOpen] = useState(false);
 
   const {
     register,
@@ -105,19 +98,6 @@ export function PartnerProgramApplicationForm({
   const agreedToTerms = useWatch({ control, name: "agreedToTerms" });
   const whatsappJoined = useWatch({ control, name: "whatsappJoined" });
   const instagramJoined = useWatch({ control, name: "instagramJoined" });
-
-  const typeLabel =
-    partnerType === "campus"
-      ? "YCC Partner"
-      : partnerType === "class"
-        ? "YCC Co-Partner"
-        : "Classmate Partner";
-  const scopeText =
-    partnerType === "campus"
-      ? "on your college campus"
-      : partnerType === "class"
-        ? "in your class"
-        : "among your classmates";
 
   async function onSubmit(values: PartnerProgramApplicationInput) {
     try {
@@ -385,13 +365,14 @@ export function PartnerProgramApplicationForm({
                 <div className="space-y-1.5">
                   <Label htmlFor="agreedToTerms" className="font-normal">
                     I agree to the{" "}
-                    <button
-                      type="button"
-                      onClick={() => setTermsOpen(true)}
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="font-medium text-primary underline underline-offset-2"
                     >
                       T&amp;C
-                    </button>
+                    </Link>
                     <span className="text-destructive"> *</span>
                   </Label>
                   {errors.agreedToTerms ? (
@@ -414,33 +395,6 @@ export function PartnerProgramApplicationForm({
           </Button>
         </CardFooter>
       </Card>
-
-      <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Partner Program Terms &amp; Conditions</DialogTitle>
-          </DialogHeader>
-          <ul className="list-disc space-y-3 pl-5 text-sm text-muted-foreground">
-            <li>
-              Selected {typeLabel}s will receive exclusive benefits,
-              incentives, and commission &amp; partner program opportunities
-              based on their work and performance.
-            </li>
-            <li>
-              By applying, you agree to work with YCC as a {typeLabel} and to
-              assist with all the requirements to promote our campaigns and
-              events {scopeText}.
-            </li>
-            <li>
-              We believe every YCC {typeLabel} should actively participate in
-              YCC events and support our initiatives. Great leaders lead by
-              example — we believe every Founder and Partner should support,
-              use, and represent our services before encouraging others to
-              join.
-            </li>
-          </ul>
-        </DialogContent>
-      </Dialog>
     </form>
   );
 }
