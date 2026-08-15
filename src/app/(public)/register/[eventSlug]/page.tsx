@@ -41,7 +41,7 @@ export default async function RegisterPage({
   if (!event) notFound();
 
   return (
-    <div className="min-h-screen bg-slate-50 relative overflow-hidden pb-24">
+    <div className="min-h-screen bg-background relative overflow-hidden pb-24">
       {/* Background Ambience */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-400/10 rounded-full blur-[150px]"></div>
