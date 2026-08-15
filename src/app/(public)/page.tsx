@@ -187,7 +187,7 @@ export default async function HomePage() {
                       variant="outline"
                       className="w-full border-slate-200 text-slate-400 bg-transparent rounded-xl h-11 sm:h-12 text-sm sm:text-lg font-semibold px-2"
                     >
-                      Registrations Closed
+                      Stay Tuned
                     </Button>
                   </CardFooter>
                 </Card>
