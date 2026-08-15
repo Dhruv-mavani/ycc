@@ -34,10 +34,10 @@ const PARTNER_TYPES = [
   {
     id: "classmate",
     slug: "Classmate-partner",
-    label: "Classmate Partner",
-    heading: "Classmate Partner Program",
+    label: "Their Squad",
+    heading: "Their Squad Program",
     description:
-      "Apply to become a YCC Classmate Partner and help us bring events to your classmates. Fill in your details below.",
+      "Apply to join Their Squad and help us bring events to your classmates. Fill in your details below.",
   },
 ] as const;
 
