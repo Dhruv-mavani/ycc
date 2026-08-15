@@ -92,24 +92,15 @@ const styles = StyleSheet.create({
     height: s(88),
     backgroundColor: NAVY_BANNER,
   },
+  // Vertically centered in the collegeClear zone — no city sub-line
+  // beneath it any more, so the name alone owns the full banner height.
   collegeName: {
     position: "absolute",
-    top: ART_TOP + s(482),
+    top: ART_TOP + s(503),
     left: ART_LEFT + s(90),
     width: s(840),
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    color: BANNER_TEXT_WHITE,
-  },
-  city: {
-    position: "absolute",
-    top: ART_TOP + s(530),
-    left: ART_LEFT + s(90),
-    width: s(840),
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold",
-    fontSize: s(20),
-    letterSpacing: s(1),
     color: BANNER_TEXT_WHITE,
   },
   nameClear: {
@@ -237,9 +228,6 @@ export function BoxCricketIdCardPage({ data }: { data: BoxCricketIdCardData }) {
       >
         {data.collegeName.toUpperCase()}
       </Text>
-      {data.city ? (
-        <Text style={styles.city}>{data.city.toUpperCase()}</Text>
-      ) : null}
 
       <View style={styles.nameClear} />
       <Text style={[styles.playerName, playerNameStyle(data.playerName)]}>
