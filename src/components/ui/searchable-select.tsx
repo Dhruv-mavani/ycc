@@ -89,12 +89,12 @@ function SearchableSelect({
                 <Combobox.Item
                   key={item.value}
                   value={item}
-                  className="relative flex w-full cursor-default items-center justify-between gap-2 rounded-md py-1.5 pr-2 pl-6 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                  className="relative flex w-full cursor-default flex-col min-[380px]:flex-row items-start min-[380px]:items-center justify-between gap-0.5 min-[380px]:gap-2 rounded-md py-1.5 pr-2 pl-6 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
                 >
                   <Combobox.ItemIndicator className="absolute left-1.5 flex size-4 items-center justify-center">
                     <CheckIcon className="size-3.5" />
                   </Combobox.ItemIndicator>
-                  <span className="truncate">{item.label}</span>
+                  <span className="min-[380px]:truncate">{item.label}</span>
                   {item.sublabel ? (
                     <span className="text-muted-foreground shrink-0 text-xs">
                       {item.sublabel}
