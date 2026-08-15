@@ -74,7 +74,7 @@ export default async function HomePage() {
 
           <h1 className="font-black uppercase text-white leading-[0.92] tracking-tight text-4xl min-[320px]:text-[2.6rem] min-[380px]:text-6xl min-[480px]:text-7xl sm:text-8xl xl:text-9xl drop-shadow-[0_8px_30px_rgba(0,0,0,0.7)]">
             <span className="block">Yuva Champions</span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-amber-300">Cricket</span>
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white">Cricket</span>
           </h1>
 
           <p className="mt-6 sm:mt-8 text-slate-200/90 font-medium max-w-xl text-sm min-[380px]:text-base sm:text-lg leading-relaxed text-center drop-shadow-md px-2">
