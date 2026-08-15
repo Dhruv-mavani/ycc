@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Trophy, Download, ChevronDown, Star, Users, CalendarDays } from "lucide-react";
+import { Trophy, Download, ChevronDown, Star, Users, CalendarDays, Globe, Map, MapPin, TrendingUp, Plane } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   Card,
@@ -224,44 +224,32 @@ export default async function HomePage() {
           <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center lg:items-stretch">
             {/* Left side text */}
             <div className="lg:w-1/3 flex flex-col justify-between space-y-6 lg:space-y-0 text-center lg:text-left py-1">
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
-                Backed By<br />
-                <span className="text-blue-600">The Best</span>
+              <h2 className="text-3xl min-[400px]:text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
+                108+ PARTNERS.<br />
+                <span className="text-blue-600">5 DISTRICTS.</span><br />
+                ONE YCC.
               </h2>
-              <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-                Yuva Champions Cricket is supported and partnered with top institutions. Our commitment to partnering with the finest ensures you receive an exceptional tournament experience on your journey to sporting success.
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-4">
+                Our growing network of 108+ Partners across 5 districts is helping YCC build a stronger community and expand its reach.
               </p>
             </div>
 
             {/* Right side profiles */}
-            <div className="lg:w-2/3 w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]">
-              <div className="flex w-max animate-marquee gap-4 pb-2 hover:[animation-play-state:paused]">
+            <div className="lg:w-2/3 w-full mt-6 lg:mt-20 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]">
+              <div className="flex w-max animate-marquee [animation-duration:20s] gap-4 sm:gap-6 pb-4 pt-2 hover:[animation-play-state:paused] items-center">
                 {[
-                  { name: "Rahul Sharma", role: "Sports Director", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Anil Desai", role: "Head Coach", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Sneha Patel", role: "Operations", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Vikram Singh", role: "Tournament Lead", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Priya Mehta", role: "Event Manager", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Ravi Kumar", role: "Technical Head", image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Neha Gupta", role: "Media Relations", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Amit Shah", role: "Sponsorships", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop" },
-                  // Duplicate for infinite loop
-                  { name: "Rahul Sharma", role: "Sports Director", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Anil Desai", role: "Head Coach", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Sneha Patel", role: "Operations", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Vikram Singh", role: "Tournament Lead", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Priya Mehta", role: "Event Manager", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Ravi Kumar", role: "Technical Head", image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Neha Gupta", role: "Media Relations", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop" },
-                  { name: "Amit Shah", role: "Sponsorships", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop" }
-                ].map((profile, i) => (
-                  <div key={i} className="relative aspect-[3/4] w-[160px] sm:w-[180px] shrink-0 rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-lg group">
-                    <img src={profile.image} alt={profile.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent z-10 pointer-events-none"></div>
-                    <div className="absolute bottom-4 left-4 z-20">
-                      <p className="text-sm font-bold text-white leading-tight">{profile.name}</p>
-                      <p className="text-xs text-slate-300 mt-1">{profile.role}</p>
-                    </div>
+                  "Abhi Chaudhari", "Yash Patel", "Nirmal Chaudhari", "Snehal Vasava",
+                  "Abhi Chaudhari", "Yash Patel", "Nirmal Chaudhari", "Snehal Vasava",
+                  "Abhi Chaudhari", "Yash Patel", "Nirmal Chaudhari", "Snehal Vasava"
+                ].map((name, i) => (
+                  <div key={i} className="flex items-center gap-3 sm:gap-4 px-6 sm:px-8 py-4 sm:py-5 shrink-0 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-amber-300 transition-all cursor-default group">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 drop-shadow-sm group-hover:scale-110 transition-transform">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    <p className="text-base sm:text-xl font-bold text-slate-800 group-hover:text-amber-600 transition-colors">{name}</p>
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 drop-shadow-sm group-hover:scale-110 transition-transform">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
                   </div>
                 ))}
               </div>
@@ -269,18 +257,120 @@ export default async function HomePage() {
           </div>
 
           {/* Featured Locally & Globally */}
-          <div className="mt-24 text-center">
-            <h3 className="text-2xl md:text-3xl font-semibold mb-10 text-slate-900">Featured locally & globally</h3>
-            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-5xl mx-auto">
-              {["The Times of India", "Sports Insider", "Cricket Monthly", "ESPNcricinfo", "Local News", "Sports Today", "Youth Athletics", "Daily Sports", "The Hindu", "News18"].map((pub, i) => (
-                <div key={i} className="bg-white text-slate-900 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-sm hover:-translate-y-1 transition-transform border border-slate-200 cursor-default">
+          {/* Partners List */}
+          <div className="mt-24 min-[400px]:mt-32 text-center">
+            <h3 className="text-xl min-[400px]:text-2xl md:text-3xl font-extrabold mb-8 min-[400px]:mb-10 text-slate-900 tracking-tight">BACKED BY THE BEST</h3>
+            <div className="flex flex-wrap justify-center gap-2 min-[400px]:gap-3 sm:gap-4 max-w-5xl mx-auto">
+              {["Advrse Marketing", "Pramukh Agro Group", "NPC & Co.", "YCC Group", "Suriya Clothing", "NHC Stocks Market", "Mayur Beverages", "& More"].map((pub, i) => (
+                <div key={i} className="bg-white text-slate-900 font-bold text-[10px] min-[400px]:text-xs sm:text-sm px-3 py-2 min-[400px]:px-5 min-[400px]:py-3 rounded-xl shadow-sm hover:-translate-y-1 transition-transform border border-slate-200 cursor-default">
                   {pub}
                 </div>
               ))}
             </div>
+            
+            <div className="mt-16">
+              <h4 className="text-xl font-bold text-blue-600 tracking-wider uppercase mb-2">Together, We Grow</h4>
+              <p className="text-slate-600 font-medium">Strong Partners. Strong Network. Bigger Vision.</p>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Expanding Beyond Boundaries */}
+      <section className="w-full relative overflow-hidden bg-slate-50 py-24 z-20 border-t border-slate-200/50">
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        <div className="mx-auto max-w-6xl px-4 relative z-10">
+          
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 mb-4 tracking-widest px-3 py-1 min-[400px]:px-4 min-[400px]:py-1.5 uppercase font-bold text-[10px] min-[400px]:text-xs shadow-sm">EXPANDING BEYOND BOUNDARIES</Badge>
+            <h2 className="text-3xl min-[400px]:text-4xl md:text-6xl font-bold tracking-tight text-slate-900 mb-6">
+              From Gujarat to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">the World</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-[400px]:gap-6">
+            {/* Card 1: Gujarat Foundation */}
+            <div className="bg-white border border-slate-200/60 rounded-2xl min-[400px]:rounded-3xl p-5 min-[400px]:p-8 shadow-sm hover:shadow-md flex flex-col justify-between group hover:border-blue-300 transition-all">
+              <div>
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-6 border border-blue-100 group-hover:scale-110 transition-transform">
+                  <MapPin className="text-blue-600 w-7 h-7" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">Statewide Presence</h3>
+                <p className="text-slate-600 leading-relaxed font-medium">
+                  YCC is expanding its presence across <strong className="text-slate-900 font-bold">15+ districts of Gujarat</strong>, building a strong statewide cricket and entertainment community.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2: National Expansion */}
+            <div className="md:col-span-2 bg-gradient-to-br from-slate-50 to-white border border-slate-200/60 rounded-2xl min-[400px]:rounded-3xl p-5 min-[400px]:p-8 shadow-sm hover:shadow-md flex flex-col justify-between group hover:border-indigo-300 transition-all">
+              <div>
+                <div className="w-12 h-12 min-[400px]:w-14 min-[400px]:h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-5 min-[400px]:mb-6 border border-indigo-100 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="text-indigo-600 w-7 h-7" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">National Expansion</h3>
+                <p className="text-slate-600 leading-relaxed font-medium mb-8 max-w-xl">
+                  Our vision extends beyond Gujarat. YCC is expanding its footprint into neighbouring states, bringing the ultimate tournament experience to new regions.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {["Maharashtra", "Rajasthan", "Uttar Pradesh", "& More"].map((state, i) => (
+                    <div key={i} className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 font-semibold text-sm shadow-sm flex items-center gap-2 hover:bg-slate-50 transition-colors cursor-default">
+                      <Map className="w-4 h-4 text-slate-400" />
+                      {state}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: International Expansion */}
+            <div className="md:col-span-3 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/50 via-white to-white border border-slate-200/60 rounded-2xl min-[400px]:rounded-3xl p-5 min-[400px]:p-8 md:p-12 shadow-sm hover:shadow-md group hover:border-blue-300 transition-all relative overflow-hidden">
+              <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-blue-100/50 rounded-full blur-[100px] pointer-events-none"></div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-[400px]:gap-12 items-center relative z-10">
+                <div>
+                  <Badge variant="outline" className="text-indigo-600 border-indigo-200 bg-indigo-50 mb-6 tracking-widest px-3 py-1 min-[400px]:px-4 min-[400px]:py-1.5 uppercase font-bold text-[10px] min-[400px]:text-xs shadow-sm">YCC GOES INTERNATIONAL</Badge>
+                  <h3 className="text-2xl min-[400px]:text-3xl md:text-4xl font-bold text-slate-900 mb-6">Building a Global Presence</h3>
+                  <p className="text-slate-600 leading-relaxed font-medium text-base min-[400px]:text-lg">
+                    We are taking YCC beyond national boundaries and building an international presence across key global markets.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 min-[400px]:gap-4">
+                  {[
+                    { country: "United States", flag: "🇺🇸" },
+                    { country: "United Kingdom", flag: "🇬🇧" },
+                    { country: "Canada", flag: "🇨🇦" },
+                    { country: "UAE", flag: "🇦🇪" }
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 min-[400px]:gap-4 bg-white border border-slate-200 rounded-xl min-[400px]:rounded-2xl p-4 min-[400px]:p-5 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-1 shadow-sm hover:shadow transition-all cursor-default">
+                      <span className="text-2xl min-[400px]:text-3xl md:text-4xl drop-shadow-sm">{item.flag}</span>
+                      <span className="font-bold text-slate-800 text-sm min-[400px]:text-base sm:text-lg md:text-xl">{item.country}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer / Tagline */}
+          <div className="mt-16 min-[400px]:mt-20 text-center flex flex-col items-center">
+            <p className="text-base min-[400px]:text-lg md:text-xl text-slate-600 font-medium mb-8 min-[400px]:mb-10">
+              From local grounds to global opportunities — <strong className="text-slate-900 font-bold">YCC is growing beyond boundaries.</strong>
+            </p>
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-[2px] rounded-full inline-block shadow-md hover:shadow-lg hover:scale-105 transition-all cursor-default mx-4">
+              <div className="bg-white px-4 min-[400px]:px-6 sm:px-10 py-3 min-[400px]:py-4 sm:py-5 rounded-full flex flex-col sm:flex-row items-center gap-2 min-[400px]:gap-3 sm:gap-4">
+                <Globe className="text-blue-600 w-5 h-5 min-[400px]:w-6 min-[400px]:h-6 sm:w-7 sm:h-7 animate-[pulse_3s_ease-in-out_infinite]" />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 font-extrabold text-sm min-[400px]:text-lg sm:text-xl md:text-2xl tracking-wide sm:tracking-wider text-center">
+                  YCC — Play. Connect. Grow. Go Global
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       <section className="w-full pb-24 mt-0">
         {/* Top Header Split */}
         <div className="flex flex-col md:flex-row w-full border-y border-border/50">
