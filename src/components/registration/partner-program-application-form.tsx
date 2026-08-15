@@ -49,6 +49,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { PartnerTournamentTermsContent } from "@/components/registration/partner-tournament-terms-content";
+import {
   partnerProgramApplicationSchema,
   type PartnerProgramApplicationInput,
 } from "@/lib/validations/partner-program";
@@ -72,6 +79,7 @@ export function PartnerProgramApplicationForm({
 }) {
   const [submitted, setSubmitted] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const {
     register,
@@ -365,14 +373,13 @@ export function PartnerProgramApplicationForm({
                 <div className="space-y-1.5">
                   <Label htmlFor="agreedToTerms" className="font-normal">
                     I agree to the{" "}
-                    <Link
-                      href="/terms"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => setTermsOpen(true)}
                       className="font-medium text-primary underline underline-offset-2"
                     >
                       T&amp;C
-                    </Link>
+                    </button>
                     <span className="text-destructive"> *</span>
                   </Label>
                   {errors.agreedToTerms ? (
@@ -395,6 +402,15 @@ export function PartnerProgramApplicationForm({
           </Button>
         </CardFooter>
       </Card>
+
+      <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Partner Program Terms &amp; Conditions</DialogTitle>
+          </DialogHeader>
+          <PartnerTournamentTermsContent />
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }
