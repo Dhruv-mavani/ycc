@@ -42,12 +42,8 @@ export default async function RegisterPage({
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden pb-24">
-      {/* Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-400/10 rounded-full blur-[150px]"></div>
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-300/10 rounded-full blur-[120px]"></div>
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
-      </div>
+      {/* Background grid */}
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
 
       <div className="mx-auto max-w-3xl px-4 pt-32 relative z-10">
         <BackButton className="mb-8 text-slate-500 hover:text-slate-900 transition-colors" />
