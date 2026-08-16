@@ -34,7 +34,7 @@ export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }
 
   return (
     <div className="min-w-0">
-      <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/30">
+      <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/30 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <Select value={activeType} onValueChange={(v) => setActiveType(v as "campus" | "class")}>
           <SelectTrigger className="w-full sm:w-[220px]">
             <SelectValue placeholder="YCC Partner">
@@ -46,6 +46,9 @@ export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }
             <SelectItem value="class">YCC Co-Partner</SelectItem>
           </SelectContent>
         </Select>
+        <p className="text-sm text-muted-foreground">
+          Total {TYPE_LABEL[activeType]}s: <span className="font-semibold text-foreground">{filtered.length}</span>
+        </p>
       </div>
       <div className="overflow-x-auto">
         <Table className="min-w-[560px]">
