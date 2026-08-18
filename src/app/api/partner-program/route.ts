@@ -35,6 +35,25 @@ export async function POST(request: Request) {
   const input = parsed.data;
   const admin = createAdminClient();
 
+  // One application per person — without this, the same mobile number
+  // could apply multiple times (as a Co-Partner under different Partners,
+  // or twice under the same one), inflating the "X Co-Partners"/"Squad"
+  // counts shown in the admin dashboard. A DB-level unique constraint on
+  // `mobile` is the real safety net against races; this is just for a
+  // friendlier error than a raw constraint-violation 500.
+  const { data: existingApplication } = await admin
+    .from("partner_program_applications")
+    .select("id")
+    .eq("mobile", input.mobile)
+    .maybeSingle();
+
+  if (existingApplication) {
+    return NextResponse.json(
+      { error: "This mobile number has already applied to the Partner Program" },
+      { status: 409 },
+    );
+  }
+
   if (input.partnerType !== "campus") {
     // A Co-Partner's referrer must be a Partner. A Squad member can attach
     // to either a Co-Partner or, skipping a level, a Partner directly.
