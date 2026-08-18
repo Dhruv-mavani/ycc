@@ -34,6 +34,23 @@ const HIERARCHY_NOTE: Record<(typeof PARTNER_TYPES)[number]["id"], string> = {
   classmate: "Squad members are normally approved by the YCC Co-Partner who referred them — you can override that below.",
 };
 
+// Groups a partner's directly-recruited children by referred_by_id, so the
+// admin can see each YCC Partner's recruited Co-Partners, or each
+// Co-Partner's recruited Squad — same shape, one level down each time.
+function groupByReferrer(
+  applications: PartnerProgramApplication[],
+  childType: PartnerType,
+) {
+  const map = new Map<string, PartnerProgramApplication[]>();
+  for (const app of applications) {
+    if (app.partner_type !== childType || !app.referred_by_id) continue;
+    const list = map.get(app.referred_by_id) ?? [];
+    list.push(app);
+    map.set(app.referred_by_id, list);
+  }
+  return map;
+}
+
 export function PartnerProgramAdminTabs({
   applications,
 }: {
@@ -46,18 +63,31 @@ export function PartnerProgramAdminTabs({
     (app) => app.partner_type === activeId,
   );
 
-  // Groups YCC Co-Partners under the YCC Partner who referred them, so the
-  // admin can see each YCC Partner's full recruited roster and count.
-  const coPartnersByPartnerId = useMemo(() => {
-    const map = new Map<string, PartnerProgramApplication[]>();
-    for (const app of applications) {
-      if (app.partner_type !== "class" || !app.referred_by_id) continue;
-      const list = map.get(app.referred_by_id) ?? [];
-      list.push(app);
-      map.set(app.referred_by_id, list);
-    }
-    return map;
-  }, [applications]);
+  const coPartnersByPartnerId = useMemo(
+    () => groupByReferrer(applications, "class"),
+    [applications],
+  );
+  // Keyed by referred_by_id regardless of whether that referrer is a
+  // Co-Partner or a Partner — Squad can attach directly to either, so this
+  // one map correctly serves both the "direct Squad" badge on the Partner
+  // tab and the "Squad" badge on the Co-Partner tab.
+  const squadByReferrerId = useMemo(
+    () => groupByReferrer(applications, "classmate"),
+    [applications],
+  );
+
+  // Campus (Partner) cards show two badges: Co-Partners recruited, and
+  // Squad members who joined directly under them (skipping the Co-Partner
+  // level). Co-Partner cards show one: their own recruited Squad.
+  const childGroups =
+    activeId === "campus"
+      ? [
+          { label: "Co-Partner", map: coPartnersByPartnerId },
+          { label: "Squad Member", map: squadByReferrerId },
+        ]
+      : activeId === "class"
+        ? [{ label: "Squad Member", map: squadByReferrerId }]
+        : [];
 
   return (
     <div className="space-y-4">
@@ -90,7 +120,7 @@ export function PartnerProgramAdminTabs({
         key={activeId}
         applications={filteredApplications}
         activeType={activeId}
-        coPartnersByPartnerId={activeId === "campus" ? coPartnersByPartnerId : undefined}
+        childGroups={childGroups}
       />
     </div>
   );

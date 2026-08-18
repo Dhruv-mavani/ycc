@@ -43,21 +43,30 @@ interface PartnerProgramApplication {
   created_at: string;
 }
 
+interface ChildGroup {
+  /** Singular label, e.g. "Co-Partner" or "Squad Member" — pluralized with a trailing "s". */
+  label: string;
+  map: Map<string, PartnerProgramApplication[]>;
+}
+
 export function PartnerProgramApplicationsList({
   applications,
   activeType,
-  coPartnersByPartnerId,
+  childGroups = [],
 }: {
   applications: PartnerProgramApplication[];
   activeType: PartnerType;
-  coPartnersByPartnerId?: Map<string, PartnerProgramApplication[]>;
+  childGroups?: ChildGroup[];
 }) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PartnerProgramApplication | null>(null);
   const [editTarget, setEditTarget] = useState<PartnerProgramApplication | null>(null);
-  const [coPartnersTarget, setCoPartnersTarget] = useState<PartnerProgramApplication | null>(null);
+  const [childrenDialog, setChildrenDialog] = useState<{
+    app: PartnerProgramApplication;
+    group: ChildGroup;
+  } | null>(null);
 
   useEffect(() => {
     localStorage.setItem("lastSeenPartnerProgramAt", new Date().toISOString());
@@ -127,16 +136,21 @@ export function PartnerProgramApplicationsList({
                   </Link>
                 </CardTitle>
                 <div className="flex flex-wrap items-center gap-2">
-                  {coPartnersByPartnerId ? (
-                    <Badge
-                      variant="outline"
-                      className="cursor-pointer bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
-                      onClick={() => setCoPartnersTarget(app)}
-                    >
-                      <Users className="size-3 mr-1" />
-                      {(coPartnersByPartnerId.get(app.id) ?? []).length} Co-Partners
-                    </Badge>
-                  ) : null}
+                  {childGroups.map((group) => {
+                    const count = (group.map.get(app.id) ?? []).length;
+                    return (
+                      <Badge
+                        key={group.label}
+                        variant="outline"
+                        className="cursor-pointer bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
+                        onClick={() => setChildrenDialog({ app, group })}
+                      >
+                        <Users className="size-3 mr-1" />
+                        {count} {group.label}
+                        {count === 1 ? "" : "s"}
+                      </Badge>
+                    );
+                  })}
                   {app.partner_type !== "classmate" ? (
                     <Button
                       size="sm"
@@ -281,55 +295,58 @@ export function PartnerProgramApplicationsList({
       />
 
       <Dialog
-        open={coPartnersTarget !== null}
+        open={childrenDialog !== null}
         onOpenChange={(open) => {
-          if (!open) setCoPartnersTarget(null);
+          if (!open) setChildrenDialog(null);
         }}
       >
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {coPartnersTarget?.name}&apos;s YCC Co-Partners
-            </DialogTitle>
-            <DialogDescription>
-              {(coPartnersByPartnerId?.get(coPartnersTarget?.id ?? "") ?? [])
-                .length}{" "}
-              YCC Co-Partner
-              {(coPartnersByPartnerId?.get(coPartnersTarget?.id ?? "") ?? [])
-                .length === 1
-                ? ""
-                : "s"}{" "}
-              brought in so far.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            {(coPartnersByPartnerId?.get(coPartnersTarget?.id ?? "") ?? []).map(
-              (cp) => (
-                <div
-                  key={cp.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border p-3"
-                >
-                  <div className="min-w-0">
-                    <Link
-                      href={`/admin/partners/${cp.id}`}
-                      className="font-medium text-sm text-primary hover:underline truncate block"
-                    >
-                      {cp.name}
-                    </Link>
-                    <p className="text-muted-foreground text-xs truncate">
-                      {cp.mobile}
-                    </p>
-                  </div>
-                </div>
-              ),
-            )}
-            {(coPartnersByPartnerId?.get(coPartnersTarget?.id ?? "") ?? [])
-              .length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">
-                No YCC Co-Partners yet.
-              </p>
-            ) : null}
-          </div>
+          {childrenDialog ? (
+            <>
+              {(() => {
+                const list = childrenDialog.group.map.get(childrenDialog.app.id) ?? [];
+                const label = childrenDialog.group.label;
+                return (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {childrenDialog.app.name}&apos;s {label}s
+                      </DialogTitle>
+                      <DialogDescription>
+                        {list.length} {label}
+                        {list.length === 1 ? "" : "s"} brought in so far.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                      {list.map((cp) => (
+                        <div
+                          key={cp.id}
+                          className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                        >
+                          <div className="min-w-0">
+                            <Link
+                              href={`/admin/partners/${cp.id}`}
+                              className="font-medium text-sm text-primary hover:underline truncate block"
+                            >
+                              {cp.name}
+                            </Link>
+                            <p className="text-muted-foreground text-xs truncate">
+                              {cp.mobile}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {list.length === 0 ? (
+                        <p className="text-muted-foreground text-sm text-center py-4">
+                          No {label}s yet.
+                        </p>
+                      ) : null}
+                    </div>
+                  </>
+                );
+              })()}
+            </>
+          ) : null}
         </DialogContent>
       </Dialog>
     </div>
