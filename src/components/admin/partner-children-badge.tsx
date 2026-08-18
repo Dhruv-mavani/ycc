@@ -82,18 +82,6 @@ export function PartnerChildrenBadge({
                       {c.downstream === 1 ? "" : "s"}
                     </Badge>
                   ) : null}
-                  <Badge
-                    variant="secondary"
-                    className={
-                      c.status === "approved"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize"
-                        : c.status === "rejected"
-                          ? "bg-destructive/10 text-destructive border-destructive/20 capitalize"
-                          : "capitalize"
-                    }
-                  >
-                    {c.status}
-                  </Badge>
                 </div>
               </div>
             ))}

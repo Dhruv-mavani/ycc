@@ -55,7 +55,6 @@ export function PartnerProgramApplicationsList({
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PartnerProgramApplication | null>(null);
   const [editTarget, setEditTarget] = useState<PartnerProgramApplication | null>(null);
   const [coPartnersTarget, setCoPartnersTarget] = useState<PartnerProgramApplication | null>(null);
@@ -73,27 +72,6 @@ export function PartnerProgramApplicationsList({
       });
     },
   });
-
-  async function review(id: string, status: "approved" | "rejected") {
-    setReviewingId(id);
-    try {
-      const res = await fetch(`/api/admin/partner-program/${id}/review`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      if (!res.ok) {
-        toast.error("Could not update application status");
-        return;
-      }
-      setItems((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status } : a)),
-      );
-      toast.success(status === "approved" ? "Application approved" : "Application rejected");
-    } finally {
-      setReviewingId(null);
-    }
-  }
 
   async function confirmDeleteApplication() {
     if (!deleteTarget) return;
@@ -159,18 +137,6 @@ export function PartnerProgramApplicationsList({
                       {(coPartnersByPartnerId.get(app.id) ?? []).length} Co-Partners
                     </Badge>
                   ) : null}
-                  <Badge
-                    variant="secondary"
-                    className={
-                      app.status === "approved"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize"
-                        : app.status === "rejected"
-                          ? "bg-destructive/10 text-destructive border-destructive/20 capitalize"
-                          : "capitalize"
-                    }
-                  >
-                    {app.status}
-                  </Badge>
                   {app.partner_type !== "classmate" ? (
                     <Button
                       size="sm"
@@ -271,19 +237,6 @@ export function PartnerProgramApplicationsList({
                   {app.agreed_to_terms ? "Agreed to T&C" : "Did not agree to T&C"}
                 </Badge>
               </div>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {app.status !== "rejected" ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 text-xs"
-                    disabled={reviewingId === app.id}
-                    onClick={() => review(app.id, "rejected")}
-                  >
-                    {app.status === "approved" ? "Revoke approval" : "Reject"}
-                  </Button>
-                ) : null}
-              </div>
             </CardContent>
           </Card>
         ))}
@@ -367,18 +320,6 @@ export function PartnerProgramApplicationsList({
                       {cp.mobile}
                     </p>
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className={
-                      cp.status === "approved"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize shrink-0"
-                        : cp.status === "rejected"
-                          ? "bg-destructive/10 text-destructive border-destructive/20 capitalize shrink-0"
-                          : "capitalize shrink-0"
-                    }
-                  >
-                    {cp.status}
-                  </Badge>
                 </div>
               ),
             )}

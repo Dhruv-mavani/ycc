@@ -191,18 +191,6 @@ export default async function AdminPartnerDetailPage({
                   }
                 />
               ) : null}
-              <Badge
-                variant="secondary"
-                className={
-                  partner.status === "approved"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 capitalize"
-                    : partner.status === "rejected"
-                      ? "bg-destructive/10 text-destructive border-destructive/20 capitalize"
-                      : "capitalize"
-                }
-              >
-                {partner.status}
-              </Badge>
             </div>
           </div>
         </CardHeader>
