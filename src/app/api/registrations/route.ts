@@ -69,6 +69,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Select a valid college" }, { status: 400 });
   }
 
+  // Only checked against confirmed (paid) entries — a failed or abandoned
+  // pending_payment attempt must still be retryable with the same number.
+  const { data: existingIndividual } = await admin
+    .from("registrations")
+    .select("id")
+    .eq("event_id", event.id)
+    .eq("type", "individual")
+    .eq("captain_phone", input.phone)
+    .eq("status", "confirmed")
+    .maybeSingle();
+
+  if (existingIndividual) {
+    return NextResponse.json(
+      { error: "This phone number is already registered for this event" },
+      { status: 409 },
+    );
+  }
+
   const gst = calculateGst(event.fee_paise);
 
   const { data: registration, error: regError } = await admin

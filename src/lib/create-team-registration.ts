@@ -79,6 +79,51 @@ export async function createTeamRegistration(
     return { ok: false, status: 400, error: "Select a valid college" };
   }
 
+  const phones = input.players.map((p) => p.phone);
+  if (new Set(phones).size !== phones.length) {
+    return {
+      ok: false,
+      status: 400,
+      error: "The same phone number appears more than once in your squad",
+    };
+  }
+
+  // Duplicate checks below only look at confirmed (paid) registrations — a
+  // failed or abandoned pending_payment attempt must still be retryable.
+  const { data: existingTeamName } = await admin
+    .from("registrations")
+    .select("id")
+    .eq("event_id", event.id)
+    .eq("type", "team")
+    .eq("status", "confirmed")
+    .ilike("team_name", input.teamName)
+    .maybeSingle();
+
+  if (existingTeamName) {
+    return {
+      ok: false,
+      status: 409,
+      error: `A team named "${input.teamName}" already exists for this event — please choose another name.`,
+    };
+  }
+
+  const { data: existingRosterPhones } = await admin
+    .from("participants")
+    .select("phone, registrations!inner(event_id, type, status)")
+    .in("phone", phones)
+    .eq("registrations.event_id", event.id)
+    .eq("registrations.type", "team")
+    .eq("registrations.status", "confirmed");
+
+  if (existingRosterPhones && existingRosterPhones.length > 0) {
+    return {
+      ok: false,
+      status: 409,
+      error:
+        "One or more players in your squad are already registered with another team for this event",
+    };
+  }
+
   const primaryContact = { name: input.players[0].name, phone: input.players[0].phone };
   const gst = calculateGst(event.fee_paise);
 
