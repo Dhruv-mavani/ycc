@@ -201,6 +201,11 @@ export interface PartnerSquadReadiness {
   name: string;
   partnerType: "campus" | "class";
   teamCode: string | null;
+  /** Direct Co-Partners recruited — always 0 for a Co-Partner row (they don't recruit Co-Partners). */
+  coPartners: number;
+  /** Direct Squad — for a Partner, only those who joined them directly, skipping the Co-Partner level. */
+  directSquad: number;
+  /** coPartners + directSquad, kept for callers that just want one number. */
   totalParticipants: number;
   teamsRegistered: number;
   revenuePaise: number;
@@ -208,11 +213,12 @@ export interface PartnerSquadReadiness {
 
 /**
  * Per-partner rollup for every approved YCC Partner/Co-Partner: how many
- * people they've directly recruited (Co-Partners for a Partner, Classmate
- * Partners for a Co-Partner — see squad-source/route.ts), and how many of
- * the fixed-size-6 teams they've actually registered and paid for from that
- * roster so far (a roster bigger than 6 gets filed as multiple teams, in
- * batches of 6, against the same partner-keyed college row).
+ * people they've directly recruited (split into Co-Partners vs. Squad —
+ * Squad can attach directly to a Partner or via a Co-Partner, see
+ * squad-source/route.ts), and how many of the fixed-size-6 teams they've
+ * actually registered and paid for from that roster so far (a roster
+ * bigger than 6 gets filed as multiple teams, in batches of 6, against the
+ * same partner-keyed college row).
  */
 export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[]> {
   const admin = createAdminClient();
@@ -230,18 +236,17 @@ export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[
     partnerIds.length > 0
       ? await admin
           .from("partner_program_applications")
-          .select("referred_by_id")
+          .select("referred_by_id, partner_type")
           .in("referred_by_id", partnerIds)
           .eq("status", "approved")
-      : { data: [] as { referred_by_id: string | null }[] };
+      : { data: [] as { referred_by_id: string | null; partner_type: string }[] };
 
-  const totalParticipantsById = new Map<string, number>();
+  const coPartnersById = new Map<string, number>();
+  const directSquadById = new Map<string, number>();
   for (const c of children ?? []) {
     if (!c.referred_by_id) continue;
-    totalParticipantsById.set(
-      c.referred_by_id,
-      (totalParticipantsById.get(c.referred_by_id) ?? 0) + 1,
-    );
+    const map = c.partner_type === "class" ? coPartnersById : directSquadById;
+    map.set(c.referred_by_id, (map.get(c.referred_by_id) ?? 0) + 1);
   }
 
   // Every team a partner registers is filed under one college row keyed by
@@ -280,12 +285,16 @@ export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[
   return (partners ?? []).map((p) => {
     const collegeId = p.team_code ? collegeIdByInitials.get(p.team_code) : undefined;
     const teams = collegeId ? teamsByCollege.get(collegeId) : undefined;
+    const coPartners = coPartnersById.get(p.id) ?? 0;
+    const directSquad = directSquadById.get(p.id) ?? 0;
     return {
       id: p.id,
       name: p.name,
       partnerType: p.partner_type as "campus" | "class",
       teamCode: p.team_code,
-      totalParticipants: totalParticipantsById.get(p.id) ?? 0,
+      coPartners,
+      directSquad,
+      totalParticipants: coPartners + directSquad,
       teamsRegistered: teams?.count ?? 0,
       revenuePaise: teams?.revenuePaise ?? 0,
     };

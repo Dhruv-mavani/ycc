@@ -55,7 +55,12 @@ export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }
           <TableHeader className="bg-muted/10">
             <TableRow className="hover:bg-transparent">
               <TableHead className="font-semibold text-foreground/80 pl-6">Name</TableHead>
-              <TableHead className="text-right font-semibold text-foreground/80">Total participants</TableHead>
+              {activeType === "campus" ? (
+                <TableHead className="text-right font-semibold text-foreground/80">Co-Partners</TableHead>
+              ) : null}
+              <TableHead className="text-right font-semibold text-foreground/80">
+                {activeType === "campus" ? "Squad (direct)" : "Squad"}
+              </TableHead>
               <TableHead className="text-right font-semibold text-foreground/80">Teams</TableHead>
               <TableHead className="text-right font-semibold text-foreground/80 pr-6">Amount</TableHead>
             </TableRow>
@@ -68,7 +73,10 @@ export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }
                     {p.name}
                   </Link>
                 </TableCell>
-                <TableCell className="text-right">{p.totalParticipants}</TableCell>
+                {activeType === "campus" ? (
+                  <TableCell className="text-right">{p.coPartners}</TableCell>
+                ) : null}
+                <TableCell className="text-right">{p.directSquad}</TableCell>
                 <TableCell className="text-right">{p.teamsRegistered}</TableCell>
                 <TableCell className="text-right pr-6 font-semibold text-emerald-600">
                   {formatRupees(p.revenuePaise)}
@@ -77,7 +85,10 @@ export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }
             ))}
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-muted-foreground text-center py-12">
+                <TableCell
+                  colSpan={activeType === "campus" ? 5 : 4}
+                  className="text-muted-foreground text-center py-12"
+                >
                   No approved {TYPE_LABEL[activeType]}s yet.
                 </TableCell>
               </TableRow>
