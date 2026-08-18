@@ -272,16 +272,6 @@ export function PartnerProgramApplicationsList({
                 </Badge>
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
-                {app.status !== "approved" ? (
-                  <Button
-                    size="sm"
-                    className="h-7 text-xs"
-                    disabled={reviewingId === app.id}
-                    onClick={() => review(app.id, "approved")}
-                  >
-                    Approve
-                  </Button>
-                ) : null}
                 {app.status !== "rejected" ? (
                   <Button
                     size="sm"
