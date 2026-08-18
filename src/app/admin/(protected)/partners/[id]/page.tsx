@@ -22,7 +22,7 @@ const CHILD_TYPE: Partial<Record<PartnerType, PartnerType>> = {
 const TYPE_LABEL: Record<PartnerType, string> = {
   campus: "YCC Partner",
   class: "YCC Co-Partner",
-  classmate: "Classmate Partner",
+  classmate: "Squad",
 };
 
 function formatRupees(paise: number) {
@@ -67,7 +67,7 @@ export default async function AdminPartnerDetailPage({
   ]);
 
   // One level further down, just to show each child's own squad progress —
-  // e.g. how many Classmate Partners a Co-Partner has recruited so far.
+  // e.g. how many Squad members a Co-Partner has recruited so far.
   const childIds = (children ?? []).map((c) => c.id);
   const { data: grandchildren } =
     childIds.length > 0
