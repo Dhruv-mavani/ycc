@@ -29,6 +29,15 @@ function formatRupees(paise: number) {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
 }
 
+function formatJoinDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  });
+}
+
 export default async function AdminPartnerDetailPage({
   params,
 }: {
@@ -40,7 +49,7 @@ export default async function AdminPartnerDetailPage({
   const { data: partner } = await admin
     .from("partner_program_applications")
     .select(
-      "id, name, email, mobile, age, gender, instagram_handle, partner_type, status, team_code, unique_id, dues_paid, referred_by_id",
+      "id, name, email, mobile, age, gender, instagram_handle, partner_type, status, team_code, unique_id, dues_paid, referred_by_id, created_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -221,6 +230,10 @@ export default async function AdminPartnerDetailPage({
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Entry ID</p>
             <p className="font-medium font-mono">{partner.unique_id ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground text-xs uppercase tracking-wider">Joined</p>
+            <p className="font-medium">{formatJoinDate(partner.created_at)}</p>
           </div>
         </CardContent>
       </Card>
