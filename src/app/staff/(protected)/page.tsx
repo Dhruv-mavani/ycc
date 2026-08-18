@@ -7,6 +7,7 @@ export default async function StaffDashboardPage() {
   const { data: colleges } = await admin
     .from("colleges")
     .select("id, name")
+    .eq("is_public", true)
     .order("name");
 
   return (
