@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { MessageCircle, CheckCircle2, FileX } from "lucide-react";
+import { MessageCircle, CheckCircle2, FileX, AlertTriangle } from "lucide-react";
 import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
 
 const INSTAGRAM_URL = "https://instagram.com/ycct10";
@@ -240,7 +240,16 @@ export function PartnerProgramApplicationForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden bg-white">
         <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-6 px-6 sm:px-10 pt-8">
-          <CardTitle className="text-2xl font-bold text-slate-800">Your details</CardTitle>
+          <div className="flex flex-col min-[480px]:flex-row min-[480px]:items-center gap-2 min-[480px]:gap-3">
+            <CardTitle className="text-2xl font-bold text-slate-800">Your details</CardTitle>
+            <div className="flex items-start gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-red-700">
+              <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
+              <p className="text-xs font-medium leading-snug">
+                Please fill this form carefully with no mistakes — it
+                cannot be undone or resubmitted once submitted.
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-5 px-6 sm:px-10 py-8">
           <Field label="Full name" error={errors.name?.message}>
