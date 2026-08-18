@@ -245,8 +245,8 @@ export function PartnerProgramApplicationForm({
             <div className="flex items-start gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-red-700">
               <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
               <p className="text-xs font-medium leading-snug">
-                Please fill this form carefully with no mistakes — it
-                cannot be undone or resubmitted once submitted.
+                Please double-check every detail before submitting — once
+                submitted, this application cannot be edited or resubmitted.
               </p>
             </div>
           </div>
