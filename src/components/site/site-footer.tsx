@@ -2,19 +2,45 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 export function SiteFooter() {
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const name = formData.get("name") as string;
-    const mobile = formData.get("mobile") as string;
-    const message = formData.get("message") as string;
+  const [result, setResult] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const text = `Hi YCC Team,\n\nName: ${name}\nMobile: ${mobile}\n\n${message}`;
-    
-    window.open(`https://wa.me/918487832810?text=${encodeURIComponent(text)}`, "_blank");
-    event.currentTarget.reset();
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    setIsSubmitting(true);
+    setResult("Sending...");
+
+    const formData = new FormData(formElement);
+    formData.append("access_key", "7fbed3cd-648b-4ee1-8299-a99e0adb0576");
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        setResult("Something went wrong. Please try again.");
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setResult("Message sent successfully! We'll be in touch.");
+        formElement.reset();
+      } else {
+        setResult(data.message || "Something went wrong.");
+      }
+    } catch {
+      setResult("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const scrollToTop = () => {
@@ -68,12 +94,28 @@ export function SiteFooter() {
             <input id="footer-contact-mobile" name="mobile" type="tel" required placeholder="Phone Number" className="w-full bg-[#0f172a] border border-slate-800 rounded-lg px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors" />
             <label htmlFor="footer-contact-message" className="sr-only">Your Message</label>
             <textarea id="footer-contact-message" name="message" required placeholder="Your Message" rows={3} className="w-full bg-[#0f172a] border border-slate-800 rounded-lg px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none" />
-            <button type="submit" className="w-full bg-slate-800 hover:bg-[#25D366]/20 hover:text-[#25D366] hover:border-[#25D366]/50 border border-transparent text-white font-bold tracking-wide text-sm uppercase rounded-lg px-5 py-4 transition-colors duration-300 flex items-center justify-center gap-2 mt-2 group">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" className="transition-transform group-hover:scale-110">
-                <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
-              </svg>
-              SEND VIA WHATSAPP
+            <button type="submit" disabled={isSubmitting} className="w-full bg-slate-800 hover:bg-blue-600 disabled:opacity-50 border border-transparent text-white font-bold tracking-wide text-sm uppercase rounded-lg px-5 py-4 transition-colors duration-300 flex items-center justify-center gap-2 mt-2 group">
+              {isSubmitting ? "SENDING..." : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:scale-110">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                  SEND MESSAGE
+                </>
+              )}
             </button>
+            {result && (
+              <div className={`mt-2 p-3 rounded-lg text-sm font-medium text-center transition-all ${
+                result.includes("successfully") 
+                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                  : result === "Sending..."
+                  ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                  : "bg-red-500/10 text-red-400 border border-red-500/20"
+              }`}>
+                {result}
+              </div>
+            )}
           </form>
         </div>
       </div>
@@ -126,7 +168,10 @@ export function SiteFooter() {
         </div>
         
         <div className="flex flex-col gap-5">
-          <h4 className="text-blue-500 font-bold uppercase tracking-[0.15em] text-xs mb-1">Social</h4>
+          <h4 className="text-blue-500 font-bold uppercase tracking-[0.15em] text-xs mb-1">Social & Contact</h4>
+          <a href="mailto:contact@ycct10.in" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">
+            Email Us
+          </a>
           <a href="https://instagram.com/ycct10" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">
             Instagram
           </a>

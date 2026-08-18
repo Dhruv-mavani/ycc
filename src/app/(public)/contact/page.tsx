@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, MessageCircle, Send } from "lucide-react";
+import { Phone, MessageCircle, Send, Mail } from "lucide-react";
 import { BackButton } from "@/components/site/back-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,7 +66,7 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Links Grid */}
-        <div className="grid grid-cols-1 min-[480px]:grid-cols-3 gap-3 sm:gap-4 mb-10 sm:mb-16">
+        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-3 sm:gap-4 mb-10 sm:mb-16">
           <a
             href="tel:+918487832810"
             className="group flex flex-row min-[480px]:flex-col items-center min-[480px]:justify-center gap-4 min-[480px]:gap-3 rounded-2xl bg-white/60 dark:bg-card/40 backdrop-blur-md border border-border/50 p-4 min-[320px]:p-5 sm:p-6 lg:p-8 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300"
@@ -111,6 +111,19 @@ export default function ContactPage() {
             <div className="text-left min-[480px]:text-center">
               <p className="font-bold text-sm min-[320px]:text-base text-foreground">Instagram</p>
               <p className="text-xs min-[320px]:text-sm text-muted-foreground mt-0.5 font-medium">@ycct10</p>
+            </div>
+          </a>
+
+          <a
+            href="mailto:contact@ycct10.in"
+            className="group flex flex-row min-[480px]:flex-col items-center min-[480px]:justify-center gap-4 min-[480px]:gap-3 rounded-2xl bg-white/60 dark:bg-card/40 backdrop-blur-md border border-border/50 p-4 min-[320px]:p-5 sm:p-6 lg:p-8 shadow-sm hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300"
+          >
+            <div className="rounded-full bg-purple-100 p-2.5 min-[320px]:p-3 sm:p-4 text-purple-600 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-inner shrink-0">
+              <Mail className="size-4 min-[320px]:size-5 sm:size-6" />
+            </div>
+            <div className="text-left min-[480px]:text-center">
+              <p className="font-bold text-sm min-[320px]:text-base text-foreground">Email Us</p>
+              <p className="text-xs min-[320px]:text-sm text-muted-foreground mt-0.5 font-medium whitespace-nowrap tracking-tight">contact@ycct10.in</p>
             </div>
           </a>
         </div>

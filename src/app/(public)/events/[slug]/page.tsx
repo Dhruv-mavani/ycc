@@ -45,7 +45,7 @@ export default async function EventDetailPage({
             <div className="w-full relative border-b border-slate-100 bg-slate-100 flex">
 
               <Image
-                src="/ycc_quiz_banner.png"
+                src="/ycc_quiz_banner1.png"
                 alt={`${event.name} Banner`}
                 width={1200}
                 height={600}
