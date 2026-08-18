@@ -17,7 +17,16 @@ interface ChildEntry {
   name: string;
   mobile: string;
   status: string;
+  createdAt: string;
   downstream: number;
+}
+
+function formatJoinDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Kolkata",
+  });
 }
 
 // Same "click the count badge to see the full list in a dialog" pattern as
@@ -61,7 +70,9 @@ export function PartnerChildrenBadge({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            {items.map((c) => (
+            {[...items]
+              .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+              .map((c) => (
               <div
                 key={c.id}
                 className="flex flex-col items-start gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -73,7 +84,9 @@ export function PartnerChildrenBadge({
                   >
                     {c.name}
                   </Link>
-                  <p className="text-muted-foreground text-xs truncate">{c.mobile}</p>
+                  <p className="text-muted-foreground text-xs truncate">
+                    {c.mobile} · Joined {formatJoinDate(c.createdAt)}
+                  </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {grandchildLabel ? (

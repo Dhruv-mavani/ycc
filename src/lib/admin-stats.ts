@@ -4,6 +4,24 @@ import type { Database } from "@/lib/supabase/types";
 
 type ParticipantRow = Database["public"]["Tables"]["participants"]["Row"];
 
+export type DateRange = "today" | "7d" | "30d" | "all";
+
+/** Cutoff as an ISO string, or null for "all" (no lower bound). */
+function rangeCutoffIso(range: DateRange | undefined): string | null {
+  if (!range || range === "all") return null;
+  const days = range === "today" ? 1 : range === "7d" ? 7 : 30;
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+}
+
+/** Calendar-day key in IST, e.g. "2026-08-20" — matches how dates are
+ * displayed everywhere else in admin (Asia/Kolkata), so a registration at
+ * 11pm IST isn't miscounted into the next UTC day. */
+function istDayKey(isoTimestamp: string): string {
+  return new Date(isoTimestamp).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
+}
+
 export interface CollegeBreakdown {
   collegeId: string;
   collegeName: string;
@@ -27,9 +45,10 @@ export interface EventOverview {
   byCollege: CollegeBreakdown[];
 }
 
-/** Aggregates confirmed registrations, revenue, and attendance — overall or scoped to one event. */
+/** Aggregates confirmed registrations, revenue, and attendance — overall or scoped to one event and/or a recent date range. */
 export async function getEventOverview(
   eventId?: string,
+  range?: DateRange,
 ): Promise<EventOverview> {
   const admin = createAdminClient();
 
@@ -38,6 +57,8 @@ export async function getEventOverview(
     .select("*")
     .eq("status", "confirmed");
   if (eventId) registrationsQuery = registrationsQuery.eq("event_id", eventId);
+  const cutoff = rangeCutoffIso(range);
+  if (cutoff) registrationsQuery = registrationsQuery.gte("created_at", cutoff);
 
   const [{ data: events }, { data: registrations }] = await Promise.all([
     admin.from("events").select("id, name, type").order("created_at"),
@@ -121,6 +142,58 @@ export async function getEventOverview(
     overall,
     byCollege,
   };
+}
+
+export interface RegistrationsByDay {
+  date: string; // "YYYY-MM-DD", IST calendar day
+  registrations: number;
+}
+
+/**
+ * Daily confirmed-registration counts for a trend chart — scoped to the
+ * same event/range filters as the rest of the dashboard. Buckets by IST
+ * calendar day so day boundaries match what's shown everywhere else.
+ * "all" range is capped to the last 30 days so the chart stays readable —
+ * the stat cards above it still cover true all-time totals.
+ */
+export async function getRegistrationsOverTime(
+  eventId?: string,
+  range?: DateRange,
+): Promise<RegistrationsByDay[]> {
+  const admin = createAdminClient();
+
+  const cutoff = rangeCutoffIso(range) ?? rangeCutoffIso("30d")!;
+
+  let query = admin
+    .from("registrations")
+    .select("created_at")
+    .eq("status", "confirmed")
+    .gte("created_at", cutoff);
+  if (eventId) query = query.eq("event_id", eventId);
+
+  const { data: registrations } = await query;
+
+  const countByDay = new Map<string, number>();
+  for (const r of registrations ?? []) {
+    const key = istDayKey(r.created_at);
+    countByDay.set(key, (countByDay.get(key) ?? 0) + 1);
+  }
+
+  // Fill in every day in the window (even zero-registration days) so the
+  // chart reads as a continuous timeline instead of skipping gaps.
+  const days: RegistrationsByDay[] = [];
+  const cutoffDate = new Date(cutoff);
+  const today = new Date();
+  for (
+    let d = new Date(cutoffDate.toDateString());
+    d <= today;
+    d.setDate(d.getDate() + 1)
+  ) {
+    const key = istDayKey(d.toISOString());
+    days.push({ date: key, registrations: countByDay.get(key) ?? 0 });
+  }
+
+  return days;
 }
 
 export interface PartnerSquadReadiness {

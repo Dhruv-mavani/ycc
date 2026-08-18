@@ -28,6 +28,7 @@ function SearchableSelect({
   placeholder = "Select...",
   emptyText = "No results found.",
   className,
+  truncateLabels = true,
 }: {
   options: SearchableSelectOption[]
   value: string | null | undefined
@@ -35,6 +36,10 @@ function SearchableSelect({
   placeholder?: string
   emptyText?: string
   className?: string
+  /** Clip each item's label to one line (default). Set false to let long
+   * labels wrap instead — for lists with no sublabel sharing the row,
+   * where there's nothing else competing for width. */
+  truncateLabels?: boolean
 }) {
   const selected = options.find((o) => o.value === (value ?? null)) ?? null
 
@@ -94,7 +99,9 @@ function SearchableSelect({
                   <Combobox.ItemIndicator className="absolute left-1.5 flex size-4 items-center justify-center">
                     <CheckIcon className="size-3.5" />
                   </Combobox.ItemIndicator>
-                  <span className="min-[380px]:truncate">{item.label}</span>
+                  <span className={truncateLabels ? "min-[380px]:truncate" : ""}>
+                    {item.label}
+                  </span>
                   {item.sublabel ? (
                     <span className="text-muted-foreground shrink-0 text-xs">
                       {item.sublabel}

@@ -53,10 +53,10 @@ export default async function AdminPartnerDetailPage({
     childType
       ? admin
           .from("partner_program_applications")
-          .select("id, name, mobile, status, dues_paid")
+          .select("id, name, mobile, status, dues_paid, created_at")
           .eq("referred_by_id", partner.id)
           .order("name")
-      : Promise.resolve({ data: [] as { id: string; name: string; mobile: string; status: string; dues_paid: boolean }[] }),
+      : Promise.resolve({ data: [] as { id: string; name: string; mobile: string; status: string; dues_paid: boolean; created_at: string }[] }),
     partner.referred_by_id
       ? admin
           .from("partner_program_applications")
@@ -170,6 +170,7 @@ export default async function AdminPartnerDetailPage({
                     name: c.name,
                     mobile: c.mobile,
                     status: c.status,
+                    createdAt: c.created_at,
                     downstream: downstreamCountById.get(c.id) ?? 0,
                   }))}
                 />

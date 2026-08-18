@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SearchableSelect,
+  type SearchableSelectOption,
+} from "@/components/ui/searchable-select";
 
+// A searchable combobox rather than a plain dropdown — as more events pile
+// up over seasons (10s now, potentially 100s eventually), a flat <Select>
+// stops being scannable, but this stays usable since it filters by typing
+// instead of requiring a scroll-and-scan.
 export function EventFilter({
   events,
 }: {
@@ -39,21 +40,19 @@ export function EventFilter({
     router.push(`/admin?${params.toString()}`);
   }
 
+  const options: SearchableSelectOption[] = [
+    { value: "all", label: "All events" },
+    ...events.map((e) => ({ value: e.id, label: e.name })),
+  ];
+
   return (
-    <Select value={value} onValueChange={handleChange}>
-      <SelectTrigger className="w-full sm:w-[220px]">
-        <SelectValue placeholder="All events">
-          {(v: string | null) => events.find((e) => e.id === v)?.name ?? "All events"}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">All events</SelectItem>
-        {events.map((e) => (
-          <SelectItem key={e.id} value={e.id}>
-            {e.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <SearchableSelect
+      options={options}
+      value={value}
+      onChange={handleChange}
+      placeholder="Filter by event"
+      className="h-9 w-full sm:w-[280px]"
+      truncateLabels={false}
+    />
   );
 }

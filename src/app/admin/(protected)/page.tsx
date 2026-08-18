@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Users, Banknote, CalendarCheck, UserCheck, UserX, type LucideIcon } from "lucide-react";
-import { getEventOverview, getPartnerSquadReadiness } from "@/lib/admin-stats";
+import {
+  getEventOverview,
+  getPartnerSquadReadiness,
+  getRegistrationsOverTime,
+  type DateRange,
+} from "@/lib/admin-stats";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { EventFilter } from "@/components/admin/event-filter";
+import { DateRangeFilter } from "@/components/admin/date-range-filter";
 import { CollegeRevenueChart } from "@/components/admin/college-revenue-chart";
+import { RegistrationsTrendChart } from "@/components/admin/registrations-trend-chart";
 import { PartnerOverviewTable } from "@/components/admin/partner-overview-table";
 import { AdminNavButtons } from "@/components/admin/admin-nav-buttons";
 import { PageSpinner } from "@/components/site/page-spinner";
@@ -33,13 +40,13 @@ function formatRupees(paise: number) {
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ event?: string }>;
+  searchParams: Promise<{ event?: string; range?: DateRange }>;
 }) {
   // Filter-independent data — fetched once, outside the Suspense boundary
-  // below, so the dropdown and nav buttons never unmount/reload when the
-  // selected event changes. Only the data that actually depends on eventId
+  // below, so the dropdowns and nav buttons never unmount/reload when a
+  // filter changes. Only the data that actually depends on eventId/range
   // suspends.
-  const [{ event: eventId }, { data: events }, { count: pendingStaffCount }] =
+  const [{ event: eventId, range }, { data: events }, { count: pendingStaffCount }] =
     await Promise.all([
       searchParams,
       createAdminClient().from("events").select("id, name, type").order("created_at"),
@@ -52,22 +59,34 @@ export default async function AdminDashboardPage({
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
-        <Suspense fallback={<div className="h-8 w-full rounded-lg bg-muted animate-pulse sm:w-[220px]" />}>
-          <EventFilter events={events ?? []} />
-        </Suspense>
+        <div className="flex flex-col min-[480px]:flex-row gap-2 w-full sm:w-auto">
+          <Suspense fallback={<div className="h-8 w-full rounded-lg bg-muted animate-pulse sm:w-[220px]" />}>
+            <EventFilter events={events ?? []} />
+          </Suspense>
+          <Suspense fallback={<div className="h-8 w-full rounded-lg bg-muted animate-pulse sm:w-[180px]" />}>
+            <DateRangeFilter />
+          </Suspense>
+        </div>
         <AdminNavButtons initialPendingStaffCount={pendingStaffCount ?? 0} />
       </div>
 
-      <Suspense key={eventId ?? "all"} fallback={<PageSpinner className="min-h-[50vh]" />}>
-        <DashboardData eventId={eventId} />
+      <Suspense key={`${eventId ?? "all"}-${range ?? "all"}`} fallback={<PageSpinner className="min-h-[50vh]" />}>
+        <DashboardData eventId={eventId} range={range} />
       </Suspense>
     </div>
   );
 }
 
-async function DashboardData({ eventId }: { eventId?: string }) {
-  const [overview, squadReadiness] = await Promise.all([
-    getEventOverview(eventId || undefined),
+async function DashboardData({
+  eventId,
+  range,
+}: {
+  eventId?: string;
+  range?: DateRange;
+}) {
+  const [overview, trend, squadReadiness] = await Promise.all([
+    getEventOverview(eventId || undefined, range),
+    getRegistrationsOverTime(eventId || undefined, range),
     getPartnerSquadReadiness(),
   ]);
 
@@ -110,6 +129,23 @@ async function DashboardData({ eventId }: { eventId?: string }) {
           bgClass="bg-rose-500/10"
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Registrations over time</CardTitle>
+          <CardDescription>
+            {range === "today"
+              ? "Last 24 hours"
+              : range === "7d"
+                ? "Last 7 days"
+                : "Last 30 days"}
+            , confirmed registrations by day
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RegistrationsTrendChart data={trend} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
