@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { MessageCircle, CheckCircle2 } from "lucide-react";
+import { MessageCircle, CheckCircle2, FileX } from "lucide-react";
 import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
 
 const INSTAGRAM_URL = "https://instagram.com/ycct10";
@@ -53,6 +53,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { PartnerTournamentTermsContent } from "@/components/registration/partner-tournament-terms-content";
 import {
@@ -80,6 +81,8 @@ export function PartnerProgramApplicationForm({
   const [submitted, setSubmitted] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const {
     register,
@@ -107,6 +110,45 @@ export function PartnerProgramApplicationForm({
   const whatsappJoined = useWatch({ control, name: "whatsappJoined" });
   const instagramJoined = useWatch({ control, name: "instagramJoined" });
 
+  // Fetches the certificate first instead of navigating the browser straight
+  // to the API route — a raw navigation has no way to show a friendly error
+  // if the download fails (e.g. the application was since deleted by an
+  // admin), so the visitor would just land on a bare JSON error page.
+  async function downloadCertificate(id: string) {
+    setDownloading(true);
+    setDownloadError(null);
+    try {
+      const res = await fetch(`/api/partner-program/certificate/${id}/download`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        setDownloadError(
+          errorData.error === "Certificate not found"
+            ? "We couldn't find this application anymore — it looks like it was removed. If you think this is a mistake, please get in touch with the YCC team."
+            : (errorData.error ?? "Something went wrong while preparing your certificate. Please try again."),
+        );
+        return;
+      }
+
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const filenameMatch = disposition.match(/filename="([^"]+)"/);
+      const filename = filenameMatch?.[1] ?? "YCC-Certificate.pdf";
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDownloadError("Network error — please check your connection and try again.");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   async function onSubmit(values: PartnerProgramApplicationInput) {
     try {
       const res = await fetch("/api/partner-program", {
@@ -126,8 +168,7 @@ export function PartnerProgramApplicationForm({
       setSubmitted(true);
 
       if (partnerType === "classmate") return;
-      const downloadUrl = `/api/partner-program/certificate/${data.applicationId}/download`;
-      window.location.assign(downloadUrl);
+      void downloadCertificate(data.applicationId);
     } catch {
       toast.error("Network error — please check your connection and try again");
     }
@@ -135,6 +176,7 @@ export function PartnerProgramApplicationForm({
 
   if (submitted) {
     return (
+      <>
       <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden bg-white text-center py-10">
         <CardHeader>
           <CardTitle className="text-3xl font-extrabold text-slate-800 mb-2">
@@ -165,18 +207,32 @@ export function PartnerProgramApplicationForm({
             <Button
               variant="outline"
               className="w-full"
-              nativeButton={false}
-              render={
-                <a
-                  href={`/api/partner-program/certificate/${applicationId}/download`}
-                >
-                  Download certificate again
-                </a>
-              }
-            />
+              disabled={downloading}
+              onClick={() => downloadCertificate(applicationId)}
+            >
+              {downloading ? "Downloading..." : "Download certificate again"}
+            </Button>
           </CardContent>
         ) : null}
       </Card>
+
+      <Dialog
+        open={downloadError !== null}
+        onOpenChange={(open) => {
+          if (!open) setDownloadError(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-sm text-center">
+          <DialogHeader className="items-center">
+            <div className="rounded-full bg-destructive/10 p-3 mb-2">
+              <FileX className="size-6 text-destructive" />
+            </div>
+            <DialogTitle>Certificate unavailable</DialogTitle>
+            <DialogDescription>{downloadError}</DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+      </>
     );
   }
 
