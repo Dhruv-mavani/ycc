@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   SearchableSelect,
   type SearchableSelectOption,
@@ -17,6 +17,7 @@ export function EventFilter({
   events: { id: string; name: string }[];
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const paramValue = searchParams.get("event") ?? "all";
 
@@ -37,7 +38,7 @@ export function EventFilter({
     const params = new URLSearchParams(searchParams);
     if (!next || next === "all") params.delete("event");
     else params.set("event", next);
-    router.push(`/admin?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   const options: SearchableSelectOption[] = [

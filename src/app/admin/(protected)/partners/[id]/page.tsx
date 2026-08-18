@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ArrowLeftIcon, Award } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PartnerChildrenBadge } from "@/components/admin/partner-children-badge";
+import { EventFilter } from "@/components/admin/event-filter";
 import {
   Card,
   CardContent,
@@ -40,10 +42,13 @@ function formatJoinDate(iso: string) {
 
 export default async function AdminPartnerDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ event?: string }>;
 }) {
   const { id } = await params;
+  const { event: eventId } = await searchParams;
   const admin = createAdminClient();
 
   const { data: partner } = await admin
@@ -58,14 +63,14 @@ export default async function AdminPartnerDetailPage({
 
   const childType = CHILD_TYPE[partner.partner_type];
 
-  const [{ data: children }, { data: referrer }] = await Promise.all([
+  const [{ data: rawChildren }, { data: referrer }, { data: events }] = await Promise.all([
     childType
       ? admin
           .from("partner_program_applications")
-          .select("id, name, mobile, status, dues_paid, created_at")
+          .select("id, name, mobile, status, dues_paid, created_at, partner_type")
           .eq("referred_by_id", partner.id)
           .order("name")
-      : Promise.resolve({ data: [] as { id: string; name: string; mobile: string; status: string; dues_paid: boolean; created_at: string }[] }),
+      : Promise.resolve({ data: [] as { id: string; name: string; mobile: string; status: string; dues_paid: boolean; created_at: string; partner_type: PartnerType }[] }),
     partner.referred_by_id
       ? admin
           .from("partner_program_applications")
@@ -73,7 +78,16 @@ export default async function AdminPartnerDetailPage({
           .eq("id", partner.referred_by_id)
           .maybeSingle()
       : Promise.resolve({ data: null as { id: string; name: string } | null }),
+    admin.from("events").select("id, name").order("created_at"),
   ]);
+
+  // A Partner's direct recruits can be a mix of Co-Partners and Squad who
+  // joined them directly (skipping the Co-Partner level) — split by each
+  // child's own type rather than assuming they all match childType, or
+  // Squad get mislabeled as Co-Partners in the badge/summary below.
+  const children = rawChildren ?? [];
+  const coPartnerChildren = children.filter((c) => c.partner_type === "class");
+  const squadChildren = children.filter((c) => c.partner_type === "classmate");
 
   // One level further down, just to show each child's own squad progress —
   // e.g. how many Squad members a Co-Partner has recruited so far.
@@ -96,8 +110,6 @@ export default async function AdminPartnerDetailPage({
     );
   }
 
-  const childLabel = childType ? TYPE_LABEL[childType] : null;
-
   // Teams this partner has actually registered (and paid for) from their
   // roster — a roster bigger than 6 gets filed as multiple teams, in
   // batches of 6, all under the one college row keyed by their team_code.
@@ -109,13 +121,19 @@ export default async function AdminPartnerDetailPage({
         .maybeSingle()
     : { data: null as { id: string } | null };
 
-  const { data: teamRegistrations } = squadCollege
-    ? await admin
+  let teamRegistrationsQuery = squadCollege
+    ? admin
         .from("registrations")
-        .select("id, team_name, status, amount_paise, created_at")
+        .select("id, team_name, status, amount_paise, created_at, event_id")
         .eq("college_id", squadCollege.id)
         .order("created_at")
-    : { data: [] as { id: string; team_name: string | null; status: string; amount_paise: number; created_at: string }[] };
+    : null;
+  if (teamRegistrationsQuery && eventId) {
+    teamRegistrationsQuery = teamRegistrationsQuery.eq("event_id", eventId);
+  }
+  const { data: teamRegistrations } = teamRegistrationsQuery
+    ? await teamRegistrationsQuery
+    : { data: [] as { id: string; team_name: string | null; status: string; amount_paise: number; created_at: string; event_id: string }[] };
 
   const teamIds = (teamRegistrations ?? []).map((t) => t.id);
   const { data: teamParticipants } =
@@ -127,7 +145,30 @@ export default async function AdminPartnerDetailPage({
           .order("is_captain", { ascending: false })
       : { data: [] as { registration_id: string; name: string; is_captain: boolean }[] };
 
-  const totalParticipants = (children ?? []).length;
+  // A Partner shows two badges (Co-Partners recruited, and Squad who
+  // joined them directly); a Co-Partner shows one (their own Squad); a
+  // Squad member shows none — matching the same split used in the
+  // Partner Program applications list.
+  const childBadgeGroups =
+    partner.partner_type === "campus"
+      ? [
+          { label: "Co-Partner", grandchildLabel: TYPE_LABEL.classmate, items: coPartnerChildren },
+          { label: "Squad Member", grandchildLabel: null, items: squadChildren },
+        ]
+      : partner.partner_type === "class"
+        ? [{ label: "Squad Member", grandchildLabel: null, items: squadChildren }]
+        : [];
+
+  const recruitSummary = [
+    coPartnerChildren.length > 0
+      ? `${coPartnerChildren.length} Co-Partner${coPartnerChildren.length === 1 ? "" : "s"}`
+      : null,
+    squadChildren.length > 0 || coPartnerChildren.length === 0
+      ? `${squadChildren.length} Squad member${squadChildren.length === 1 ? "" : "s"}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" and ");
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 px-4 py-6">
@@ -165,16 +206,13 @@ export default async function AdminPartnerDetailPage({
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {childLabel ? (
+              {childBadgeGroups.map((group) => (
                 <PartnerChildrenBadge
+                  key={group.label}
                   partnerName={partner.name}
-                  childLabel={childLabel}
-                  grandchildLabel={
-                    childType && CHILD_TYPE[childType]
-                      ? TYPE_LABEL[CHILD_TYPE[childType]!]
-                      : null
-                  }
-                  items={(children ?? []).map((c) => ({
+                  childLabel={group.label}
+                  grandchildLabel={group.grandchildLabel}
+                  items={group.items.map((c) => ({
                     id: c.id,
                     name: c.name,
                     mobile: c.mobile,
@@ -183,7 +221,7 @@ export default async function AdminPartnerDetailPage({
                     downstream: downstreamCountById.get(c.id) ?? 0,
                   }))}
                 />
-              ) : null}
+              ))}
               {partner.partner_type !== "classmate" && partner.team_code ? (
                 <Button
                   size="sm"
@@ -240,14 +278,20 @@ export default async function AdminPartnerDetailPage({
 
       {partner.team_code ? (
         <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
-          <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-            <CardTitle>Teams registered by {partner.name}</CardTitle>
-            <CardDescription>
-              {totalParticipants} {childLabel ?? "participant"}
-              {totalParticipants === 1 ? "" : "s"} recruited, filed into{" "}
-              {(teamRegistrations ?? []).length} team
-              {(teamRegistrations ?? []).length === 1 ? "" : "s"} of 6 so far.
-            </CardDescription>
+          <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div>
+                <CardTitle>Teams registered by {partner.name}</CardTitle>
+                <CardDescription>
+                  {recruitSummary} recruited, filed into{" "}
+                  {(teamRegistrations ?? []).length} team
+                  {(teamRegistrations ?? []).length === 1 ? "" : "s"} of 6 so far.
+                </CardDescription>
+              </div>
+              <Suspense fallback={<div className="h-9 w-full rounded-lg bg-muted animate-pulse sm:w-[280px]" />}>
+                <EventFilter events={events ?? []} />
+              </Suspense>
+            </div>
           </CardHeader>
           <CardContent className="divide-y divide-border/50 p-0">
             {(teamRegistrations ?? []).length === 0 ? (
