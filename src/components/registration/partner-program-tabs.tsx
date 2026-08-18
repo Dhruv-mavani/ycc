@@ -38,7 +38,7 @@ const PARTNER_TYPES = [
     label: "Squad",
     heading: "Squad Program",
     description:
-      "Apply to join Squad and help us bring events to your classmates. Fill in your details below.",
+      "Apply to join a Squad and play in YCC events under your Partner or Co-Partner. Fill in your details below.",
   },
 ] as const;
 
