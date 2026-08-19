@@ -62,7 +62,7 @@ export default function ReceiptLookupPage() {
         <BackButton className="mb-6 self-start" />
         <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden bg-white">
           <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-6 px-6 sm:px-10 pt-8">
-            <CardTitle className="text-2xl font-bold text-slate-800">Re-download your receipt</CardTitle>
+            <CardTitle className="text-2xl font-bold text-slate-800">Re-download your receipt / ID Card</CardTitle>
             <CardDescription className="text-base mt-2 text-slate-600">
               Enter your unique ID (e.g. CKG1001) or the mobile number you
               registered with.

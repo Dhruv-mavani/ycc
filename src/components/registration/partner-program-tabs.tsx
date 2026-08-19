@@ -114,7 +114,21 @@ export function PartnerProgramTabs({
             }
           />
         </div>
-      ) : null}
+      ) : (
+        <div className="flex justify-center mb-10">
+          <Button
+            variant="outline"
+            className="rounded-full px-8 h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
+            nativeButton={false}
+            render={
+              <Link href="/receipt" className="flex items-center gap-2">
+                <Download className="size-4 text-blue-600" />
+                Download ID Card / Receipt
+              </Link>
+            }
+          />
+        </div>
+      )}
 
       <PartnerProgramApplicationForm
         key={activeId}
