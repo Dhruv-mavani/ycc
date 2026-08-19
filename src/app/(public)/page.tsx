@@ -226,11 +226,11 @@ export default async function HomePage() {
             <div className="lg:w-1/3 flex flex-col justify-between space-y-6 lg:space-y-0 text-center lg:text-left py-1">
               <h2 className="text-3xl min-[400px]:text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
                 108+ PARTNERS.<br />
-                <span className="text-blue-600">5 DISTRICTS.</span><br />
+                <span className="text-blue-600">15 DISTRICTS.</span><br />
                 ONE YCC.
               </h2>
               <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-4">
-                Our growing network of 108+ Partners across 5 districts is helping YCC build a stronger community and expand its reach.
+                Our growing network of 108+ Partners across 15 districts is helping YCC build a stronger community and expand its reach.
               </p>
             </div>
 
@@ -280,7 +280,7 @@ export default async function HomePage() {
           {/* Featured Locally & Globally */}
           {/* Partners List */}
           <div className="mt-24 min-[400px]:mt-32 text-center">
-            <h3 className="text-xl min-[400px]:text-2xl md:text-3xl font-extrabold mb-8 min-[400px]:mb-10 text-slate-900 tracking-tight">BACKED BY THE BEST</h3>
+            <h3 className="text-xl min-[400px]:text-2xl md:text-3xl font-extrabold mb-8 min-[400px]:mb-10 text-slate-900 tracking-tight">BACKED BY <span className="text-blue-600">THE BEST</span></h3>
             <div className="flex flex-wrap justify-center gap-2 min-[400px]:gap-3 sm:gap-4 max-w-5xl mx-auto">
               {["Advrse Marketing", "Pramukh Agro Group", "NPC & Co.", "YCC Group", "Suriya Clothing", "NHC Stocks Market", "Mayur Beverages", "& More"].map((pub, i) => (
                 <div key={i} className="bg-white text-slate-900 font-bold text-[10px] min-[400px]:text-xs sm:text-sm px-3 py-2 min-[400px]:px-5 min-[400px]:py-3 rounded-xl shadow-sm hover:-translate-y-1 transition-transform border border-slate-200 cursor-default">
@@ -444,7 +444,7 @@ export default async function HomePage() {
               <div className="flex flex-col justify-between h-full gap-4">
                 <div className="flex-1 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 md:p-6 shadow-md border border-blue-500 transform transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col justify-center relative overflow-hidden group">
                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <h4 className="text-2xl font-bold text-white relative z-10">50+ Colleges</h4>
+                  <h4 className="text-2xl font-bold text-white relative z-10">10+ Colleges</h4>
                   <p className="text-blue-100 text-sm mt-1 relative z-10">Participating across our network</p>
                 </div>
                 <div className="flex-1 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 md:p-6 shadow-md border border-blue-500 transform transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col justify-center relative overflow-hidden group">
@@ -463,7 +463,7 @@ export default async function HomePage() {
             {/* Large Number Section */}
             <div className="mt-16 sm:mt-24 text-center relative z-10">
               <h2 className="text-5xl sm:text-7xl font-extrabold text-slate-900 tracking-tighter">
-                10,000<span className="text-blue-600">+</span>
+                1000<span className="text-blue-600">+</span>
               </h2>
               <p className="text-slate-600 mt-3 text-base sm:text-lg">
                 Players and spectators engaged across exciting formats like
