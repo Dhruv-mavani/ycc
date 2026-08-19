@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { MessageCircle, CheckCircle2, FileX, AlertTriangle } from "lucide-react";
+import { MessageCircle, CheckCircle2, FileX } from "lucide-react";
 import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
 
 const INSTAGRAM_URL = "https://instagram.com/ycct10";
@@ -242,11 +242,10 @@ export function PartnerProgramApplicationForm({
         <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-6 px-6 sm:px-10 pt-8">
           <div className="flex flex-col min-[480px]:flex-row min-[480px]:items-center gap-2 min-[480px]:gap-3">
             <CardTitle className="text-2xl font-bold text-slate-800">Your details</CardTitle>
-            <div className="flex items-start gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-red-700">
-              <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-blue-700">
               <p className="text-xs font-medium leading-snug">
-                Please double-check every detail before submitting — once
-                submitted, this application cannot be edited or resubmitted.
+                <span className="font-bold block mb-0.5">Hey There! 👋🏻</span>
+                Please make sure everything is correct before you hit &quot;Submit.&quot; Once submitted cannot be edited or resubmitted.
               </p>
             </div>
           </div>
