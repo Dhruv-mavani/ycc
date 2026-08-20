@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Trophy, Download, ChevronDown, Star, Users, CalendarDays, Globe, Map, MapPin, TrendingUp, Plane } from "lucide-react";
+import { Trophy, Download, ChevronDown, Star, Users, CalendarDays, Globe, Map, MapPin, TrendingUp, Plane, Palmtree, Gamepad2, Mic, Music, PartyPopper, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   Card,
@@ -113,7 +113,95 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <section id="events" className="relative w-full py-24 scroll-mt-24 bg-slate-50 border-t border-slate-200 overflow-hidden">
+      {/* Kuchupuchu Kya Benefits Section */}
+      <section className="relative w-full py-20 min-[400px]:py-24 bg-gradient-to-b from-white to-slate-50 overflow-hidden font-sans">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-pink-400/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div className="max-w-6xl mx-auto px-4 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl min-[480px]:text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight uppercase transform -rotate-2 hover:rotate-0 transition-transform duration-300 drop-shadow-sm mb-6">
+              KUCH PUCHU KYA?
+            </h2>
+            <p className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+              Kya aap ready ho Masti, Games, aur Jordar Gifts ke liye? YCC ke saath judo aur apna experience banao unforgettable!
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-[400px]:gap-6 mb-16 max-w-6xl mx-auto h-[600px] overflow-hidden rounded-[2.5rem] relative pointer-events-none group/marquee border border-slate-200/50 bg-slate-50/50 shadow-inner">
+            {/* Top and Bottom Fading Gradients */}
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-50 to-transparent z-10"></div>
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-50 to-transparent z-10"></div>
+
+            {/* Left Column - Scrolling Up */}
+            <div className="flex flex-col gap-4 min-[400px]:gap-6 animate-marquee-vertical pointer-events-auto px-2 min-[400px]:px-6 py-4">
+              {[0, 1, 0, 1].map((idx, i) => {
+                const isGoa = idx === 0;
+                return (
+                  <div key={`left-${i}`} className={`bg-white border border-slate-200/60 rounded-2xl min-[400px]:rounded-3xl p-5 min-[400px]:p-8 shadow-sm hover:shadow-md flex flex-col justify-between group hover:border-${isGoa ? 'blue' : 'indigo'}-300 transition-all flex-none h-[280px]`}>
+                    <div>
+                      <div className={`w-14 h-14 rounded-2xl ${isGoa ? 'bg-blue-50 border-blue-100' : 'bg-indigo-50 border-indigo-100'} flex items-center justify-center mb-6 border group-hover:scale-110 transition-transform`}>
+                        {isGoa ? <Palmtree className="text-blue-600 w-7 h-7" /> : <Gamepad2 className="text-indigo-600 w-7 h-7" />}
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-4">{isGoa ? 'Goa Trip' : 'Lakhon Ke Rewards'}</h3>
+                      <p className="text-slate-600 leading-relaxed font-medium">
+                        {isGoa ? (
+                          <>Kya aap hamare saath <strong className="text-slate-900 font-bold">GOA</strong> ghoomne aana chahte ho? Pack your bags!</>
+                        ) : (
+                          <>Kya aap Games & Quizzes khelkar <strong className="text-slate-900 font-bold">Lakhon ke rewards</strong> aur exciting gifts jeetna chahte ho?</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right Column - Scrolling Down */}
+            <div className="flex flex-col gap-4 min-[400px]:gap-6 animate-marquee-vertical-reverse pointer-events-auto px-2 min-[400px]:px-6 py-4">
+              {[0, 1, 0, 1].map((idx, i) => {
+                const isComedy = idx === 0;
+                return (
+                  <div key={`right-${i}`} className={`bg-white border border-slate-200/60 rounded-2xl min-[400px]:rounded-3xl p-5 min-[400px]:p-8 shadow-sm hover:shadow-md flex flex-col justify-between group hover:border-${isComedy ? 'sky' : 'purple'}-300 transition-all flex-none h-[280px]`}>
+                    <div>
+                      <div className={`w-14 h-14 rounded-2xl ${isComedy ? 'bg-sky-50 border-sky-100' : 'bg-purple-50 border-purple-100'} flex items-center justify-center mb-6 border group-hover:scale-110 transition-transform`}>
+                        {isComedy ? <Mic className="text-sky-600 w-7 h-7" /> : <Music className="text-purple-600 w-7 h-7" />}
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-4">{isComedy ? 'Stand-Up Comedy' : 'Dance Party'}</h3>
+                      <p className="text-slate-600 leading-relaxed font-medium">
+                        {isComedy ? (
+                          <>Kya aap hamare saath <strong className="text-slate-900 font-bold">Stand-Up Comedy</strong> ke shows dekhna chahte ho? LOL, definitely!</>
+                        ) : (
+                          <>Kya aap hamare saath <strong className="text-slate-900 font-bold">Dance Party</strong> mein full-on masti karna chahte ho? Hit the floor!</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
+            {/* Final CTA Card spanning all columns */}
+            <div className="bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/80 via-white to-white border border-slate-200/60 rounded-2xl min-[400px]:rounded-3xl p-8 min-[400px]:p-12 shadow-sm hover:shadow-md group hover:border-blue-300 transition-all relative overflow-hidden text-center mt-2 min-[400px]:mt-4">
+              <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-blue-100/40 rounded-full blur-[100px] pointer-events-none"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <PartyPopper className="w-12 h-12 text-blue-600 mx-auto mb-6 drop-shadow-sm animate-bounce" />
+                <h3 className="text-2xl min-[400px]:text-3xl md:text-4xl font-black text-slate-900 mb-4 uppercase tracking-wide">
+                  Toh Phir Wait Kis Baat Ka?
+                </h3>
+                <p className="text-slate-600 text-sm min-[400px]:text-base md:text-lg mb-8 max-w-2xl mx-auto font-medium leading-relaxed">
+                  Bano hamara partner aur badho hamare saath. Jaldi join karo, participate karo aur game shuru karo! Maja aayega - Guarantee hai! ❤️
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="events" className="relative w-full py-24 scroll-mt-24 bg-slate-50 overflow-hidden">
         {/* Background Grid & Effects */}
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">

@@ -221,3 +221,25 @@
 .animate-marquee-reverse:hover {
   animation-play-state: paused;
 }
+
+@keyframes marquee-vertical {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(calc(-50% - 0.5rem)); } /* Accounts for gap-4 */
+}
+.animate-marquee-vertical {
+  animation: marquee-vertical 12s linear infinite;
+}
+.animate-marquee-vertical:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-vertical-reverse {
+  0% { transform: translateY(calc(-50% - 0.5rem)); }
+  100% { transform: translateY(0); }
+}
+.animate-marquee-vertical-reverse {
+  animation: marquee-vertical-reverse 12s linear infinite;
+}
+.animate-marquee-vertical-reverse:hover {
+  animation-play-state: paused;
+}
