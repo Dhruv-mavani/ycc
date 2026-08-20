@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Trophy, Download, ChevronDown, Star, Users, CalendarDays, Globe, Map, MapPin, TrendingUp, Plane, Palmtree, Gamepad2, Mic, Music, PartyPopper, Sparkles } from "lucide-react";
+import { Trophy, Download, ChevronDown, Star, Users, CalendarDays, Globe, Map, MapPin, TrendingUp, Plane, Palmtree, Gamepad2, Mic, Music, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   Card,
@@ -121,14 +121,6 @@ export default async function HomePage() {
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none"></div>
         
         <div className="max-w-6xl mx-auto px-4 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl min-[480px]:text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight uppercase transform -rotate-2 hover:rotate-0 transition-transform duration-300 drop-shadow-sm mb-6">
-              KUCH PUCHU KYA?
-            </h2>
-            <p className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
-              Kya aap ready ho Masti, Games, aur Jordar Gifts ke liye? YCC ke saath judo aur apna experience banao unforgettable!
-            </p>
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-[400px]:gap-6 mb-16 max-w-6xl mx-auto h-[600px] overflow-hidden rounded-[2.5rem] relative pointer-events-none group/marquee border border-slate-200/50 bg-slate-50/50 shadow-inner">
             {/* Top and Bottom Fading Gradients */}
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-50 to-transparent z-10"></div>
@@ -183,21 +175,6 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
-            {/* Final CTA Card spanning all columns */}
-            <div className="bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/80 via-white to-white border border-slate-200/60 rounded-2xl min-[400px]:rounded-3xl p-8 min-[400px]:p-12 shadow-sm hover:shadow-md group hover:border-blue-300 transition-all relative overflow-hidden text-center mt-2 min-[400px]:mt-4">
-              <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-blue-100/40 rounded-full blur-[100px] pointer-events-none"></div>
-              <div className="relative z-10 flex flex-col items-center">
-                <PartyPopper className="w-12 h-12 text-blue-600 mx-auto mb-6 drop-shadow-sm animate-bounce" />
-                <h3 className="text-2xl min-[400px]:text-3xl md:text-4xl font-black text-slate-900 mb-4 uppercase tracking-wide">
-                  Toh Phir Wait Kis Baat Ka?
-                </h3>
-                <p className="text-slate-600 text-sm min-[400px]:text-base md:text-lg mb-8 max-w-2xl mx-auto font-medium leading-relaxed">
-                  Bano hamara partner aur badho hamare saath. Jaldi join karo, participate karo aur game shuru karo! Maja aayega - Guarantee hai! ❤️
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -532,8 +509,8 @@ export default async function HomePage() {
               <div className="flex flex-col justify-between h-full gap-4">
                 <div className="flex-1 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 md:p-6 shadow-md border border-blue-500 transform transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col justify-center relative overflow-hidden group">
                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <h4 className="text-2xl font-bold text-white relative z-10">10+ Colleges</h4>
-                  <p className="text-blue-100 text-sm mt-1 relative z-10">Participating across our network</p>
+                  <h4 className="text-2xl font-bold text-white relative z-10">Expanding in 14+ Districts</h4>
+                  <p className="text-blue-100 text-sm mt-1 relative z-10">and building more partners</p>
                 </div>
                 <div className="flex-1 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 md:p-6 shadow-md border border-blue-500 transform transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col justify-center relative overflow-hidden group">
                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
