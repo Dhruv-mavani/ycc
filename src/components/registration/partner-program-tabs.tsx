@@ -15,6 +15,11 @@ interface ReferrerOption {
   type?: "campus" | "class";
 }
 
+interface CollegeOption {
+  id: string;
+  name: string;
+}
+
 const PARTNER_TYPES = [
   {
     id: "campus",
@@ -46,10 +51,12 @@ export function PartnerProgramTabs({
   initialType,
   campusPartners,
   classPartners,
+  colleges,
 }: {
   initialType: (typeof PARTNER_TYPES)[number]["id"];
   campusPartners: ReferrerOption[];
   classPartners: ReferrerOption[];
+  colleges: CollegeOption[];
 }) {
   const router = useRouter();
   const [activeId, setActiveId] =
@@ -135,6 +142,7 @@ export function PartnerProgramTabs({
         partnerType={activeId}
         referrerOptions={referrerOptions}
         referrerLabel={referrerLabel}
+        colleges={colleges}
       />
     </div>
   );

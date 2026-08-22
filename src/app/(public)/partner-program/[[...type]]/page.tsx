@@ -24,7 +24,7 @@ export default async function PartnerProgramPage({
   if (slug && !partnerType) notFound();
 
   const supabase = await createClient();
-  const [{ data: campusPartners }, { data: classPartners }] = await Promise.all([
+  const [{ data: campusPartners }, { data: classPartners }, { data: colleges }] = await Promise.all([
     supabase
       .from("partner_program_applications")
       .select("id, name, team_code")
@@ -37,6 +37,7 @@ export default async function PartnerProgramPage({
       .eq("partner_type", "class")
       .eq("status", "approved")
       .order("name"),
+    supabase.from("colleges").select("id, name").eq("is_public", true).order("name"),
   ]);
 
   return (
@@ -51,6 +52,7 @@ export default async function PartnerProgramPage({
           initialType={partnerType}
           campusPartners={campusPartners ?? []}
           classPartners={classPartners ?? []}
+          colleges={colleges ?? []}
         />
       </div>
     </div>

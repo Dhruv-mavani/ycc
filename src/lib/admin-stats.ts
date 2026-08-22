@@ -209,6 +209,8 @@ export interface PartnerSquadReadiness {
   totalParticipants: number;
   teamsRegistered: number;
   revenuePaise: number;
+  /** The partner's own real college (partner_program_applications.college_id) — not to be confused with the pseudo-college keyed by their team_code above. */
+  collegeName: string | null;
 }
 
 /**
@@ -225,10 +227,19 @@ export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[
 
   const { data: partners } = await admin
     .from("partner_program_applications")
-    .select("id, name, partner_type, team_code")
+    .select("id, name, partner_type, team_code, college_id")
     .in("partner_type", ["campus", "class"])
     .eq("status", "approved")
     .order("name");
+
+  const realCollegeIds = [
+    ...new Set((partners ?? []).map((p) => p.college_id).filter((id): id is string => !!id)),
+  ];
+  const { data: realColleges } =
+    realCollegeIds.length > 0
+      ? await admin.from("colleges").select("id, name").in("id", realCollegeIds)
+      : { data: [] as { id: string; name: string }[] };
+  const realCollegeNameById = new Map((realColleges ?? []).map((c) => [c.id, c.name]));
 
   const partnerIds = (partners ?? []).map((p) => p.id);
 
@@ -297,6 +308,7 @@ export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[
       totalParticipants: coPartners + directSquad,
       teamsRegistered: teams?.count ?? 0,
       revenuePaise: teams?.revenuePaise ?? 0,
+      collegeName: p.college_id ? (realCollegeNameById.get(p.college_id) ?? null) : null,
     };
   });
 }

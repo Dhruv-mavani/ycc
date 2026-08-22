@@ -19,7 +19,14 @@ interface PartnerProgramApplication {
   status: PartnerApplicationStatus;
   referred_by_id: string | null;
   referredByName: string | null;
+  college_id: string | null;
+  collegeName: string | null;
   created_at: string;
+}
+
+interface CollegeOption {
+  id: string;
+  name: string;
 }
 
 const PARTNER_TYPES = [
@@ -53,8 +60,10 @@ function groupByReferrer(
 
 export function PartnerProgramAdminTabs({
   applications,
+  colleges,
 }: {
   applications: PartnerProgramApplication[];
+  colleges: CollegeOption[];
 }) {
   const [activeId, setActiveId] =
     useState<(typeof PARTNER_TYPES)[number]["id"]>("campus");
@@ -121,6 +130,7 @@ export function PartnerProgramAdminTabs({
         applications={filteredApplications}
         activeType={activeId}
         childGroups={childGroups}
+        colleges={colleges}
       />
     </div>
   );

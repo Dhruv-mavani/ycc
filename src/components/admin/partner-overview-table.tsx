@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Table,
   TableBody,
@@ -28,24 +29,49 @@ const TYPE_LABEL: Record<"campus" | "class", string> = {
   class: "YCC Co-Partner",
 };
 
+const UNASSIGNED_COLLEGE = "__unassigned__";
+
 export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }) {
   const [activeType, setActiveType] = useState<"campus" | "class">("campus");
-  const filtered = data.filter((p) => p.partnerType === activeType);
+  const [collegeFilter, setCollegeFilter] = useState<string>("all");
+
+  const collegeOptions = [...new Set(data.map((p) => p.collegeName).filter((n): n is string => !!n))].sort();
+  const hasUnassigned = data.some((p) => !p.collegeName);
+
+  const filtered = data.filter((p) => {
+    if (p.partnerType !== activeType) return false;
+    if (collegeFilter === "all") return true;
+    if (collegeFilter === UNASSIGNED_COLLEGE) return !p.collegeName;
+    return p.collegeName === collegeFilter;
+  });
 
   return (
     <div className="min-w-0">
       <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/30 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-        <Select value={activeType} onValueChange={(v) => setActiveType(v as "campus" | "class")}>
-          <SelectTrigger className="w-full sm:w-[220px]">
-            <SelectValue placeholder="YCC Partner">
-              {(v: string | null) => TYPE_LABEL[(v as "campus" | "class") ?? "campus"]}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="campus">YCC Partner</SelectItem>
-            <SelectItem value="class">YCC Co-Partner</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col min-[480px]:flex-row gap-2 w-full sm:w-auto">
+          <Select value={activeType} onValueChange={(v) => setActiveType(v as "campus" | "class")}>
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="YCC Partner">
+                {(v: string | null) => TYPE_LABEL[(v as "campus" | "class") ?? "campus"]}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="campus">YCC Partner</SelectItem>
+              <SelectItem value="class">YCC Co-Partner</SelectItem>
+            </SelectContent>
+          </Select>
+          <SearchableSelect
+            value={collegeFilter}
+            onChange={(v) => setCollegeFilter(v ?? "all")}
+            placeholder="Filter by college"
+            className="w-full sm:w-[220px]"
+            options={[
+              { value: "all", label: "All colleges" },
+              ...(hasUnassigned ? [{ value: UNASSIGNED_COLLEGE, label: "No college set" }] : []),
+              ...collegeOptions.map((name) => ({ value: name, label: name })),
+            ]}
+          />
+        </div>
         <p className="text-sm text-muted-foreground">
           Total {TYPE_LABEL[activeType]}s: <span className="font-semibold text-foreground">{filtered.length}</span>
         </p>

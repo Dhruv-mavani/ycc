@@ -10,6 +10,7 @@ const partnerProgramFieldsSchema = z.object({
   age: ageSchema,
   gender: genderSchema,
   instagramHandle: z.string().trim().min(1, "Required").max(100),
+  collegeId: z.string().uuid("Select your college"),
   referredBy: z.string().trim().max(150).optional(),
   agreedToTerms: z.boolean().refine((v) => v === true, {
     message: "You must agree to the Partner Program terms to continue",

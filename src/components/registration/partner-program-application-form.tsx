@@ -69,14 +69,21 @@ interface ReferrerOption {
   type?: "campus" | "class";
 }
 
+interface CollegeOption {
+  id: string;
+  name: string;
+}
+
 export function PartnerProgramApplicationForm({
   partnerType,
   referrerOptions,
   referrerLabel,
+  colleges,
 }: {
   partnerType: PartnerType;
   referrerOptions: ReferrerOption[];
   referrerLabel: string;
+  colleges: CollegeOption[];
 }) {
   const [submitted, setSubmitted] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
@@ -98,6 +105,7 @@ export function PartnerProgramApplicationForm({
       email: "",
       mobile: "",
       instagramHandle: "",
+      collegeId: "",
       referredBy: "",
       referredById: undefined,
       agreedToTerms: false,
@@ -300,6 +308,21 @@ export function PartnerProgramApplicationForm({
             error={errors.instagramHandle?.message}
           >
             <Input {...register("instagramHandle")} placeholder="yourhandle" />
+          </Field>
+          <Field label="College" error={errors.collegeId?.message}>
+            <Controller
+              control={control}
+              name="collegeId"
+              render={({ field }) => (
+                <SearchableSelect
+                  value={field.value ?? null}
+                  onChange={(v) => field.onChange(v ?? "")}
+                  placeholder="Search for your college..."
+                  emptyText="No match found."
+                  options={colleges.map((c) => ({ value: c.id, label: c.name }))}
+                />
+              )}
+            />
           </Field>
           {partnerType === "campus" ? (
             <Field

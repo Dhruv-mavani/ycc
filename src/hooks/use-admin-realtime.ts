@@ -29,6 +29,7 @@ export interface RealtimePartnerProgramRow {
   agreed_to_terms: boolean;
   partner_type: PartnerType;
   status: PartnerApplicationStatus;
+  college_id: string | null;
   created_at: string;
 }
 

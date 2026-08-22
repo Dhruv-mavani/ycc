@@ -40,6 +40,8 @@ interface PartnerProgramApplication {
   status: PartnerApplicationStatus;
   referred_by_id: string | null;
   referredByName: string | null;
+  college_id: string | null;
+  collegeName: string | null;
   created_at: string;
 }
 
@@ -49,14 +51,21 @@ interface ChildGroup {
   map: Map<string, PartnerProgramApplication[]>;
 }
 
+interface CollegeOption {
+  id: string;
+  name: string;
+}
+
 export function PartnerProgramApplicationsList({
   applications,
   activeType,
   childGroups = [],
+  colleges,
 }: {
   applications: PartnerProgramApplication[];
   activeType: PartnerType;
   childGroups?: ChildGroup[];
+  colleges: CollegeOption[];
 }) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
@@ -77,7 +86,14 @@ export function PartnerProgramApplicationsList({
       if (row.partner_type !== activeType) return;
       setItems((prev) => {
         if (prev.some((a) => a.id === row.id)) return prev;
-        return [{ ...row, referredByName: null }, ...prev];
+        return [
+          {
+            ...row,
+            referredByName: null,
+            collegeName: colleges.find((c) => c.id === row.college_id)?.name ?? null,
+          },
+          ...prev,
+        ];
       });
     },
   });
@@ -211,7 +227,7 @@ export function PartnerProgramApplicationsList({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:grid-cols-4 sm:divide-x sm:divide-border">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 sm:divide-x sm:divide-border">
                 <div>
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Age
@@ -223,6 +239,12 @@ export function PartnerProgramApplicationsList({
                     Gender
                   </p>
                   <p className="font-medium capitalize">{app.gender ?? "—"}</p>
+                </div>
+                <div className="sm:pl-4">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                    College
+                  </p>
+                  <p className="font-medium">{app.collegeName ?? "—"}</p>
                 </div>
                 <div className="sm:pl-4">
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
@@ -283,13 +305,22 @@ export function PartnerProgramApplicationsList({
 
       <EditPartnerProgramDialog
         application={editTarget}
+        colleges={colleges}
         open={editTarget !== null}
         onOpenChange={(open) => {
           if (!open) setEditTarget(null);
         }}
         onSaved={(updated) => {
           setItems((prev) =>
-            prev.map((a) => (a.id === updated.id ? { ...a, ...updated } : a)),
+            prev.map((a) =>
+              a.id === updated.id
+                ? {
+                    ...a,
+                    ...updated,
+                    collegeName: colleges.find((c) => c.id === updated.college_id)?.name ?? null,
+                  }
+                : a,
+            ),
           );
         }}
       />

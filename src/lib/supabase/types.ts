@@ -261,6 +261,7 @@ export interface Database {
           reviewed_by: string | null;
           referred_by: string | null;
           referred_by_id: string | null;
+          college_id: string | null;
           team: PartnerTeam | null;
           team_code: string | null;
           unique_id: string | null;
@@ -290,6 +291,7 @@ export interface Database {
           reviewed_by?: string | null;
           referred_by?: string | null;
           referred_by_id?: string | null;
+          college_id?: string | null;
           team?: PartnerTeam | null;
           team_code?: string | null;
           unique_id?: string | null;

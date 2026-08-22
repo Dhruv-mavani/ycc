@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   partnerProgramApplicationUpdateSchema,
   type PartnerProgramApplicationUpdateInput,
@@ -41,16 +42,24 @@ interface PartnerProgramApplication {
   agreed_to_terms: boolean;
   partner_type: PartnerType;
   status: PartnerApplicationStatus;
+  college_id: string | null;
   created_at: string;
+}
+
+interface CollegeOption {
+  id: string;
+  name: string;
 }
 
 export function EditPartnerProgramDialog({
   application,
+  colleges,
   open,
   onOpenChange,
   onSaved,
 }: {
   application: PartnerProgramApplication | null;
+  colleges: CollegeOption[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: (updated: PartnerProgramApplication) => void;
@@ -74,6 +83,7 @@ export function EditPartnerProgramDialog({
       age: application.age ?? undefined,
       gender: (application.gender ?? undefined) as PartnerProgramApplicationUpdateInput["gender"],
       instagramHandle: application.instagram_handle,
+      collegeId: application.college_id ?? undefined,
       referredBy: application.referred_by ?? "",
       agreedToTerms: application.agreed_to_terms,
     });
@@ -152,6 +162,21 @@ export function EditPartnerProgramDialog({
           </div>
           <Field label="Instagram handle" error={errors.instagramHandle?.message}>
             <Input {...register("instagramHandle")} />
+          </Field>
+          <Field label="College" error={errors.collegeId?.message}>
+            <Controller
+              control={control}
+              name="collegeId"
+              render={({ field }) => (
+                <SearchableSelect
+                  value={field.value ?? null}
+                  onChange={(v) => field.onChange(v ?? "")}
+                  placeholder="Search for college..."
+                  emptyText="No match found."
+                  options={colleges.map((c) => ({ value: c.id, label: c.name }))}
+                />
+              )}
+            />
           </Field>
           <Field label="Referred by (optional)" error={errors.referredBy?.message}>
             <Input {...register("referredBy")} />
