@@ -145,7 +145,8 @@ export interface Database {
         Row: {
           id: string;
           registration_id: string;
-          razorpay_order_id: string;
+          razorpay_order_id: string | null;
+          razorpay_payment_link_id: string | null;
           razorpay_payment_id: string | null;
           razorpay_signature: string | null;
           amount_paise: number;
@@ -157,7 +158,8 @@ export interface Database {
         Insert: {
           id?: string;
           registration_id: string;
-          razorpay_order_id: string;
+          razorpay_order_id?: string | null;
+          razorpay_payment_link_id?: string | null;
           razorpay_payment_id?: string | null;
           razorpay_signature?: string | null;
           amount_paise: number;
