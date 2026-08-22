@@ -84,10 +84,11 @@ async function DashboardData({
   eventId?: string;
   range?: DateRange;
 }) {
-  const [overview, trend, squadReadiness] = await Promise.all([
+  const [overview, trend, squadReadiness, { data: colleges }] = await Promise.all([
     getEventOverview(eventId || undefined, range),
     getRegistrationsOverTime(eventId || undefined, range),
     getPartnerSquadReadiness(),
+    createAdminClient().from("colleges").select("id, name").eq("is_public", true).order("name"),
   ]);
 
   return (
@@ -223,7 +224,7 @@ async function DashboardData({
             they&apos;ve registered so far.
           </CardDescription>
         </CardHeader>
-        <PartnerOverviewTable data={squadReadiness} />
+        <PartnerOverviewTable data={squadReadiness} colleges={colleges ?? []} />
       </Card>
     </div>
   );

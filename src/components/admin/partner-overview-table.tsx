@@ -31,11 +31,21 @@ const TYPE_LABEL: Record<"campus" | "class", string> = {
 
 const UNASSIGNED_COLLEGE = "__unassigned__";
 
-export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }) {
+interface CollegeOption {
+  id: string;
+  name: string;
+}
+
+export function PartnerOverviewTable({
+  data,
+  colleges,
+}: {
+  data: PartnerSquadReadiness[];
+  colleges: CollegeOption[];
+}) {
   const [activeType, setActiveType] = useState<"campus" | "class">("campus");
   const [collegeFilter, setCollegeFilter] = useState<string>("all");
 
-  const collegeOptions = [...new Set(data.map((p) => p.collegeName).filter((n): n is string => !!n))].sort();
   const hasUnassigned = data.some((p) => !p.collegeName);
 
   const filtered = data.filter((p) => {
@@ -68,7 +78,7 @@ export function PartnerOverviewTable({ data }: { data: PartnerSquadReadiness[] }
             options={[
               { value: "all", label: "All colleges" },
               ...(hasUnassigned ? [{ value: UNASSIGNED_COLLEGE, label: "No college set" }] : []),
-              ...collegeOptions.map((name) => ({ value: name, label: name })),
+              ...colleges.map((c) => ({ value: c.name, label: c.name })),
             ]}
           />
         </div>
