@@ -243,3 +243,29 @@
 .animate-marquee-vertical-reverse:hover {
   animation-play-state: paused;
 }
+/* Quiz Game (/quiz-game) — answer entrance + selected-lock blink.
+   Interaction pattern adapted from the KBC-style reference at
+   https://github.com/devxprite/kbc (MIT licensed), recolored to match
+   YCC's own theme instead of its violet/amber palette. */
+@keyframes quiz-answer-flip-in {
+  from {
+    opacity: 0;
+    transform: rotateX(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+.animate-quiz-answer-flip-in {
+  animation: quiz-answer-flip-in 0.4s ease-out both;
+  transform-style: preserve-3d;
+}
+
+@keyframes quiz-selected-blink {
+  0%, 45%, 82% { opacity: 1; }
+  65%, 100% { opacity: 0.55; }
+}
+.animate-quiz-selected-blink {
+  animation: quiz-selected-blink 0.9s 1;
+}
