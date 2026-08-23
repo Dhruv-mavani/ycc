@@ -241,9 +241,11 @@ export function InvitationLetterPage({
         </>
       )}
 
-      <Text style={[styles.codeLabel, { top: ART_TOP + s(BLOCK_Y + 388) }]}>
-        {code}
-      </Text>
+      {isSquad ? null : (
+        <Text style={[styles.codeLabel, { top: ART_TOP + s(BLOCK_Y + 388) }]}>
+          {code}
+        </Text>
+      )}
     </Page>
   );
 }
