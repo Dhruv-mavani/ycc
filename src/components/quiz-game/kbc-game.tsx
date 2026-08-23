@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import {
   Trophy,
   Users,
   Shuffle,
-  Phone,
+  Brain,
   DoorOpen,
   Lock,
   Eye,
@@ -40,7 +40,20 @@ import { QUESTION_TIERS, LEVELS_PER_TIER, TOTAL_LEVELS, type QuizQuestion } from
 // ---------------------------------------------------------------------------
 
 const OPTION_LABELS = ["A", "B", "C", "D"] as const;
-const PHONE_A_FRIEND_SECONDS = 60;
+
+// Ask a Genius always points straight at the correct option — the "genius"
+// bit is just flavor text around a direct reveal, no randomness on
+// correctness (unlike Audience Poll, which only leans toward it).
+const GENIUS_PHRASES = [
+  "Haha, I don't know... but try option {answer}!",
+  "I'm no expert, but my gut says option {answer}.",
+  "Honestly? No clue. Going with option {answer} anyway.",
+  "Genius mode activated. The answer is option {answer}, trust me.",
+  "I skipped class that day, but I'm pretty sure it's option {answer}.",
+  "Let me consult my crystal ball... it says option {answer}.",
+  "Ask a genius, get a genius answer: option {answer}.",
+  "I googled it in my head. Option {answer}, final answer.",
+];
 
 // Royalty-free, attribution-not-required sound effects from Mixkit
 // (https://mixkit.co/license/ — Sound Effects Free License).
@@ -48,7 +61,6 @@ const SFX = {
   correct: "/quiz-game/sounds/correct.mp3",
   wrong: "/quiz-game/sounds/wrong.mp3",
   applause: "/quiz-game/sounds/applause.mp3",
-  tick: "/quiz-game/sounds/tick.mp3",
 };
 
 function playSound(src: string) {
@@ -113,9 +125,9 @@ interface GameState {
   locked: boolean;
   revealed: boolean;
   hiddenOptions: number[];
-  lifelinesUsed: { fiftyFifty: boolean; audiencePoll: boolean; phoneAFriend: boolean; flip: boolean };
+  lifelinesUsed: { fiftyFifty: boolean; audiencePoll: boolean; askGenius: boolean; flip: boolean };
   audiencePoll: number[] | null;
-  phoneAFriendOpen: boolean;
+  geniusPhrase: string | null;
   questionsCorrect: number;
 }
 
@@ -130,8 +142,8 @@ type Action =
   | { type: "USE_FIFTY_FIFTY" }
   | { type: "USE_AUDIENCE_POLL" }
   | { type: "CLOSE_AUDIENCE_POLL" }
-  | { type: "USE_PHONE_A_FRIEND" }
-  | { type: "CLOSE_PHONE_A_FRIEND" }
+  | { type: "USE_ASK_GENIUS" }
+  | { type: "CLOSE_ASK_GENIUS" }
   | { type: "USE_FLIP" }
   | { type: "RESTART" };
 
@@ -149,9 +161,9 @@ function initialState(): GameState {
     locked: false,
     revealed: false,
     hiddenOptions: [],
-    lifelinesUsed: { fiftyFifty: false, audiencePoll: false, phoneAFriend: false, flip: false },
+    lifelinesUsed: { fiftyFifty: false, audiencePoll: false, askGenius: false, flip: false },
     audiencePoll: null,
-    phoneAFriendOpen: false,
+    geniusPhrase: null,
     questionsCorrect: 0,
   };
 }
@@ -186,6 +198,7 @@ function reducer(state: GameState, action: Action): GameState {
         revealed: false,
         hiddenOptions: [],
         audiencePoll: null,
+        geniusPhrase: null,
         questionsCorrect,
       };
     }
@@ -214,15 +227,18 @@ function reducer(state: GameState, action: Action): GameState {
     }
     case "CLOSE_AUDIENCE_POLL":
       return { ...state, audiencePoll: null };
-    case "USE_PHONE_A_FRIEND":
-      if (state.lifelinesUsed.phoneAFriend || state.locked) return state;
+    case "USE_ASK_GENIUS": {
+      if (state.lifelinesUsed.askGenius || state.locked) return state;
+      const correctLabel = OPTION_LABELS[state.optionOrder.indexOf(currentQuestion(state).correctIndex)];
+      const template = GENIUS_PHRASES[Math.floor(Math.random() * GENIUS_PHRASES.length)];
       return {
         ...state,
-        phoneAFriendOpen: true,
-        lifelinesUsed: { ...state.lifelinesUsed, phoneAFriend: true },
+        geniusPhrase: template.replace("{answer}", correctLabel),
+        lifelinesUsed: { ...state.lifelinesUsed, askGenius: true },
       };
-    case "CLOSE_PHONE_A_FRIEND":
-      return { ...state, phoneAFriendOpen: false };
+    }
+    case "CLOSE_ASK_GENIUS":
+      return { ...state, geniusPhrase: null };
     case "USE_FLIP": {
       if (state.lifelinesUsed.flip || state.locked) return state;
       const tier = tierForLevel(state.levelIndex);
@@ -235,6 +251,7 @@ function reducer(state: GameState, action: Action): GameState {
         selected: null,
         hiddenOptions: [],
         audiencePoll: null,
+        geniusPhrase: null,
         lifelinesUsed: { ...state.lifelinesUsed, flip: true },
       };
     }
@@ -272,9 +289,9 @@ export function KbcGame() {
         hidden={state.hiddenOptions}
       />
 
-      <PhoneAFriendDialog
-        open={state.phoneAFriendOpen}
-        onClose={() => dispatch({ type: "CLOSE_PHONE_A_FRIEND" })}
+      <AskGeniusDialog
+        phrase={state.geniusPhrase}
+        onClose={() => dispatch({ type: "CLOSE_ASK_GENIUS" })}
       />
 
       {/* Top bar */}
@@ -355,11 +372,11 @@ export function KbcGame() {
             onClick={() => dispatch({ type: "USE_AUDIENCE_POLL" })}
           />
           <LifelineButton
-            icon={<Phone className="size-4" />}
-            label="Phone a Friend"
-            used={state.lifelinesUsed.phoneAFriend}
-            disabled={state.lifelinesUsed.phoneAFriend || state.locked}
-            onClick={() => dispatch({ type: "USE_PHONE_A_FRIEND" })}
+            icon={<Brain className="size-4" />}
+            label="Ask a Genius"
+            used={state.lifelinesUsed.askGenius}
+            disabled={state.lifelinesUsed.askGenius || state.locked}
+            onClick={() => dispatch({ type: "USE_ASK_GENIUS" })}
           />
           <LifelineButton
             icon={<Shuffle className="size-4" />}
@@ -562,8 +579,8 @@ function AudiencePollDialog({
           <DialogTitle>Audience Poll Results</DialogTitle>
         </DialogHeader>
         {/* Only mounted while showing results, so the bar-grow transition
-            below re-triggers fresh every time (see PhoneAFriendTimer for
-            the same "conditional mount instead of reset effect" pattern). */}
+            below re-triggers fresh every time instead of needing a reset
+            effect. */}
         {poll ? <AudiencePollBars poll={poll} hidden={hidden} /> : null}
       </DialogContent>
     </Dialog>
@@ -604,75 +621,18 @@ function AudiencePollBars({ poll, hidden }: { poll: number[]; hidden: number[] }
   );
 }
 
-function PhoneAFriendDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+function AskGeniusDialog({ phrase, onClose }: { phrase: string | null; onClose: () => void }) {
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={phrase !== null} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-xs">
         <DialogHeader>
-          <DialogTitle>Phone a Friend</DialogTitle>
-          <DialogDescription>
-            Let them call their friend now. Start the timer the moment the call connects —
-            they have 60 seconds to talk before it ends.
-          </DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            <Brain className="size-5 text-blue-600" /> Ask a Genius
+          </DialogTitle>
+          <DialogDescription>Read this out loud to the contestant.</DialogDescription>
         </DialogHeader>
-        {/* Only mounted while the dialog is open, so every fresh call starts
-            its own clean timer state without needing a reset effect. */}
-        {open ? <PhoneAFriendTimer /> : null}
+        <p className="text-center text-lg font-bold text-slate-900 py-2">{phrase}</p>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function PhoneAFriendTimer() {
-  const [secondsLeft, setSecondsLeft] = useState(PHONE_A_FRIEND_SECONDS);
-  const [running, setRunning] = useState(false);
-  const tickAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    if (!running || secondsLeft <= 0) return;
-    const id = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
-    return () => clearTimeout(id);
-  }, [running, secondsLeft]);
-
-  const timeUp = running && secondsLeft <= 0;
-
-  useEffect(() => {
-    if (running && !timeUp) {
-      const audio = tickAudioRef.current ?? new Audio(SFX.tick);
-      audio.loop = true;
-      tickAudioRef.current = audio;
-      audio.play().catch(() => {});
-    } else {
-      tickAudioRef.current?.pause();
-    }
-    return () => {
-      tickAudioRef.current?.pause();
-    };
-  }, [running, timeUp]);
-
-  return (
-    <div className="flex flex-col items-center gap-4 py-2">
-      <div
-        className={cn(
-          "flex size-28 items-center justify-center rounded-full border-4 text-4xl font-black tabular-nums",
-          timeUp ? "border-red-400 bg-red-50 text-red-600" : "border-blue-200 bg-blue-50 text-blue-700",
-        )}
-      >
-        0:{secondsLeft.toString().padStart(2, "0")}
-      </div>
-      {timeUp ? (
-        <p className="text-sm font-bold text-red-600">Time&apos;s up — end the call now!</p>
-      ) : !running ? (
-        <Button
-          size="lg"
-          onClick={() => setRunning(true)}
-          className="h-11 rounded-full px-6 text-sm font-bold gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500"
-        >
-          <Phone className="size-4" /> Start Timer
-        </Button>
-      ) : (
-        <p className="text-sm text-slate-500">Call in progress…</p>
-      )}
-    </div>
   );
 }
