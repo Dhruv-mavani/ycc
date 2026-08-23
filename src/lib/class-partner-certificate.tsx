@@ -5,7 +5,7 @@ import { InvitationLetterPage } from "@/lib/invitation-letter";
 export interface ClassPartnerCertificateData {
   name: string;
   teamCode: string;
-  partnerType: "campus" | "class";
+  partnerType: "campus" | "class" | "classmate";
 }
 
 function ClassPartnerCertificateDocument({

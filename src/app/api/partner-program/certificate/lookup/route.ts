@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     .from("partner_program_applications")
     .select("id")
     .eq("mobile", mobile)
-    .in("partner_type", ["campus", "class"])
+    .in("partner_type", ["campus", "class", "classmate"])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

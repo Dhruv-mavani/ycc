@@ -176,8 +176,6 @@ export function PartnerProgramApplicationForm({
       const data: { applicationId: string } = await res.json();
       setApplicationId(data.applicationId);
       setSubmitted(true);
-
-      if (partnerType === "classmate") return;
       void downloadCertificate(data.applicationId);
     } catch {
       toast.error("Network error — please check your connection and try again");
@@ -190,29 +188,21 @@ export function PartnerProgramApplicationForm({
       <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden bg-white text-center py-10">
         <CardHeader>
           <CardTitle className="text-3xl font-extrabold text-slate-800 mb-2">
-            {partnerType === "classmate"
-              ? "Thanks for applying!"
-              : "You're in!"}
+            {partnerType === "classmate" ? "Welcome to the Squad!" : "You're in!"}
           </CardTitle>
           <CardDescription>
-            {partnerType === "classmate" ? (
-              "We've received your application. Our team will reach out to you soon."
-            ) : (
-              <>
-                Your certificate is downloading now. Missed it? Use the
-                button below, or re-download it any time from{" "}
-                <Link
-                  href="/partner-program/certificate"
-                  className="font-medium text-primary underline underline-offset-2"
-                >
-                  the certificate lookup page
-                </Link>{" "}
-                with your mobile number.
-              </>
-            )}
+            Your certificate is downloading now. Missed it? Use the
+            button below, or re-download it any time from{" "}
+            <Link
+              href="/partner-program/certificate"
+              className="font-medium text-primary underline underline-offset-2"
+            >
+              the certificate lookup page
+            </Link>{" "}
+            with your mobile number.
           </CardDescription>
         </CardHeader>
-        {partnerType !== "classmate" && applicationId ? (
+        {applicationId ? (
           <CardContent>
             <Button
               variant="outline"

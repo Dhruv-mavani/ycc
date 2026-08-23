@@ -167,24 +167,22 @@ export function PartnerProgramApplicationsList({
                       </Badge>
                     );
                   })}
-                  {app.partner_type !== "classmate" ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 w-7 p-0"
-                      nativeButton={false}
-                      aria-label="View certificate"
-                      render={
-                        <a
-                          href={`/api/partner-program/certificate/${app.id}/download?view=true`}
-                          target="_blank"
-                          rel="noreferrer"
-                        />
-                      }
-                    >
-                      <Award className="size-3.5" />
-                    </Button>
-                  ) : null}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 w-7 p-0"
+                    nativeButton={false}
+                    aria-label="View certificate"
+                    render={
+                      <a
+                        href={`/api/partner-program/certificate/${app.id}/download?view=true`}
+                        target="_blank"
+                        rel="noreferrer"
+                      />
+                    }
+                  >
+                    <Award className="size-3.5" />
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"

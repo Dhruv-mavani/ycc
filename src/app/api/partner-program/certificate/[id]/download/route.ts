@@ -21,15 +21,21 @@ export async function GET(
 
   const { data: application } = await admin
     .from("partner_program_applications")
-    .select("name, team_code, partner_type")
+    .select("name, team_code, unique_id, partner_type")
     .eq("id", id)
     .maybeSingle();
 
-  if (!application || application.partner_type === "classmate") {
+  if (!application) {
     return NextResponse.json({ error: "Certificate not found" }, { status: 404 });
   }
 
-  if (!application.team_code) {
+  const isSquad = application.partner_type === "classmate";
+  // Squad's certificate shows their own personal ID (not a recruiting
+  // code — they don't recruit anyone), so it depends on allocate_partner_
+  // unique_id having run instead of just the team_code assignment.
+  const code = isSquad ? application.unique_id : application.team_code;
+
+  if (!code) {
     return NextResponse.json(
       { error: "Your code is still being generated — try again in a moment" },
       { status: 404 },
@@ -38,8 +44,8 @@ export async function GET(
 
   const pdfBuffer = await renderClassPartnerCertificatePdf({
     name: application.name,
-    teamCode: application.team_code,
-    partnerType: application.partner_type as "campus" | "class",
+    teamCode: code,
+    partnerType: application.partner_type as "campus" | "class" | "classmate",
   });
 
   return new NextResponse(new Uint8Array(pdfBuffer), {

@@ -176,7 +176,7 @@ function NameUnderline({ top }: { top: number }) {
 export interface InvitationLetterData {
   name: string;
   code: string;
-  partnerType: "campus" | "class";
+  partnerType: "campus" | "class" | "classmate";
 }
 
 export function InvitationLetterPage({
@@ -184,7 +184,8 @@ export function InvitationLetterPage({
   code,
   partnerType,
 }: InvitationLetterData) {
-  const roleLabel = partnerType === "class" ? "Co-Partner" : "Partner";
+  const isSquad = partnerType === "classmate";
+  const roleLabel = isSquad ? "Squad Member" : partnerType === "class" ? "Co-Partner" : "Partner";
   return (
     <Page size="A4" style={styles.page}>
       {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
@@ -194,25 +195,51 @@ export function InvitationLetterPage({
       <Text style={styles.name}>{name}</Text>
       <NameUnderline top={ART_TOP + s(BLOCK_Y + 92)} />
 
-      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 122) }]}>
-        You are warmly invited to join the YCC Partner Program as an
-        official YCC {roleLabel}.
-      </Text>
+      {isSquad ? (
+        <>
+          <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 122) }]}>
+            Thank you for registering with YCC! You&apos;re now officially
+            part of the YCC Squad, and we&apos;re excited to have you with
+            us on the ground.
+          </Text>
 
-      <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 178) }]}>
-        We look forward to building a strong collaboration and growing
-        together through YCC events, campaigns, tournaments and special
-        partner activities.
-      </Text>
+          <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 178) }]}>
+            Stay tuned and stay active — match schedules, event details and
+            every update will be shared right here, so keep an eye on your
+            phone and our official channels.
+          </Text>
 
-      <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
-        <Text style={styles.noticeTitle}>Share Your Code</Text>
-        <Text style={styles.noticeBody}>
-          Pass your code to everyone joining under you — it&apos;s how
-          they&apos;ll register. Keep this certificate handy until your
-          squad is complete!
-        </Text>
-      </View>
+          <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
+            <Text style={styles.noticeTitle}>Stay Connected</Text>
+            <Text style={styles.noticeBody}>
+              Join our WhatsApp channel and follow us on Instagram so you
+              never miss a match day, event, or announcement.
+            </Text>
+          </View>
+        </>
+      ) : (
+        <>
+          <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 122) }]}>
+            You are warmly invited to join the YCC Partner Program as an
+            official YCC {roleLabel}.
+          </Text>
+
+          <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 178) }]}>
+            We look forward to building a strong collaboration and growing
+            together through YCC events, campaigns, tournaments and special
+            partner activities.
+          </Text>
+
+          <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
+            <Text style={styles.noticeTitle}>Share Your Code</Text>
+            <Text style={styles.noticeBody}>
+              Pass your code to everyone joining under you — it&apos;s how
+              they&apos;ll register. Keep this certificate handy until your
+              squad is complete!
+            </Text>
+          </View>
+        </>
+      )}
 
       <Text style={[styles.codeLabel, { top: ART_TOP + s(BLOCK_Y + 388) }]}>
         {code}

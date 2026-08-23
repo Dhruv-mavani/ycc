@@ -222,7 +222,9 @@ export default async function AdminPartnerDetailPage({
                   }))}
                 />
               ))}
-              {partner.partner_type !== "classmate" && partner.team_code ? (
+              {(partner.partner_type === "classmate"
+                ? partner.unique_id
+                : partner.team_code) ? (
                 <Button
                   size="sm"
                   variant="outline"
