@@ -210,7 +210,7 @@ export default async function HomePage() {
             )}
             {events?.map((event) =>
               event.registration_open ? (
-                <Card key={event.id} className="overflow-hidden flex flex-col group hover:border-blue-400/50 transition-colors bg-white shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.2)] border-blue-100 rounded-3xl">
+                <Card key={event.id} className="relative overflow-hidden flex flex-col group hover:border-blue-400/50 transition-colors bg-white shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.2)] border-blue-100 rounded-3xl">
                   <CardHeader className="pb-4 pt-6 sm:pt-8 px-4 sm:px-8">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
                       <CardTitle className="text-lg sm:text-2xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors break-words">{event.name}</CardTitle>
@@ -233,11 +233,14 @@ export default async function HomePage() {
                       nativeButton={false}
                       render={
                         <Link href={`/events/${event.slug}`} className="flex items-center justify-center w-full">
-                          Entry Fee: {formatRupees(event.fee_paise)} (excl. GST)
+                          Entry Fee: {formatRupees(event.fee_paise)}
                         </Link>
                       }
                     />
                   </CardFooter>
+                  <span className="absolute bottom-2 right-4 text-[9px] font-medium uppercase tracking-wide text-slate-400">
+                    Excl. GST
+                  </span>
                 </Card>
               ) : (
                 <Card key={event.id} className="overflow-hidden border-dashed border-slate-200 bg-white/60 flex flex-col opacity-80 hover:opacity-100 transition-opacity rounded-3xl shadow-sm">
