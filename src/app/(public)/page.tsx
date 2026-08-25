@@ -231,7 +231,11 @@ export default async function HomePage() {
                     <Button
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)] transition-all font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-lg px-2"
                       nativeButton={false}
-                      render={<Link href={`/events/${event.slug}`} className="flex items-center justify-center w-full">Proceed to Payment &rarr;</Link>}
+                      render={
+                        <Link href={`/events/${event.slug}`} className="flex items-center justify-center w-full">
+                          Entry Fee: {formatRupees(event.fee_paise)} (excl. GST)
+                        </Link>
+                      }
                     />
                   </CardFooter>
                 </Card>
