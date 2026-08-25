@@ -261,27 +261,6 @@ export default async function HomePage() {
                 </Card>
               ),
             )}
-            <Card className="overflow-hidden border-dashed border-slate-200 bg-white/60 flex flex-col opacity-80 hover:opacity-100 transition-opacity rounded-3xl shadow-sm">
-              <CardHeader className="pb-4 pt-6 sm:pt-8 px-4 sm:px-8">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-                  <CardTitle className="text-lg sm:text-2xl font-bold text-slate-500 break-words">
-                    YCC Tennis Ball Cricket Tournament 2026
-                  </CardTitle>
-                  <Badge
-                    variant="secondary"
-                    className="whitespace-nowrap w-fit bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1 text-xs"
-                  >
-                    Coming Soon
-                  </Badge>
-                </div>
-                <CardDescription className="text-xs sm:text-base mt-2 sm:mt-3 text-slate-500 leading-relaxed break-words">The flagship tournament returning next year with even bigger prizes.</CardDescription>
-              </CardHeader>
-              <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-6 border-t border-slate-100 bg-slate-50/50">
-                <Button className="w-full border-slate-200 text-slate-400 bg-transparent rounded-xl h-11 sm:h-12 text-sm sm:text-lg font-semibold px-2" variant="outline" disabled>
-                  Entry Fee: {formatRupees(1100000)}
-                </Button>
-              </CardFooter>
-            </Card>
           </div>
         </div>
       </section>
