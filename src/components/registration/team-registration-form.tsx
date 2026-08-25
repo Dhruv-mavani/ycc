@@ -106,7 +106,7 @@ export function TeamRegistrationForm({
     referrerType === "campus"
       ? "Co-Partners & Squad Members"
       : referrerType === "class"
-        ? "Classmate Partners"
+        ? "Squad Members"
         : "";
   const referrerOptions =
     referrerType === "campus"
@@ -386,7 +386,7 @@ export function TeamRegistrationForm({
               })}
               {!loadingSquad && roster.length === 0 ? (
                 <p className="text-muted-foreground text-sm py-4 text-center">
-                  No approved {childLabel} yet.
+                  No {childLabel} yet.
                 </p>
               ) : null}
               {!loadingSquad && roster.length > 0 && filteredRoster.length === 0 ? (

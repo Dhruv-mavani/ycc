@@ -152,9 +152,9 @@ export default async function EventDetailPage({
                     <p className="text-indigo-900/80 leading-relaxed text-xs sm:text-sm">
                       Registration for this event is exclusively through the YCC
                       Partner Program — a YCC Co-Partner registers their own team
-                      (themselves + 5 approved Classmate Partners). To join a team,
+                      (themselves + 5 Squad Members). To join a team,
                       ask your YCC Co-Partner for their team code and apply as a
-                      Classmate Partner.
+                      Squad Member.
                     </p>
                     <Button
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 sm:h-12 mt-2 shadow-[0_5px_15px_rgba(79,70,229,0.2)] transition-all text-xs sm:text-sm rounded-xl"
