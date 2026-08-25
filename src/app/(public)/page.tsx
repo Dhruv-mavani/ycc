@@ -239,7 +239,7 @@ export default async function HomePage() {
                     />
                   </CardFooter>
                   <span className="absolute bottom-2 right-4 text-[9px] font-medium uppercase tracking-wide text-slate-400">
-                    Excl. GST
+                    Exclusive of GST
                   </span>
                 </Card>
               ) : (
