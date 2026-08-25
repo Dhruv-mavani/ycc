@@ -20,6 +20,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+function formatRupees(paise: number) {
+  return `₹${(paise / 100).toLocaleString("en-IN")}`;
+}
+
 const FAQS = [
   {
     question: "What is the YCC Cricket League?",
@@ -251,7 +255,7 @@ export default async function HomePage() {
                       variant="outline"
                       className="w-full border-slate-200 text-slate-400 bg-transparent rounded-xl h-11 sm:h-12 text-sm sm:text-lg font-semibold px-2"
                     >
-                      Stay Tuned
+                      Entry Fee: {formatRupees(event.fee_paise)}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -261,7 +265,7 @@ export default async function HomePage() {
               <CardHeader className="pb-4 pt-6 sm:pt-8 px-4 sm:px-8">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
                   <CardTitle className="text-lg sm:text-2xl font-bold text-slate-500 break-words">
-                    YCC Regular Cricket Championship 2026
+                    YCC Tennis Ball Cricket Tournament 2026
                   </CardTitle>
                   <Badge
                     variant="secondary"
@@ -274,7 +278,7 @@ export default async function HomePage() {
               </CardHeader>
               <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-6 border-t border-slate-100 bg-slate-50/50">
                 <Button className="w-full border-slate-200 text-slate-400 bg-transparent rounded-xl h-11 sm:h-12 text-sm sm:text-lg font-semibold px-2" variant="outline" disabled>
-                  Stay Tuned
+                  Entry Fee: {formatRupees(1100000)}
                 </Button>
               </CardFooter>
             </Card>
