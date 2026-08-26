@@ -1,6 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Trophy, Download, ChevronDown, Star, Users, CalendarDays, Globe, Map, MapPin, TrendingUp, Plane, Palmtree, Gamepad2, Mic, Music, Sparkles } from "lucide-react";
+import { Trophy, Download, ChevronDown, CalendarDays, Globe, Map, MapPin, TrendingUp, Palmtree, Gamepad2, Mic, Music } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   Card,
