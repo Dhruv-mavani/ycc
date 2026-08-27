@@ -203,9 +203,9 @@ export function InvitationLetterPage(data: InvitationLetterData) {
         <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
           <Text style={styles.noticeTitle}>ID Card Mandatory</Text>
           <Text style={styles.noticeBody}>
-            Every player must carry their printed ID card (attached right
-            after this letter) to the venue — entry will not be permitted
-            without it. Keep it safe until match day.
+            Every player must carry their ID card print or pdf (attached
+            right after this letter) to the venue — entry will not be
+            permitted without it. Keep it safe until match day.
           </Text>
         </View>
       </Page>
