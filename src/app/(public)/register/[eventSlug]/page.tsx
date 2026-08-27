@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TeamRegistrationForm } from "@/components/registration/team-registration-form";
+import { SelfTeamRegistrationForm } from "@/components/registration/self-team-registration-form";
 import { IndividualRegistrationForm } from "@/components/registration/individual-registration-form";
 import { BackButton } from "@/components/site/back-button";
 import { UserPlus } from "lucide-react";
@@ -69,14 +70,24 @@ export default async function RegisterPage({
           
           <div className="p-6 sm:p-12">
             {event.type === "cricket" ? (
-              <TeamRegistrationForm
-                eventId={event.id}
-                eventName={event.name}
-                maxTeamSize={event.max_team_size ?? 6}
-                feePaise={event.fee_paise}
-                campusPartners={campusPartners ?? []}
-                classPartners={classPartners ?? []}
-              />
+              event.requires_referral ? (
+                <TeamRegistrationForm
+                  eventId={event.id}
+                  eventName={event.name}
+                  maxTeamSize={event.max_team_size ?? 6}
+                  feePaise={event.fee_paise}
+                  campusPartners={campusPartners ?? []}
+                  classPartners={classPartners ?? []}
+                />
+              ) : (
+                <SelfTeamRegistrationForm
+                  eventId={event.id}
+                  eventName={event.name}
+                  maxTeamSize={event.max_team_size ?? 6}
+                  feePaise={event.fee_paise}
+                  colleges={colleges ?? []}
+                />
+              )
             ) : (
               <IndividualRegistrationForm
                 eventId={event.id}

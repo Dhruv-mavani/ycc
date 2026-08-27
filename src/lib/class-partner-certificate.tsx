@@ -16,6 +16,7 @@ function ClassPartnerCertificateDocument({
   return (
     <Document>
       <InvitationLetterPage
+        kind="partner"
         name={data.name}
         code={data.teamCode}
         partnerType={data.partnerType}

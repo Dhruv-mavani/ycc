@@ -23,6 +23,7 @@ export async function POST(request: Request) {
       eventId: input.eventId,
       collegeId: input.collegeId,
       teamName: input.teamName,
+      captainEmail: input.captainEmail,
       players: input.players,
     });
     if (!result.ok) {

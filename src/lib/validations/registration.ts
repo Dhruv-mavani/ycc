@@ -15,9 +15,18 @@ export const genderSchema = z.enum(["male", "female", "other"], {
   message: "Select a gender",
 });
 
+export const emailSchema = z
+  .string()
+  .trim()
+  .email("Enter a valid email address")
+  .max(200);
+
 export const playerSchema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(100),
-  phone: phoneSchema,
+  // Optional so a self-registering captain can add teammates by name only —
+  // the partner-driven squad flow still always supplies a real phone for
+  // every member pulled from their approved roster.
+  phone: phoneSchema.optional(),
 });
 
 export const teamRegistrationSchema = z.object({
@@ -25,6 +34,7 @@ export const teamRegistrationSchema = z.object({
   eventId: z.string().uuid(),
   collegeId: z.string().uuid({ message: "Select your college" }),
   teamName: z.string().trim().min(2, "Team name is too short").max(100),
+  captainEmail: emailSchema.optional(),
   players: z
     .array(playerSchema)
     .min(1, "Add at least one player")

@@ -173,17 +173,46 @@ function NameUnderline({ top }: { top: number }) {
   );
 }
 
-export interface InvitationLetterData {
-  name: string;
-  code: string;
-  partnerType: "campus" | "class" | "classmate";
-}
+export type InvitationLetterData =
+  | { kind: "partner"; name: string; code: string; partnerType: "campus" | "class" | "classmate" }
+  | { kind: "team"; teamName: string; eventName: string };
 
-export function InvitationLetterPage({
-  name,
-  code,
-  partnerType,
-}: InvitationLetterData) {
+export function InvitationLetterPage(data: InvitationLetterData) {
+  if (data.kind === "team") {
+    return (
+      <Page size="A4" style={styles.page}>
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
+        <Image src={bgDataUri} style={styles.background} />
+
+        <Text style={styles.dearLine}>Dear,</Text>
+        <Text style={styles.name}>{data.teamName}</Text>
+        <NameUnderline top={ART_TOP + s(BLOCK_Y + 92)} />
+
+        <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 122) }]}>
+          Congratulations on registering for the {data.eventName}! Your team
+          is officially confirmed, and we can&apos;t wait to see you take
+          the field.
+        </Text>
+
+        <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 178) }]}>
+          Get your squad ready, stay sharp and bring your best game on match
+          day — schedules, venue details and every update will be shared on
+          our official channels.
+        </Text>
+
+        <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
+          <Text style={styles.noticeTitle}>ID Card Mandatory</Text>
+          <Text style={styles.noticeBody}>
+            Every player must carry their printed ID card (attached right
+            after this letter) to the venue — entry will not be permitted
+            without it. Keep it safe until match day.
+          </Text>
+        </View>
+      </Page>
+    );
+  }
+
+  const { name, code, partnerType } = data;
   const isSquad = partnerType === "classmate";
   const roleLabel = isSquad ? "Squad Member" : partnerType === "class" ? "Co-Partner" : "Partner";
   return (

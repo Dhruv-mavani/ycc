@@ -54,6 +54,7 @@ export interface Database {
           is_active: boolean;
           registration_open: boolean;
           is_partner_only: boolean;
+          requires_referral: boolean;
           created_at: string;
         };
         Insert: {
@@ -70,6 +71,7 @@ export interface Database {
           is_active?: boolean;
           registration_open?: boolean;
           is_partner_only?: boolean;
+          requires_referral?: boolean;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;

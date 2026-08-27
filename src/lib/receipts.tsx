@@ -13,6 +13,7 @@ import path from "node:path";
 import { calculateGst } from "@/lib/gst";
 import { BoxCricketIdCardPage } from "@/lib/box-cricket-id-card";
 import { QuizIdCardPage } from "@/lib/quiz-id-card";
+import { InvitationLetterPage } from "@/lib/invitation-letter";
 
 // Read via fs.readFileSync (statically analyzable path) so Next's file
 // tracing bundles the logo into serverless functions; react-pdf's own file
@@ -147,6 +148,8 @@ export interface ReceiptData {
   razorpayPaymentId: string | null;
   captainName: string | null;
   participants: ReceiptParticipant[];
+  /** Self-registered (non-partner-gated) team events get a congrats letter as the opening page. */
+  includeCongratsLetter?: boolean;
 }
 
 function formatRupees(paise: number) {
@@ -171,6 +174,13 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
 
   return (
     <Document>
+      {data.includeCongratsLetter && data.teamName ? (
+        <InvitationLetterPage
+          kind="team"
+          teamName={data.teamName}
+          eventName={data.eventName}
+        />
+      ) : null}
       <Page size="A4" style={styles.page}>
         <View style={styles.topRow}>
           <View style={styles.orgBlock}>

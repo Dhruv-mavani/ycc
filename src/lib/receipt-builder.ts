@@ -89,6 +89,7 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
     razorpayPaymentId: payment?.razorpay_payment_id ?? null,
     captainName: registration.captain_name,
     participants: participantsWithQr,
+    includeCongratsLetter: registration.type === "team" && !event.requires_referral,
   });
 
   return { pdfBuffer, registration };

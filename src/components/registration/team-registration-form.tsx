@@ -198,7 +198,7 @@ export function TeamRegistrationForm({
         registrationId: data.registrationId,
         amountPaise: data.amountPaise,
         captainName: values.players[0].name,
-        captainPhone: values.players[0].phone,
+        captainPhone: values.players[0].phone ?? "",
       });
     } catch {
       toast.error("Network error — please check your connection and try again");

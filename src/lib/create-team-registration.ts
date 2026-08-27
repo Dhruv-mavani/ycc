@@ -6,7 +6,8 @@ export interface CreateTeamRegistrationInput {
   eventId: string;
   collegeId: string;
   teamName: string;
-  players: { name: string; phone: string }[];
+  captainEmail?: string | null;
+  players: { name: string; phone?: string }[];
 }
 
 export type TeamRegistrationResult =
@@ -79,7 +80,9 @@ export async function createTeamRegistration(
     return { ok: false, status: 400, error: "Select a valid college" };
   }
 
-  const phones = input.players.map((p) => p.phone);
+  // Only truthy phones are checked — self-registered teams may add
+  // teammates by name only, and duplicate blank entries aren't a real clash.
+  const phones = input.players.map((p) => p.phone).filter((p): p is string => Boolean(p));
   if (new Set(phones).size !== phones.length) {
     return {
       ok: false,
@@ -107,13 +110,16 @@ export async function createTeamRegistration(
     };
   }
 
-  const { data: existingRosterPhones } = await admin
-    .from("participants")
-    .select("phone, registrations!inner(event_id, type, status)")
-    .in("phone", phones)
-    .eq("registrations.event_id", event.id)
-    .eq("registrations.type", "team")
-    .eq("registrations.status", "confirmed");
+  const { data: existingRosterPhones } =
+    phones.length > 0
+      ? await admin
+          .from("participants")
+          .select("phone, registrations!inner(event_id, type, status)")
+          .in("phone", phones)
+          .eq("registrations.event_id", event.id)
+          .eq("registrations.type", "team")
+          .eq("registrations.status", "confirmed")
+      : { data: [] as { phone: string | null }[] };
 
   if (existingRosterPhones && existingRosterPhones.length > 0) {
     return {
@@ -125,6 +131,9 @@ export async function createTeamRegistration(
   }
 
   const primaryContact = { name: input.players[0].name, phone: input.players[0].phone };
+  if (!primaryContact.phone) {
+    return { ok: false, status: 400, error: "Captain's phone number is required" };
+  }
   const gst = calculateGst(event.fee_paise);
 
   const { data: registration, error: regError } = await admin
@@ -136,7 +145,7 @@ export async function createTeamRegistration(
       team_name: input.teamName,
       captain_name: primaryContact.name,
       captain_phone: primaryContact.phone,
-      captain_email: null,
+      captain_email: input.captainEmail ?? null,
       amount_paise: gst.totalPaise,
       status: "pending_payment",
     })
@@ -151,7 +160,7 @@ export async function createTeamRegistration(
     input.players.map((p, index) => ({
       registration_id: registration.id,
       name: p.name,
-      phone: p.phone as string | null,
+      phone: p.phone ?? null,
       email: null as string | null,
       is_captain: index === 0,
     })),
