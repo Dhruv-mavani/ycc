@@ -55,12 +55,12 @@ const GENIUS_PHRASES = [
   "I googled it in my head. Option {answer}, final answer.",
 ];
 
-// Royalty-free, attribution-not-required sound effects from Mixkit
-// (https://mixkit.co/license/ — Sound Effects Free License).
+// Same sound files as SoloQuizGame (public/quiz-game2/audio/ — added by
+// the project owner, who owns the redistribution call on these).
 const SFX = {
-  correct: "/quiz-game/sounds/correct.mp3",
-  wrong: "/quiz-game/sounds/wrong.mp3",
-  applause: "/quiz-game/sounds/applause.mp3",
+  correct: "/quiz-game2/audio/correct_answer.mp3",
+  wrong: "/quiz-game2/audio/wrong_answer.mp3",
+  applause: "/quiz-game2/audio/theme.mp3",
 };
 
 function playSound(src: string) {
