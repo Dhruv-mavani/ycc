@@ -9,12 +9,15 @@ import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 const MUTE_KEY = "admin-notifications-muted";
 
 export function AdminNotificationsBell() {
-  const [muted, setMuted] = useState(false);
+  // Lazy initializer instead of an effect — this only ever runs client-side
+  // (guarded for the SSR pass, which has no localStorage), so there's no
+  // need to synchronize it via setState-in-effect.
+  const [muted, setMuted] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem(MUTE_KEY) === "true",
+  );
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    setMuted(localStorage.getItem(MUTE_KEY) === "true");
-
     // Some mobile browsers only allow audio.play() to succeed reliably
     // if it's ever been played during a real user gesture — a
     // WebSocket-triggered call later doesn't count on its own. We prime
