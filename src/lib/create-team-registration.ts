@@ -28,7 +28,7 @@ export type TeamRegistrationResult =
  * (src/app/api/registrations/route.ts) and the YCC Co-Partner team
  * registration route, which builds its player list from already-approved
  * Classmate Partner records instead of a fresh form — both need identical
- * downstream behavior (GST calc, pending_payment status, Razorpay flow).
+ * downstream behavior (GST calc, pending_payment status, Cashfree flow).
  */
 export async function createTeamRegistration(
   admin: ReturnType<typeof createAdminClient>,

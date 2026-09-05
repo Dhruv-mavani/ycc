@@ -147,10 +147,9 @@ export interface Database {
         Row: {
           id: string;
           registration_id: string;
-          razorpay_order_id: string | null;
-          razorpay_payment_link_id: string | null;
-          razorpay_payment_id: string | null;
-          razorpay_signature: string | null;
+          cashfree_link_id: string | null;
+          cashfree_order_id: string | null;
+          cashfree_payment_id: string | null;
           amount_paise: number;
           status: PaymentStatus;
           raw_payload: Record<string, unknown> | null;
@@ -160,10 +159,9 @@ export interface Database {
         Insert: {
           id?: string;
           registration_id: string;
-          razorpay_order_id?: string | null;
-          razorpay_payment_link_id?: string | null;
-          razorpay_payment_id?: string | null;
-          razorpay_signature?: string | null;
+          cashfree_link_id?: string | null;
+          cashfree_order_id?: string | null;
+          cashfree_payment_id?: string | null;
           amount_paise: number;
           status?: PaymentStatus;
           raw_payload?: Record<string, unknown> | null;

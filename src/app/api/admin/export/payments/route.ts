@@ -8,8 +8,9 @@ function csvEscape(value: string) {
 }
 
 const CSV_HEADER = [
-  "razorpay_order_id",
-  "razorpay_payment_id",
+  "cashfree_link_id",
+  "cashfree_order_id",
+  "cashfree_payment_id",
   "amount_rupees",
   "paid_at",
   "event",
@@ -57,8 +58,9 @@ export async function GET() {
   const rows = (payments ?? []).map((p) => {
     const reg = registrationById.get(p.registration_id);
     return [
-      p.razorpay_order_id,
-      p.razorpay_payment_id ?? "",
+      p.cashfree_link_id ?? "",
+      p.cashfree_order_id ?? "",
+      p.cashfree_payment_id ?? "",
       (p.amount_paise / 100).toFixed(2),
       p.updated_at,
       reg ? (eventNameById.get(reg.event_id) ?? "") : "",

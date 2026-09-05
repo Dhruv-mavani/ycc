@@ -4,14 +4,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-// Uses Razorpay Payment Links instead of the in-page Checkout modal: the
-// browser is redirected to a Razorpay-hosted payment page, and Razorpay
-// redirects back to /payment/success on completion. Confirmation itself
-// happens via the payment_link.paid webhook (see
-// src/app/api/webhooks/razorpay/route.ts) — the payment-status poller on
-// that page handles the case where the redirect lands before the webhook
-// does.
-export function RazorpayCheckoutButton({
+// Redirects to a Cashfree-hosted payment link page; Cashfree redirects back
+// to /payment/success on completion. Confirmation itself happens via the
+// PAYMENT_LINK_EVENT webhook (see src/app/api/webhooks/cashfree/route.ts) —
+// the payment-status poller on that page handles the case where the
+// redirect lands before the webhook does.
+export function CashfreeCheckoutButton({
   registrationId,
 }: {
   registrationId: string;
@@ -25,7 +23,7 @@ export function RazorpayCheckoutButton({
   async function handlePay() {
     setLoading(true);
     try {
-      const res = await fetch("/api/razorpay/create-payment-link", {
+      const res = await fetch("/api/cashfree/create-payment-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ registrationId }),

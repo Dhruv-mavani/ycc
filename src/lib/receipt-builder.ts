@@ -46,7 +46,7 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
         .order("created_at"),
       admin
         .from("payments")
-        .select("razorpay_payment_id, updated_at")
+        .select("cashfree_payment_id, updated_at")
         .eq("registration_id", registrationId)
         .eq("status", "paid")
         .order("updated_at", { ascending: false })
@@ -86,7 +86,7 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
     type: registration.type,
     basePaise: event.fee_paise,
     paidAt: payment?.updated_at ?? new Date().toISOString(),
-    razorpayPaymentId: payment?.razorpay_payment_id ?? null,
+    cashfreePaymentId: payment?.cashfree_payment_id ?? null,
     captainName: registration.captain_name,
     participants: participantsWithQr,
     includeCongratsLetter: registration.type === "team" && !event.requires_referral,

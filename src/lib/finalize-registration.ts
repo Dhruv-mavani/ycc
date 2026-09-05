@@ -4,8 +4,8 @@ import { buildReceiptPdf } from "@/lib/receipt-builder";
 import { sendReceiptEmail } from "@/lib/email";
 
 /**
- * Runs once a payment is confirmed (called from the Razorpay webhook /
- * verify-payment route): allocates unique IDs and, if a contact email was
+ * Runs once a payment is confirmed (called from the Cashfree webhook):
+ * allocates unique IDs and, if a contact email was
  * collected, emails the receipt. Idempotent — unique_id allocation is a
  * no-op for participants that already have one — so it's safe to retry.
  * Auto-download on the success page is the primary delivery path; email is

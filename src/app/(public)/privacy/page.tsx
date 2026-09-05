@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         <Section title="2. Payment information">
           <p>
             Payments are processed entirely by our payment partner,
-            Razorpay. We never see or store your card, UPI, or bank
+            Cashfree Payments. We never see or store your card, UPI, or bank
             details — we only receive confirmation that a payment succeeded
             or failed, along with a payment reference ID.
           </p>

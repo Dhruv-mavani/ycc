@@ -43,3 +43,4 @@ google Oauth secret/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.claude/skills/
