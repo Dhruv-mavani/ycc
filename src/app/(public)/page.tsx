@@ -226,20 +226,22 @@ export default async function HomePage() {
                     </div>
                     <CardDescription className="text-xs sm:text-base mt-2 sm:mt-3 text-slate-600 leading-relaxed break-words">{event.description}</CardDescription>
                   </CardHeader>
-                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-6 border-t border-slate-100 bg-slate-50">
+                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-auto border-t border-slate-100 bg-slate-50">
                     <Button
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)] transition-all font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-lg px-2"
                       nativeButton={false}
                       render={
                         <Link href={`/events/${event.slug}`} className="flex items-center justify-center w-full">
-                          Entry Fee: {formatRupees(event.fee_paise)}
+                          {event.fee_paise === 0 ? "Register for free" : `Entry Fee: ${formatRupees(event.fee_paise)}`}
                         </Link>
                       }
                     />
                   </CardFooter>
-                  <span className="absolute bottom-2 right-4 text-[9px] font-medium uppercase tracking-wide text-slate-400">
-                    Exclusive of GST
-                  </span>
+                  {event.fee_paise > 0 ? (
+                    <span className="absolute bottom-2 right-4 text-[9px] font-medium uppercase tracking-wide text-slate-400">
+                      Exclusive of GST
+                    </span>
+                  ) : null}
                 </Card>
               ) : (
                 <Card key={event.id} className="overflow-hidden border-dashed border-slate-200 bg-white/60 flex flex-col opacity-80 hover:opacity-100 transition-opacity rounded-3xl shadow-sm">
@@ -255,13 +257,13 @@ export default async function HomePage() {
                     </div>
                     <CardDescription className="text-xs sm:text-base mt-2 sm:mt-3 text-slate-500 leading-relaxed break-words">{event.description}</CardDescription>
                   </CardHeader>
-                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-6 border-t border-slate-100 bg-slate-50/50">
+                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-auto border-t border-slate-100 bg-slate-50/50">
                     <Button
                       disabled
                       variant="outline"
                       className="w-full border-slate-200 text-slate-400 bg-transparent rounded-xl h-11 sm:h-12 text-sm sm:text-lg font-semibold px-2"
                     >
-                      Entry Fee: {formatRupees(event.fee_paise)}
+                      {event.fee_paise === 0 ? "Register for free" : `Entry Fee: ${formatRupees(event.fee_paise)}`}
                     </Button>
                   </CardFooter>
                 </Card>

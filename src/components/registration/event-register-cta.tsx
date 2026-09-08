@@ -28,62 +28,76 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
-export function EventRegisterCta({ eventSlug }: { eventSlug: string }) {
+export function EventRegisterCta({
+  eventSlug,
+  requireCommunityGate = true,
+  label = "Register Now & Pay",
+}: {
+  eventSlug: string;
+  /** YCC Super Champs (free entry) skips the join-to-unlock gate — the
+   * button is enabled straight away. */
+  requireCommunityGate?: boolean;
+  label?: string;
+}) {
   const [whatsappJoined, setWhatsappJoined] = useState(false);
   const [instagramJoined, setInstagramJoined] = useState(false);
-  const bothJoined = whatsappJoined && instagramJoined;
+  const bothJoined = !requireCommunityGate || (whatsappJoined && instagramJoined);
 
   return (
     <div className="space-y-3">
-      <p className="text-xs sm:text-sm text-slate-500 font-medium">
-        Join both communities to unlock registration
-      </p>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setWhatsappJoined(true)}
-          className={cn(
-            "h-auto min-h-10 py-2.5 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-1.5 whitespace-normal leading-snug transition-colors",
-            whatsappJoined
-              ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
-              : "border-slate-200 text-slate-600",
-          )}
-          nativeButton={false}
-          render={
-            <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
-              {whatsappJoined ? (
-                <CheckCircle2 className="size-4 shrink-0" />
-              ) : (
-                <MessageCircle className="size-4 shrink-0" />
+      {requireCommunityGate ? (
+        <>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            Join both communities to unlock registration
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setWhatsappJoined(true)}
+              className={cn(
+                "h-auto min-h-10 py-2.5 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-1.5 whitespace-normal leading-snug transition-colors",
+                whatsappJoined
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+                  : "border-slate-200 text-slate-600",
               )}
-              {whatsappJoined ? "Joined" : "Join WhatsApp"}
-            </a>
-          }
-        />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setInstagramJoined(true)}
-          className={cn(
-            "h-auto min-h-10 py-2.5 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-1.5 whitespace-normal leading-snug transition-colors",
-            instagramJoined
-              ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
-              : "border-slate-200 text-slate-600",
-          )}
-          nativeButton={false}
-          render={
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
-              {instagramJoined ? (
-                <CheckCircle2 className="size-4 shrink-0" />
-              ) : (
-                <InstagramIcon className="size-4 shrink-0" />
+              nativeButton={false}
+              render={
+                <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                  {whatsappJoined ? (
+                    <CheckCircle2 className="size-4 shrink-0" />
+                  ) : (
+                    <MessageCircle className="size-4 shrink-0" />
+                  )}
+                  {whatsappJoined ? "Joined" : "Join WhatsApp"}
+                </a>
+              }
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setInstagramJoined(true)}
+              className={cn(
+                "h-auto min-h-10 py-2.5 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-1.5 whitespace-normal leading-snug transition-colors",
+                instagramJoined
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+                  : "border-slate-200 text-slate-600",
               )}
-              {instagramJoined ? "Joined" : "Join Instagram"}
-            </a>
-          }
-        />
-      </div>
+              nativeButton={false}
+              render={
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+                  {instagramJoined ? (
+                    <CheckCircle2 className="size-4 shrink-0" />
+                  ) : (
+                    <InstagramIcon className="size-4 shrink-0" />
+                  )}
+                  {instagramJoined ? "Joined" : "Join Instagram"}
+                </a>
+              }
+            />
+          </div>
+        </>
+      ) : null}
 
       {bothJoined ? (
         <Button
@@ -94,7 +108,7 @@ export function EventRegisterCta({ eventSlug }: { eventSlug: string }) {
               href={`/register/${eventSlug}`}
               className="flex items-center justify-center gap-2 w-full h-full text-center"
             >
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" /> Register Now & Pay
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" /> {label}
             </Link>
           }
         />
@@ -103,7 +117,7 @@ export function EventRegisterCta({ eventSlug }: { eventSlug: string }) {
           disabled
           className="w-full bg-slate-200 text-slate-400 font-bold text-base sm:text-lg h-14 sm:h-16 rounded-xl sm:rounded-2xl px-2 flex items-center justify-center gap-2"
         >
-          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" /> Register Now & Pay
+          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" /> {label}
         </Button>
       )}
     </div>

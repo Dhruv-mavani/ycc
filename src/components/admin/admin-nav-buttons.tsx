@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Download, HeartHandshake, ShieldAlert } from "lucide-react";
+import { Download, HeartHandshake, ShieldAlert, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
@@ -82,6 +82,17 @@ export function AdminNavButtons({
                 {newPartnerApplicationCount}
               </Badge>
             ) : null}
+          </Link>
+        }
+      />
+      <Button
+        variant="outline"
+        className="hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-colors"
+        nativeButton={false}
+        render={
+          <Link href="/admin/school-registrations">
+            <GraduationCap className="size-4" />
+            School Registrations
           </Link>
         }
       />

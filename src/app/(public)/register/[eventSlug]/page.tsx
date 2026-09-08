@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TeamRegistrationForm } from "@/components/registration/team-registration-form";
 import { SelfTeamRegistrationForm } from "@/components/registration/self-team-registration-form";
 import { IndividualRegistrationForm } from "@/components/registration/individual-registration-form";
+import { SchoolRegistrationForm } from "@/components/registration/school-registration-form";
 import { BackButton } from "@/components/site/back-button";
 import { UserPlus } from "lucide-react";
 
@@ -12,7 +13,7 @@ export default async function RegisterPage({
   params: Promise<{ eventSlug: string }>;
 }) {
   const [{ eventSlug }, supabase] = await Promise.all([params, createClient()]);
-  const [{ data: event }, { data: colleges }, { data: campusPartners }, { data: classPartners }] =
+  const [{ data: event }, { data: colleges }, { data: campusPartners }, { data: classPartners }, { data: schools }] =
     await Promise.all([
       supabase
         .from("events")
@@ -36,6 +37,11 @@ export default async function RegisterPage({
         .select("id, name, team_code")
         .eq("partner_type", "class")
         .eq("status", "approved")
+        .order("name"),
+      supabase
+        .from("schools")
+        .select("id, name")
+        .eq("is_public", true)
         .order("name"),
     ]);
 
@@ -64,12 +70,20 @@ export default async function RegisterPage({
               Register — {event.name}
             </h1>
             <p className="text-slate-500 text-base sm:text-lg max-w-xl relative z-10">
-              Fill in your details, then complete payment to confirm your spot.
+              {event.type === "school"
+                ? "Fill in your details to get your personalized certificate instantly — no fee, no team."
+                : "Fill in your details, then complete payment to confirm your spot."}
             </p>
           </div>
-          
+
           <div className="p-6 sm:p-12">
-            {event.type === "cricket" ? (
+            {event.type === "school" ? (
+              <SchoolRegistrationForm
+                eventId={event.id}
+                eventName={event.name}
+                schools={schools ?? []}
+              />
+            ) : event.type === "cricket" ? (
               event.requires_referral ? (
                 <TeamRegistrationForm
                   eventId={event.id}

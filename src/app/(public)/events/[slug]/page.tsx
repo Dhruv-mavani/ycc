@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BackButton } from "@/components/site/back-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
-import { Banknote, Users, ScrollText, AlertCircle, Trophy } from "lucide-react";
+import { Banknote, Users, ScrollText, AlertCircle, Trophy, Download } from "lucide-react";
 import { EventRegisterCta } from "@/components/registration/event-register-cta";
 
 function formatRupees(paise: number) {
@@ -86,9 +86,53 @@ export default async function EventDetailPage({
             </p>
           </div>
 
-          {/* Event Details Grid */}
+          {/* Event Details */}
+          {event.type === "school" ? (
+            // Single, centered column — this free/solo event has no team
+            // requirements or tournament rules to justify the two-column
+            // layout the paid cricket events use, so the fee card and CTA
+            // just stack, centered, one below the other.
+            <div className="flex justify-center p-6 sm:p-12 bg-slate-50">
+              <div className="w-full max-w-md space-y-8 text-center">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                    <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
+                  </h3>
+                  <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
+                    <div className="flex flex-wrap items-end justify-center gap-2 mb-2">
+                      <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
+                      <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per person</span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6 text-center">+ 18% GST applicable</p>
+
+                    <div className="pt-5 sm:pt-6 border-t border-slate-100">
+                      <GstBreakdown basePaise={event.fee_paise} />
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  variant="outline"
+                  className="w-full rounded-full h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
+                  nativeButton={false}
+                  render={
+                    <Link href="/super-champs/certificate" className="flex items-center justify-center gap-2">
+                      <Download className="size-4 text-blue-600" />
+                      Download your certificate
+                    </Link>
+                  }
+                />
+
+                <EventRegisterCta
+                  eventSlug={event.slug}
+                  requireCommunityGate={false}
+                  label="Register for free"
+                />
+              </div>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 p-6 sm:p-12 bg-slate-50">
-            
+
             {/* Left Column: Cost & Squad */}
             <div className="space-y-8">
               <div>
@@ -101,7 +145,7 @@ export default async function EventDetailPage({
                     <span className="text-slate-500 mb-0.5 text-sm sm:text-base">{event.type === "cricket" ? "per team" : "per person"}</span>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
-                  
+
                   <div className="pt-5 sm:pt-6 border-t border-slate-100">
                     <GstBreakdown basePaise={event.fee_paise} />
                   </div>
@@ -142,7 +186,7 @@ export default async function EventDetailPage({
                   </div>
                 </div>
               ) : <div></div>}
-              
+
               <div className="pt-6 sm:pt-8">
                 {event.is_partner_only ? (
                   <div className="space-y-4 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 sm:p-6 text-sm">
@@ -163,12 +207,17 @@ export default async function EventDetailPage({
                     />
                   </div>
                 ) : (
-                  <EventRegisterCta eventSlug={event.slug} />
+                  <EventRegisterCta
+                    eventSlug={event.slug}
+                    requireCommunityGate={event.fee_paise > 0}
+                    label={event.fee_paise === 0 ? "Register for free" : "Register Now & Pay"}
+                  />
                 )}
               </div>
             </div>
-            
+
           </div>
+          )}
         </div>
       </div>
     </div>

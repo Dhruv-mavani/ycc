@@ -60,6 +60,24 @@ export const registrationRequestSchema = z.discriminatedUnion("type", [
   individualRegistrationSchema,
 ]);
 
+// Free, no-payment individual registration for school-targeted events (e.g.
+// YCC Super Champs) — deliberately not part of registrationRequestSchema
+// above, since it posts to its own endpoint with no payment step at all.
+export const schoolRegistrationSchema = z.object({
+  eventId: z.string().uuid(),
+  name: z.string().trim().min(2, "Name is too short").max(100),
+  email: emailSchema.optional().or(z.literal("")),
+  whatsapp: phoneSchema,
+  instagramHandle: z.string().trim().max(50).optional().or(z.literal("")),
+  age: ageSchema,
+  gender: genderSchema,
+  schoolId: z.string().uuid().optional().or(z.literal("")),
+});
+
+export const schoolCertificateLookupSchema = z.object({
+  whatsapp: phoneSchema,
+});
+
 export type PlayerInput = z.infer<typeof playerSchema>;
 export type TeamRegistrationInput = z.infer<typeof teamRegistrationSchema>;
 export type IndividualRegistrationInput = z.infer<
@@ -67,4 +85,8 @@ export type IndividualRegistrationInput = z.infer<
 >;
 export type RegistrationRequestInput = z.infer<
   typeof registrationRequestSchema
+>;
+export type SchoolRegistrationInput = z.infer<typeof schoolRegistrationSchema>;
+export type SchoolCertificateLookupInput = z.infer<
+  typeof schoolCertificateLookupSchema
 >;
