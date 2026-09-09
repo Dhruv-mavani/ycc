@@ -60,6 +60,10 @@ export default async function HomePage() {
     .from("events")
     .select("*")
     .eq("is_active", true)
+    // YCC Super Champs (and any future "school" type event) is free,
+    // solo, no-payment — it lives in the footer's "Super Champs" link
+    // and its own /events/[slug] page, not in this paid-events grid.
+    .neq("type", "school")
     .order("created_at");
 
   return (

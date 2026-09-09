@@ -175,46 +175,9 @@ function NameUnderline({ top }: { top: number }) {
 
 export type InvitationLetterData =
   | { kind: "partner"; name: string; code: string; partnerType: "campus" | "class" | "classmate" }
-  | { kind: "team"; teamName: string; eventName: string }
-  | { kind: "school"; name: string; code: string; eventName: string };
+  | { kind: "team"; teamName: string; eventName: string };
 
 export function InvitationLetterPage(data: InvitationLetterData) {
-  if (data.kind === "school") {
-    return (
-      <Page size="A4" style={styles.page}>
-        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
-        <Image src={bgDataUri} style={styles.background} />
-
-        <Text style={styles.dearLine}>Dear,</Text>
-        <Text style={styles.name}>{data.name}</Text>
-        <NameUnderline top={ART_TOP + s(BLOCK_Y + 92)} />
-
-        <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 122) }]}>
-          Congratulations on registering for the {data.eventName}! Your
-          spot is confirmed — no fee, no team, just you and the game.
-        </Text>
-
-        <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 178) }]}>
-          Get ready to bring your best game on the day — venue details,
-          schedules and every update will be shared on our official
-          channels. This certificate is your personal registration proof.
-        </Text>
-
-        <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
-          <Text style={styles.noticeTitle}>Your Registration Code</Text>
-          <Text style={styles.noticeBody}>
-            Keep this code handy — it&apos;s your personal reference for
-            this tournament.
-          </Text>
-        </View>
-
-        <Text style={[styles.codeLabel, { top: ART_TOP + s(BLOCK_Y + 388) }]}>
-          {data.code}
-        </Text>
-      </Page>
-    );
-  }
-
   if (data.kind === "team") {
     return (
       <Page size="A4" style={styles.page}>
