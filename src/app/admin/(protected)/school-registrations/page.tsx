@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeftIcon, Download } from "lucide-react";
+import { ArrowLeftIcon, Download, FileText } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -109,7 +109,18 @@ export default async function AdminSchoolRegistrationsPage() {
                 <TableRow key={r.id} className="hover:bg-primary/5 transition-colors">
                   <TableCell className="pl-6 font-medium">{r.name}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="font-mono">{r.code}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="font-mono">{r.code}</Badge>
+                      <a
+                        href={`/api/school-registrations/${r.id}/certificate?view=true`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="View certificate"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <FileText className="size-4" />
+                      </a>
+                    </div>
                   </TableCell>
                   <TableCell>{r.whatsapp}</TableCell>
                   <TableCell className="text-muted-foreground">{r.email ?? "—"}</TableCell>
