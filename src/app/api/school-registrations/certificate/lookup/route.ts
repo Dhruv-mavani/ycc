@@ -12,9 +12,10 @@ function getClientIp(request: Request) {
 }
 
 /**
- * Resolves a WhatsApp number to a registrationId, so the client can redirect
- * to the no-auth certificate download route — same pattern as the Partner
- * Program's certificate lookup.
+ * Resolves a WhatsApp number OR the personalized code (e.g. "MEGH9999") to
+ * a registrationId, so the client can redirect to the no-auth certificate
+ * download route — same "either field" pattern as the general receipt
+ * lookup (unique ID or mobile number).
  */
 export async function POST(request: Request) {
   const ip = getClientIp(request);
@@ -30,27 +31,46 @@ export async function POST(request: Request) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid WhatsApp number" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
       { status: 400 },
     );
   }
 
-  const { whatsapp } = parsed.data;
+  const query = parsed.data.query.trim();
   const admin = createAdminClient();
-  const { data: registration } = await admin
+
+  // Code lookup — the personalized code (e.g. "MEGH9999") printed on the
+  // certificate, always stored uppercase.
+  const { data: byCode } = await admin
     .from("school_tournament_registrations")
     .select("id")
-    .eq("whatsapp", whatsapp)
+    .eq("code", query.toUpperCase())
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (!registration) {
-    return NextResponse.json(
-      { error: "No certificate found for that WhatsApp number" },
-      { status: 404 },
-    );
+  if (byCode) {
+    return NextResponse.json({ registrationId: byCode.id });
   }
 
-  return NextResponse.json({ registrationId: registration.id });
+  // WhatsApp number lookup — only attempted if the query looks like a
+  // 10-digit Indian mobile number, same as the receipt lookup route.
+  if (/^[6-9]\d{9}$/.test(query)) {
+    const { data: byPhone } = await admin
+      .from("school_tournament_registrations")
+      .select("id")
+      .eq("whatsapp", query)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (byPhone) {
+      return NextResponse.json({ registrationId: byPhone.id });
+    }
+  }
+
+  return NextResponse.json(
+    { error: "No certificate found for that WhatsApp number or code" },
+    { status: 404 },
+  );
 }

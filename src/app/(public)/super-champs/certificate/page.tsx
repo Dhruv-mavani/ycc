@@ -29,7 +29,7 @@ export default function SchoolCertificateLookupPage() {
     formState: { errors, isSubmitting },
   } = useForm<SchoolCertificateLookupInput>({
     resolver: zodResolver(schoolCertificateLookupSchema),
-    defaultValues: { whatsapp: "" },
+    defaultValues: { query: "" },
   });
 
   async function onSubmit(values: SchoolCertificateLookupInput) {
@@ -73,24 +73,23 @@ export default function SchoolCertificateLookupPage() {
             <CardTitle className="text-2xl font-bold text-slate-800">Re-download your certificate</CardTitle>
             <CardDescription className="text-base mt-2 text-slate-600">
               For YCC Super Champs registrants. Enter the WhatsApp number you
-              registered with.
+              registered with, or your personalized code.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6 sm:px-10 py-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1.5">
-              <Label>WhatsApp number</Label>
+              <Label>WhatsApp number or code</Label>
               <Input
-                {...register("whatsapp", {
+                {...register("query", {
                   onChange: () => setFormError(null),
                 })}
-                inputMode="numeric"
-                placeholder="9876543210"
-                aria-invalid={!!errors.whatsapp}
+                placeholder="9876543210 or MEGH9999"
+                aria-invalid={!!errors.query}
               />
-              {errors.whatsapp ? (
+              {errors.query ? (
                 <p className="text-destructive text-xs">
-                  {errors.whatsapp.message}
+                  {errors.query.message}
                 </p>
               ) : null}
             </div>

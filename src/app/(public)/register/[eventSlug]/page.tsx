@@ -69,13 +69,9 @@ export default async function RegisterPage({
             </div>
             
             {event.type === "school" ? (
-              <p className="text-slate-600 text-base sm:text-lg max-w-2xl relative z-10">
-                YCC Super Champs Program is a youth-focused initiative
-                designed for teenagers aged 14-20, providing them with a
-                supportive platform and community to discover, develop, and
-                showcase their talents across sports, education, and
-                personal development.
-              </p>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight relative z-10 break-words">
+                YCC Super Champs Program
+              </h1>
             ) : (
               <>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight relative z-10 break-words">

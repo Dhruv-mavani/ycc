@@ -74,8 +74,11 @@ export const schoolRegistrationSchema = z.object({
   schoolId: z.string().uuid().optional().or(z.literal("")),
 });
 
+// Accepts either the WhatsApp number registered with or the personalized
+// code printed on the certificate (e.g. "MEGH9999") — the API route tries
+// both, same pattern as the general receipt lookup (unique ID or mobile).
 export const schoolCertificateLookupSchema = z.object({
-  whatsapp: phoneSchema,
+  query: z.string().trim().min(1, "Enter your WhatsApp number or code"),
 });
 
 export type PlayerInput = z.infer<typeof playerSchema>;
