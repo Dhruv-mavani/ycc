@@ -49,7 +49,16 @@ export default async function AdminDashboardPage({
   const [{ event: eventId, range }, { data: events }, { count: pendingStaffCount }] =
     await Promise.all([
       searchParams,
-      createAdminClient().from("events").select("id, name, type").order("created_at"),
+      createAdminClient()
+        .from("events")
+        .select("id, name, type")
+        // "school" events (e.g. Super Champs) have no rows in the
+        // payment-centric registrations/participants tables this
+        // dashboard reports on, so picking one here would just show
+        // zeros everywhere — they're covered by their own
+        // /admin/school-registrations page instead.
+        .neq("type", "school")
+        .order("created_at"),
       createAdminClient()
         .from("staff")
         .select("*", { count: "exact", head: true })
