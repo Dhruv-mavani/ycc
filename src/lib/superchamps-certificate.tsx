@@ -212,7 +212,7 @@ function SuperChampsCertificatePage({ data }: { data: SuperChampsCertificateData
       <View style={[styles.noticeBox, { top: sy(910) }]}>
         <Text style={styles.noticeTitle}>Personalized Code</Text>
         <Text style={styles.noticeBody}>
-          This unique code is your personal reference — keep it handy.
+          This unique code serves as your ID for all future registrations and entries.
         </Text>
       </View>
 
