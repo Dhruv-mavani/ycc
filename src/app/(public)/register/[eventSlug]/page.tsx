@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TeamRegistrationForm } from "@/components/registration/team-registration-form";
@@ -5,7 +6,8 @@ import { SelfTeamRegistrationForm } from "@/components/registration/self-team-re
 import { IndividualRegistrationForm } from "@/components/registration/individual-registration-form";
 import { SchoolRegistrationForm } from "@/components/registration/school-registration-form";
 import { BackButton } from "@/components/site/back-button";
-import { UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { UserPlus, Download } from "lucide-react";
 
 export default async function RegisterPage({
   params,
@@ -66,14 +68,39 @@ export default async function RegisterPage({
               <UserPlus className="w-32 h-32 sm:w-48 sm:h-48 text-slate-900" />
             </div>
             
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight relative z-10 break-words">
-              Register — {event.name}
-            </h1>
-            <p className="text-slate-500 text-base sm:text-lg max-w-xl relative z-10">
-              {event.type === "school"
-                ? "Fill in your details to get your personalized certificate instantly — no fee, no team."
-                : "Fill in your details, then complete payment to confirm your spot."}
-            </p>
+            {event.type === "school" ? (
+              <p className="text-slate-600 text-base sm:text-lg max-w-2xl relative z-10">
+                YCC Super Champs Program is a youth-focused initiative
+                designed for teenagers aged 14-20, providing them with a
+                supportive platform and community to discover, develop, and
+                showcase their talents across sports, education, and
+                personal development.
+              </p>
+            ) : (
+              <>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight relative z-10 break-words">
+                  Register — {event.name}
+                </h1>
+                <p className="text-slate-500 text-base sm:text-lg max-w-xl relative z-10">
+                  Fill in your details, then complete payment to confirm your spot.
+                </p>
+              </>
+            )}
+
+            {event.type === "school" ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 rounded-full border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold relative z-10"
+                nativeButton={false}
+                render={
+                  <Link href="/super-champs/certificate" className="flex items-center gap-2">
+                    <Download className="size-4 text-blue-600" />
+                    Download your certificate
+                  </Link>
+                }
+              />
+            ) : null}
           </div>
 
           <div className="p-6 sm:p-12">

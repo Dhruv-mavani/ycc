@@ -64,6 +64,14 @@ const sy = (value: number) => value * SCALE_Y;
 const BLOCK_X = 200;
 const BLOCK_W = 1600;
 
+// Rendered width of "Certificate of Registration" at Helvetica-Bold, size
+// 60 (the title's own font/size, in the same native units as everything
+// else) — measured once via `new (require("@react-pdf/pdfkit").default)()
+// .font("Helvetica-Bold").fontSize(60).widthOfString(...)`, not eyeballed,
+// so the underline below the name matches it exactly rather than
+// approximately.
+const TITLE_TEXT_WIDTH = 734.64;
+
 const NAVY = "#0d3b66";
 const ACCENT_BLUE = "#0477cd";
 const TEXT_DARK = "#26314f";
@@ -111,13 +119,24 @@ const styles = StyleSheet.create({
     fontSize: s(58),
     color: NAVY,
   },
+  // Centered under the name, sized to exactly match the rendered width of
+  // "Certificate of Registration" (measured once via
+  // @react-pdf/pdfkit's widthOfString at Helvetica-Bold/60 — the title's
+  // own font/size — then scaled the same way as everything else here).
+  nameUnderline: {
+    position: "absolute",
+    left: (PAGE_WIDTH - s(TITLE_TEXT_WIDTH)) / 2,
+    width: s(TITLE_TEXT_WIDTH),
+    borderBottomWidth: s(3),
+    borderBottomColor: ACCENT_BLUE,
+  },
   program: {
     position: "absolute",
     left: s(BLOCK_X),
     width: s(BLOCK_W),
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: s(44),
+    fontSize: s(60),
     color: ACCENT_BLUE,
   },
   paragraph: {
@@ -196,6 +215,7 @@ function SuperChampsCertificatePage({ data }: { data: SuperChampsCertificateData
       </Text>
 
       <Text style={[styles.name, { top: sy(522) }]}>{data.name}</Text>
+      <View style={[styles.nameUnderline, { top: sy(600) }]} />
 
       <Text style={[styles.subtitle, { top: sy(628) }]}>
         has successfully registered with
