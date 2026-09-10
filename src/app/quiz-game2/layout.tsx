@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GameBackLink } from "@/components/site/game-back-link";
 
 export const metadata: Metadata = {
   title: "Quiz Champion | YCC",
@@ -16,7 +17,8 @@ export default function QuizGame2Layout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-950 to-[#0c0420] text-white">
+    <div className="relative min-h-screen bg-gradient-to-br from-violet-950 to-[#0c0420] text-white">
+      <GameBackLink />
       {children}
     </div>
   );

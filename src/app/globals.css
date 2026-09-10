@@ -269,3 +269,44 @@
 .animate-quiz-selected-blink {
   animation: quiz-selected-blink 0.9s 1;
 }
+
+/* Mystery Box (/mystry-box) — closed-crate shake, lid pop-off, ambient glow,
+   and a result-emoji pop. Plain keyframes (no framer-motion) for the same
+   Next 16 Turbopack + React 19 reason the quiz games document; the reel's
+   own travel is a runtime-value translateY transition set inline. */
+@keyframes mystery-box-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  15% { transform: translateX(-7px) rotate(-4deg); }
+  30% { transform: translateX(7px) rotate(4deg); }
+  45% { transform: translateX(-5px) rotate(-3deg); }
+  60% { transform: translateX(5px) rotate(3deg); }
+  75% { transform: translateX(-3px) rotate(-1.5deg); }
+}
+.animate-mystery-box-shake {
+  animation: mystery-box-shake 0.5s ease-in-out 2;
+}
+
+@keyframes mystery-box-lid {
+  from { transform: translateX(-50%) translateY(0) rotate(0deg); opacity: 1; }
+  to { transform: translateX(-50%) translateY(-150%) rotate(-20deg); opacity: 0; }
+}
+.animate-mystery-box-lid {
+  animation: mystery-box-lid 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes mystery-box-glow {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 0.75; transform: scale(1.08); }
+}
+.animate-mystery-box-glow {
+  animation: mystery-box-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes mystery-box-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  70% { transform: scale(1.14); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-mystery-box-pop {
+  animation: mystery-box-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
