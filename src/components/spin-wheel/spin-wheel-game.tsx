@@ -467,11 +467,14 @@ function SpinningWheel({
                   <div className="absolute right-[8%] top-1/2 flex -translate-y-1/2 flex-col items-center leading-[0.85] whitespace-nowrap">
                     {i === GOA_INDEX ? (
                       <>
-                        <span className="text-xl font-black text-slate-900 sm:text-4xl">
+                        <span className="text-lg font-black text-slate-900 sm:text-3xl">
                           GOA
                         </span>
-                        <span className="text-sm font-black text-slate-900 sm:text-xl">
+                        <span className="text-xs font-black text-slate-900 sm:text-lg">
                           TRIP
+                        </span>
+                        <span className="text-xs font-black text-slate-900 sm:text-lg">
+                          GANG
                         </span>
                       </>
                     ) : (
