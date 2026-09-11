@@ -259,11 +259,6 @@ export function SpinWheelGame() {
             </li>
             <li>Hit your number or GOA — win a Goa Trip with Gang!</li>
           </ol>
-          {/* Kept instead of "T&C Applied" — there's no real prize or terms
-              behind this, and saying so plainly matters on a live site. */}
-          <p className="mt-4 text-center text-xs text-white/50">
-            Just for fun — no real trip, no real stakes.
-          </p>
         </div>
         <button
           type="button"
