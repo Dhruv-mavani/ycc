@@ -248,12 +248,23 @@ export function SpinWheelGame() {
         <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
           Spin the Wheel
         </h1>
-        <p className="mt-6 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
-          Pick a number from 1 to {NUM_COUNT}, then spin. Ten sections hold the
-          numbers 1-{NUM_COUNT}; the 11th holds a Goa Trip with Gang (free to
-          all). Land on your number, or land on the Goa Trip section, and you
-          win. Both are rare — just for fun, no real trip, no real stakes.
-        </p>
+        <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
+          <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
+            How to Play
+          </p>
+          <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-amber-300">
+            <li>Choose any number from 1 to {NUM_COUNT}.</li>
+            <li>
+              Spin the wheel featuring {NUM_COUNT} numbered boxes + 1 GOA box.
+            </li>
+            <li>Hit your number or GOA — win a Goa Trip with Gang!</li>
+          </ol>
+          {/* Kept instead of "T&C Applied" — there's no real prize or terms
+              behind this, and saying so plainly matters on a live site. */}
+          <p className="mt-4 text-center text-xs text-white/50">
+            Just for fun — no real trip, no real stakes.
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => dispatch({ type: "START" })}
