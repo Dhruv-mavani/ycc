@@ -4,12 +4,19 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { Gift, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 
 // ---------------------------------------------------------------------------
 // Mystery Box — a solo, self-serve number-draw game (/mystry-box). The player
 // picks a number from 1 to 50, then opens the box: it shakes, the lid flies
 // off, and a slot-machine reel spins through numbers and decelerates onto the
-// drawn one. Match = win (a flat 1-in-50), otherwise lose.
+// drawn one. Match = win, otherwise lose.
+//
+// Win odds are deliberately real, if tiny: landing on the player's own
+// number is an explicit 0.001% (1-in-100,000) draw — set exactly, same
+// approach as Spin the Wheel (see spin-wheel-game.tsx), not simulated to
+// look small while secretly being zero. The remaining ~99.999% is spread
+// evenly across the other 49 (losing) numbers.
 //
 // Animations are plain CSS (keyframes in globals.css + a runtime-value
 // translateY transition on the reel), not framer-motion — the same setup
@@ -21,25 +28,64 @@ import { cn } from "@/lib/utils";
 // opening, so its "has the reel started moving" state starts fresh every
 // round with no reset effect (which would trip react-hooks/set-state-in-effect).
 //
-// Audio files are copies of the ones the quiz games use, kept in this game's
-// own folder (public/mystry-box/audio/) so it stays self-contained.
+// Sound effects are synthesized (src/lib/synth-sfx.ts), not audio files —
+// gives this game its own distinct sound identity (a warm, rattly box)
+// without shipping/licensing more mp3s. Spin the Wheel gets a different
+// timbre/melody for the same reason; Quiz Champion keeps its original KBC
+// audio clips as the third distinct identity.
 // ---------------------------------------------------------------------------
 
 const MAX_NUMBER = 50;
+const PICKED_WIN_CHANCE = 0.00001; // 0.001% — box lands on the player's own number
 const CELL_HEIGHT = 88; // px — one reel cell, and the box's viewing window
 const REEL_LENGTH = 44; // cells the reel travels through before it lands
 const SPIN_MS = 4200; // must match the transition duration set on the reel
 const SHAKE_MS = 1000; // box shake before the lid comes off (2x the 0.5s keyframe)
 const READ_MS = 650; // beat on the landed number before the result screen
 
-const SFX = {
-  spin: "/mystry-box/audio/spin.mp3",
-  win: "/mystry-box/audio/win.mp3",
-  lose: "/mystry-box/audio/lose.mp3",
+const MYSTERY_SFX = {
+  // A warm, rattly click train — mimics the box shaking then the reel
+  // clacking through numbers, decelerating as it settles.
+  spin: (): ActiveSound =>
+    playClickTrain({
+      count: 30,
+      startGap: 0.055,
+      endGap: 0.34,
+      freq: 640,
+      dur: 0.05,
+      type: "triangle",
+      gain: 0.16,
+    }),
+  // Bright ascending arpeggio — a little magical "ta-da".
+  win: (): ActiveSound =>
+    playNotes([
+      { freq: 523.25, start: 0, dur: 0.14, type: "triangle", gain: 0.25 },
+      { freq: 659.25, start: 0.12, dur: 0.14, type: "triangle", gain: 0.25 },
+      { freq: 783.99, start: 0.24, dur: 0.14, type: "triangle", gain: 0.25 },
+      { freq: 1046.5, start: 0.36, dur: 0.32, type: "triangle", gain: 0.3 },
+    ]),
+  // Soft two-note descent — a gentle "aww", not harsh.
+  lose: (): ActiveSound =>
+    playNotes([
+      { freq: 311.13, start: 0, dur: 0.22, type: "sine", gain: 0.18 },
+      { freq: 233.08, start: 0.18, dur: 0.34, type: "sine", gain: 0.16 },
+    ]),
 };
 
 function randomNumber() {
   return 1 + Math.floor(Math.random() * MAX_NUMBER);
+}
+
+// Draws the number the box lands on. `picked` is the player's chosen
+// number; matching it is an explicit PICKED_WIN_CHANCE draw, not the
+// "naturally" uniform 1/50 a plain randomNumber() would give — everything
+// else falls back to a uniform pick among the other 49 (losing) numbers,
+// via the standard "sample from 1..49, shift up past picked" trick so no
+// array needs to be built and filtered.
+function drawNumber(picked: number): number {
+  if (Math.random() < PICKED_WIN_CHANCE) return picked;
+  const losing = 1 + Math.floor(Math.random() * (MAX_NUMBER - 1)); // 1..49
+  return losing < picked ? losing : losing + 1;
 }
 
 function buildReel(landing: number): number[] {
@@ -83,7 +129,7 @@ function reducer(state: GameState, action: Action): GameState {
       return state.phase === "pick" ? { ...state, picked: action.n } : state;
     case "OPEN": {
       if (state.phase !== "pick" || state.picked === null) return state;
-      const drawn = randomNumber();
+      const drawn = drawNumber(state.picked);
       return { ...state, phase: "spinning", drawn, reel: buildReel(drawn) };
     }
     case "SETTLE":
@@ -104,26 +150,21 @@ export function MysteryBoxGame() {
     mutedRef.current = muted;
   }, [muted]);
 
-  // Exactly one SFX is ever in flight (spin, then win/lose). Hold it so it can
-  // be cut the instant it's unwanted — on the next cue, on mute, and above all
-  // on unmount: `new Audio()` keeps playing after React tears the component
-  // down, so without this the spin tick outlives the closed game.
-  const sfxRef = useRef<HTMLAudioElement | null>(null);
+  // Exactly one SFX is ever in flight (spin, then win/lose). Hold it so it
+  // can be cut the instant it's unwanted — on the next cue, on mute, and
+  // above all on unmount: a synthesized sound keeps playing on its own
+  // schedule after React tears the component down, so without this the
+  // spin rattle would outlive the closed game.
+  const sfxRef = useRef<ActiveSound | null>(null);
   const stopSfx = useCallback(() => {
-    const audio = sfxRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-      sfxRef.current = null;
-    }
+    sfxRef.current?.stop();
+    sfxRef.current = null;
   }, []);
   const play = useCallback(
-    (src: string) => {
+    (kind: keyof typeof MYSTERY_SFX) => {
       stopSfx();
       if (mutedRef.current) return;
-      const audio = new Audio(src);
-      sfxRef.current = audio;
-      audio.play().catch(() => {});
+      sfxRef.current = MYSTERY_SFX[kind]();
     },
     [stopSfx],
   );
@@ -132,8 +173,8 @@ export function MysteryBoxGame() {
   useEffect(() => stopSfx, [stopSfx]);
 
   useEffect(() => {
-    if (state.phase === "won") play(SFX.win);
-    if (state.phase === "lost") play(SFX.lose);
+    if (state.phase === "won") play("win");
+    if (state.phase === "lost") play("lose");
   }, [state.phase, play]);
 
   function toggleMute() {
@@ -170,13 +211,13 @@ export function MysteryBoxGame() {
         <p className="mt-6 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
           Pick a number from 1 to {MAX_NUMBER}, then open the Mystery Box. It
           shakes, the lid flies off, and a reel spins through the numbers before
-          it lands on one. Match your number and you win — a one-in-{MAX_NUMBER}{" "}
+          it lands on one. Match your number and you win — a rare 0.001%
           shot. No login, no stakes, just luck.
         </p>
         <button
           type="button"
           onClick={() => dispatch({ type: "START" })}
-          className="mt-10 rounded-xl bg-amber-400 px-8 py-2.5 text-lg font-bold text-black shadow-lg transition-colors hover:bg-amber-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl"
+          className="mt-10 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-2.5 text-lg font-bold text-black shadow-xl shadow-amber-500/20 transition-all duration-300 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 sm:px-10 sm:py-3 sm:text-xl md:text-2xl"
         >
           Play
         </button>
@@ -204,10 +245,10 @@ export function MysteryBoxGame() {
               type="button"
               onClick={() => dispatch({ type: "PICK", n })}
               className={cn(
-                "flex aspect-square items-center justify-center rounded-md border text-xs font-bold transition-all sm:text-base",
+                "flex aspect-square items-center justify-center rounded-lg border text-xs font-bold transition-all duration-300 sm:text-base",
                 state.picked === n
-                  ? "scale-105 border-amber-300 bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.55)]"
-                  : "border-white/10 bg-white/5 text-white hover:bg-white/15",
+                  ? "scale-110 border-amber-300 bg-gradient-to-br from-amber-300 to-amber-500 text-black shadow-[0_0_20px_rgba(251,191,36,0.55)] z-10"
+                  : "border-white/10 bg-white/5 text-white backdrop-blur-sm hover:scale-110 hover:border-white/30 hover:bg-white/20 hover:shadow-lg z-0",
               )}
             >
               {n}
@@ -220,10 +261,10 @@ export function MysteryBoxGame() {
           disabled={state.picked === null}
           onClick={() => dispatch({ type: "OPEN" })}
           className={cn(
-            "mt-10 rounded-xl px-6 py-2.5 text-base font-bold shadow-lg transition-colors sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
+            "mt-10 rounded-xl px-6 py-2.5 text-base font-bold shadow-lg transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
             state.picked === null
-              ? "cursor-not-allowed bg-white/10 text-white/40"
-              : "bg-amber-400 text-black hover:bg-amber-300",
+              ? "cursor-not-allowed bg-white/5 border border-white/10 text-white/40"
+              : "bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-xl shadow-amber-500/20 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 border border-transparent",
           )}
         >
           Open the Mystery Box
@@ -283,7 +324,7 @@ export function MysteryBoxGame() {
       <button
         type="button"
         onClick={() => dispatch({ type: "RESTART" })}
-        className="mt-10 flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-2.5 text-base font-bold text-black shadow-lg transition-colors hover:bg-amber-300 sm:px-8 sm:py-3 sm:text-xl"
+        className="mt-10 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-amber-500/20 transition-all duration-300 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 sm:px-8 sm:py-3 sm:text-xl"
       >
         <RotateCcw className="size-5" />
         Play again
@@ -304,7 +345,7 @@ function SpinningBox({
   onSettle,
 }: {
   reel: number[];
-  play: (src: string) => void;
+  play: (kind: keyof typeof MYSTERY_SFX) => void;
   stopSfx: () => void;
   onSettle: () => void;
 }) {
@@ -327,7 +368,7 @@ function SpinningBox({
     let settleTimer = 0;
     const shakeTimer = window.setTimeout(() => {
       setReelMoving(true);
-      playRef.current(SFX.spin);
+      playRef.current("spin");
       settleTimer = window.setTimeout(
         () => onSettleRef.current(),
         SPIN_MS + READ_MS,

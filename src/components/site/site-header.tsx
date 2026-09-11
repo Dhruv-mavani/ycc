@@ -33,6 +33,7 @@ export function SiteHeader() {
     pathname === "/about" ||
     pathname === "/contact" ||
     pathname === "/receipt" ||
+    pathname === "/games" ||
     pathname.startsWith("/events") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/partner-program");
