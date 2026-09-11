@@ -24,7 +24,7 @@ export const GAMES: GameLink[] = [
     href: "/mystry-box",
     title: "Mystery Box",
     description:
-      "Pick a number from 1 to 50, then open the spinning Mystery Box. Land on your number and you win — a rare 0.001% shot.",
+      "Pick a number from 1 to 50, then open the spinning Mystery Box. Land on your number and you win — a rare 0.000001% shot.",
     emoji: "🎁",
   },
   {

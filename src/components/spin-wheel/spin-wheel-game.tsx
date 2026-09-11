@@ -13,13 +13,14 @@ import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 // (free to all)". Two ways to win: the wheel lands on the player's own
 // number, or it lands on the Goa Trip section.
 //
-// Win odds are deliberately real, if tiny: landing on the player's own
-// number and landing on Goa Trip are each an explicit, independent 0.0001%
-// (1-in-1,000,000) draw — set exactly, not simulated to look small while
-// secretly being zero. The remaining ~99.9998% is spread evenly across the
-// other nine number sections (whichever the player didn't pick), which are
-// always losing outcomes for that spin. There is no real prize behind the
-// Goa Trip section — it's flavor, same as the rest of this game family.
+// Win odds are deliberately real, if vanishingly tiny: landing on the
+// player's own number and landing on Goa Trip are each an explicit,
+// independent 0.000001% (1-in-100,000,000) draw — set exactly, not
+// simulated to look small while secretly being zero. The remaining
+// ~99.999998% is spread evenly across the other nine number sections
+// (whichever the player didn't pick), which are always losing outcomes for
+// that spin. There is no real prize behind the Goa Trip section — it's
+// flavor, same as the rest of this game family.
 //
 // Same lessons as the sibling games (see mystery-box-game.tsx):
 //  - All spin timing is setTimeout, never requestAnimationFrame — rAF is
@@ -46,8 +47,8 @@ const GOA_INDEX = 10; // the 11th section, index 10
 const GOA_SLICE_DEG = 90;
 const NUM_SLICE_DEG = (360 - GOA_SLICE_DEG) / NUM_COUNT;
 
-const PICKED_WIN_CHANCE = 0.000001; // 0.0001% — lands on the player's own number
-const GOA_WIN_CHANCE = 0.000001; // 0.0001% — lands on Goa Trip with Gang
+const PICKED_WIN_CHANCE = 0.00000001; // 0.000001% — lands on the player's own number
+const GOA_WIN_CHANCE = 0.00000001; // 0.000001% — lands on Goa Trip with Gang
 
 const SPIN_MS = 4500; // must match the transition duration set on the wheel
 const PRESPIN_MS = 300; // short beat between the click and the wheel moving

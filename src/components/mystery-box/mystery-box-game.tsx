@@ -12,11 +12,11 @@ import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 // off, and a slot-machine reel spins through numbers and decelerates onto the
 // drawn one. Match = win, otherwise lose.
 //
-// Win odds are deliberately real, if tiny: landing on the player's own
-// number is an explicit 0.001% (1-in-100,000) draw — set exactly, same
-// approach as Spin the Wheel (see spin-wheel-game.tsx), not simulated to
-// look small while secretly being zero. The remaining ~99.999% is spread
-// evenly across the other 49 (losing) numbers.
+// Win odds are deliberately real, if vanishingly tiny: landing on the
+// player's own number is an explicit 0.000001% (1-in-100,000,000) draw —
+// set exactly, same approach as Spin the Wheel (see spin-wheel-game.tsx),
+// not simulated to look small while secretly being zero. The remaining
+// ~99.999999% is spread evenly across the other 49 (losing) numbers.
 //
 // Animations are plain CSS (keyframes in globals.css + a runtime-value
 // translateY transition on the reel), not framer-motion — the same setup
@@ -36,7 +36,7 @@ import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 // ---------------------------------------------------------------------------
 
 const MAX_NUMBER = 50;
-const PICKED_WIN_CHANCE = 0.00001; // 0.001% — box lands on the player's own number
+const PICKED_WIN_CHANCE = 0.00000001; // 0.000001% — box lands on the player's own number
 const CELL_HEIGHT = 88; // px — one reel cell, and the box's viewing window
 const REEL_LENGTH = 44; // cells the reel travels through before it lands
 const SPIN_MS = 4200; // must match the transition duration set on the reel
@@ -208,12 +208,19 @@ export function MysteryBoxGame() {
         <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
           Mystery Box
         </h1>
-        <p className="mt-6 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
-          Pick a number from 1 to {MAX_NUMBER}, then open the Mystery Box. It
-          shakes, the lid flies off, and a reel spins through the numbers before
-          it lands on one. Match your number and you win — a rare 0.001%
-          shot. No login, no stakes, just luck.
-        </p>
+        <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
+          <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
+            How to Play
+          </p>
+          <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-amber-300">
+            <li>Choose any number from 1 to {MAX_NUMBER}.</li>
+            <li>
+              Open the Mystery Box — it shakes, the lid flies off, and a reel
+              spins through the numbers.
+            </li>
+            <li>Match your number — win!</li>
+          </ol>
+        </div>
         <button
           type="button"
           onClick={() => dispatch({ type: "START" })}
