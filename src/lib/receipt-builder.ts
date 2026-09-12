@@ -100,7 +100,11 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
     participants: participantsWithQr,
     includeCongratsLetter: registration.type === "team" && !event.requires_referral,
     paymentDue,
-    hideReceiptPage: event.hide_receipt_page,
+    // Only hidden while payment is still due — once a staff member marks
+    // the cash payment paid (adding a `payments` row), paymentDue flips to
+    // false and this same PDF (from the same "Download receipt" flow)
+    // starts including the payment-receipt page automatically.
+    hideReceiptPage: event.hide_receipt_page && paymentDue,
     gstExempt: event.gst_exempt,
   });
 

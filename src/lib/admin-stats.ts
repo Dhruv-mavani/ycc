@@ -144,6 +144,84 @@ export async function getEventOverview(
   };
 }
 
+export interface CashCollectionEventOverview {
+  eventId: string;
+  eventName: string;
+  confirmedRegistrations: number;
+  paidRegistrations: number;
+  pendingRegistrations: number;
+  paidPaise: number;
+  pendingPaise: number;
+}
+
+/**
+ * Per-event cash-collection breakdown for pay_at_venue events — the
+ * `revenuePaise` figures elsewhere on this dashboard (getEventOverview)
+ * count a pay_at_venue registration's fee the moment it's confirmed, before
+ * any cash has actually been collected at the venue; this splits that same
+ * money into what's actually been marked paid (a `payments` row exists) vs
+ * still pending, so "confirmed" isn't mistaken for "collected" for these
+ * events specifically.
+ */
+export async function getCashCollectionOverview(): Promise<
+  CashCollectionEventOverview[]
+> {
+  const admin = createAdminClient();
+  const { data: events } = await admin
+    .from("events")
+    .select("id, name")
+    .eq("pay_at_venue", true)
+    .eq("is_active", true);
+
+  if (!events || events.length === 0) return [];
+
+  return Promise.all(
+    events.map(async (event) => {
+      const { data: registrations } = await admin
+        .from("registrations")
+        .select("id, amount_paise")
+        .eq("event_id", event.id)
+        .eq("status", "confirmed");
+      const regs = registrations ?? [];
+      const regIds = regs.map((r) => r.id);
+
+      const { data: paidPayments } =
+        regIds.length > 0
+          ? await admin
+              .from("payments")
+              .select("registration_id")
+              .in("registration_id", regIds)
+              .eq("status", "paid")
+          : { data: [] as { registration_id: string }[] };
+      const paidSet = new Set((paidPayments ?? []).map((p) => p.registration_id));
+
+      let paidPaise = 0;
+      let pendingPaise = 0;
+      let paidRegistrations = 0;
+      let pendingRegistrations = 0;
+      for (const r of regs) {
+        if (paidSet.has(r.id)) {
+          paidPaise += r.amount_paise;
+          paidRegistrations += 1;
+        } else {
+          pendingPaise += r.amount_paise;
+          pendingRegistrations += 1;
+        }
+      }
+
+      return {
+        eventId: event.id,
+        eventName: event.name,
+        confirmedRegistrations: regs.length,
+        paidRegistrations,
+        pendingRegistrations,
+        paidPaise,
+        pendingPaise,
+      };
+    }),
+  );
+}
+
 export interface RegistrationsByDay {
   date: string; // "YYYY-MM-DD", IST calendar day
   registrations: number;

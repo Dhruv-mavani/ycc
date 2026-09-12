@@ -145,7 +145,7 @@ export function PaymentStatusPoller({
                   maximumFractionDigits: 2,
                 })}{" "}
                 — payable in <strong>cash at the venue</strong>. This
-                registration is confirmed; the fee has not been paid online.
+                registration is confirmed; the fee has not been paid yet.
               </div>
             )}
             {downloadStarted && (
