@@ -44,6 +44,141 @@ const bgDataUri = (() => {
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 
+// Box Cricket ("team") gets its own certificate-style design instead of
+// the envelope-photo one above — a plain ornate blue border with no
+// baked-in logo (public/box_cricket_certificate/certificate-frame.png,
+// native 2000x1414). That's an almost exact A4-landscape ratio
+// (2000/1414 = 1.4144 vs. true A4's 1.4142), so it's meant to fill a
+// landscape page edge-to-edge rather than being centered/cropped like the
+// square envelope art. Scoped to Box Cricket only — the Partner Program
+// side of this file (kind: "partner") is untouched.
+const teamBgDataUri = (() => {
+  const buffer = fs.readFileSync(
+    path.join(process.cwd(), "public/box_cricket_certificate/certificate-frame.png"),
+  );
+  return `data:image/png;base64,${buffer.toString("base64")}`;
+})();
+const teamLogoDataUri = (() => {
+  const buffer = fs.readFileSync(
+    path.join(process.cwd(), "public/superchamps/ycc-logo-cropped.png"),
+  );
+  return `data:image/png;base64,${buffer.toString("base64")}`;
+})();
+
+// Rounded to whole points rather than true A4 landscape (841.89 x 595.28)
+// — react-pdf's layout engine has a confirmed bug where a fractional page
+// height silently overflows content onto a phantom second page (same fix
+// already applied in superchamps-certificate.tsx for this exact 2000x1414
+// art; see that file's comment for the bisection that found it).
+const TEAM_PAGE_WIDTH = 842;
+const TEAM_PAGE_HEIGHT = 595;
+const TEAM_ART_NATIVE_W = 2000;
+const TEAM_ART_NATIVE_H = 1414;
+const TEAM_SCALE_X = TEAM_PAGE_WIDTH / TEAM_ART_NATIVE_W;
+const TEAM_SCALE_Y = TEAM_PAGE_HEIGHT / TEAM_ART_NATIVE_H;
+const ts = (value: number) => value * TEAM_SCALE_X;
+const tsy = (value: number) => value * TEAM_SCALE_Y;
+
+// The border artwork's safe interior — pixel-scanned from the source PNG
+// (mask of non-near-white pixels), not eyeballed: the widest fully clear
+// vertical band spans y 147-1266 across x 200-1800, i.e. this rectangle
+// never touches any corner flourish or the thin mid-height side lines.
+// Content below is laid out inside this box, in the same native-pixel
+// space as the scan, then converted to points via ts()/tsy().
+const TEAM_SAFE_X = 200;
+const TEAM_SAFE_W = 1600; // 1800 - 200
+const TEAM_SAFE_Y = 150;
+
+const TEAM_LOGO_W = 480; // native px; height follows the source's own 866:301 ratio
+const TEAM_LOGO_H = (TEAM_LOGO_W * 301) / 866;
+const TEAM_NAVY = "#173a8f";
+const TEAM_LOGO_BLUE = "#2a5e9a";
+const TEAM_TEXT_DARK = "#2a2118";
+
+const teamStyles = StyleSheet.create({
+  page: { position: "relative" },
+  background: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: TEAM_PAGE_WIDTH,
+    height: TEAM_PAGE_HEIGHT,
+  },
+  logo: {
+    position: "absolute",
+    top: tsy(TEAM_SAFE_Y + 20),
+    left: ts(TEAM_SAFE_X + TEAM_SAFE_W / 2 - TEAM_LOGO_W / 2),
+    width: ts(TEAM_LOGO_W),
+    height: tsy(TEAM_LOGO_H),
+  },
+  dearLine: {
+    position: "absolute",
+    left: ts(TEAM_SAFE_X),
+    width: ts(TEAM_SAFE_W),
+    textAlign: "center",
+    fontFamily: "Alex Brush",
+    fontSize: ts(58),
+    color: TEAM_LOGO_BLUE,
+  },
+  name: {
+    position: "absolute",
+    left: ts(TEAM_SAFE_X),
+    width: ts(TEAM_SAFE_W),
+    textAlign: "center",
+    fontFamily: "Alex Brush",
+    fontSize: ts(54),
+    color: TEAM_NAVY,
+  },
+  paragraph: {
+    position: "absolute",
+    left: ts(TEAM_SAFE_X + 150),
+    width: ts(TEAM_SAFE_W - 300),
+    textAlign: "center",
+    fontFamily: "Times-Italic",
+    fontSize: ts(30),
+    lineHeight: 1.45,
+    color: TEAM_TEXT_DARK,
+  },
+  box: {
+    position: "absolute",
+    top: tsy(760),
+    width: ts(720),
+    border: `${ts(1.5)} solid ${TEAM_NAVY}`,
+    borderRadius: ts(6),
+    paddingVertical: ts(16),
+    paddingHorizontal: ts(20),
+  },
+  boxTitle: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: ts(24),
+    letterSpacing: ts(1.5),
+    color: TEAM_NAVY,
+    textAlign: "center",
+    marginBottom: ts(10),
+  },
+  boxRow: {
+    fontFamily: "Helvetica",
+    fontSize: ts(20),
+    lineHeight: 1.5,
+    color: TEAM_TEXT_DARK,
+    textAlign: "center",
+  },
+  boxRowLabel: {
+    fontFamily: "Helvetica-Bold",
+  },
+});
+
+// Two boxes side by side, each TEAM_LOGO_W-independent 720-native wide,
+// centered as a pair within the safe content width with a gap between —
+// landscape has the width to spare, so putting Team Details and the ID
+// Card notice side by side keeps the whole block well clear of the safe
+// zone's bottom edge (y 1266) instead of stacking them the way the
+// taller portrait design does.
+const TEAM_BOX_GAP = 160;
+const TEAM_BOX_LEFT_X =
+  TEAM_SAFE_X + (TEAM_SAFE_W - 720 * 2 - TEAM_BOX_GAP) / 2;
+const TEAM_BOX_RIGHT_X = TEAM_BOX_LEFT_X + 720 + TEAM_BOX_GAP;
+
 // The square art is scaled to fill the page width and centered vertically,
 // so the whole envelope+card stays visible (no cropping) and every
 // coordinate below — copied from the original 1254-native layout — is
@@ -197,50 +332,69 @@ export type InvitationLetterData =
 
 export function InvitationLetterPage(data: InvitationLetterData) {
   if (data.kind === "team") {
+    // Underline centered under the team name, sized for the wider
+    // landscape safe zone — a fixed width reads as a deliberate
+    // signature-line accent regardless of name length, same idea as
+    // NameUnderline below (kept separate since the two pages don't share a
+    // coordinate space).
+    const underlineNativeW = 460;
+    const underlineCenterX = TEAM_SAFE_X + TEAM_SAFE_W / 2;
+
     return (
-      <Page size="A4" style={styles.page}>
+      <Page size={[TEAM_PAGE_WIDTH, TEAM_PAGE_HEIGHT]} style={teamStyles.page}>
         {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
-        <Image src={bgDataUri} style={styles.background} />
+        <Image src={teamBgDataUri} style={teamStyles.background} />
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
+        <Image src={teamLogoDataUri} style={teamStyles.logo} />
 
-        <Text style={styles.dearLine}>Dear,</Text>
-        <Text style={styles.name}>{data.teamName}</Text>
-        <NameUnderline top={ART_TOP + s(BLOCK_Y + 92)} />
+        <Text style={[teamStyles.dearLine, { top: tsy(380) }]}>Dear,</Text>
+        <Text style={[teamStyles.name, { top: tsy(460) }]}>{data.teamName}</Text>
+        <Svg
+          style={{ position: "absolute", top: tsy(530), left: 0 }}
+          width={TEAM_PAGE_WIDTH}
+          height={tsy(6)}
+        >
+          <Line
+            x1={ts(underlineCenterX - underlineNativeW / 2)}
+            y1={tsy(3)}
+            x2={ts(underlineCenterX + underlineNativeW / 2)}
+            y2={tsy(3)}
+            stroke={TEAM_LOGO_BLUE}
+            strokeWidth={ts(2.5)}
+            strokeLinecap="round"
+          />
+        </Svg>
 
-        <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 122) }]}>
+        <Text style={[teamStyles.paragraph, { top: tsy(580) }]}>
           Congratulations on registering for the {data.eventName}! Your team
-          is officially confirmed, and we can&apos;t wait to see you take
-          the field.
+          is officially confirmed — get your squad ready, stay sharp, and
+          bring your best game on match day. Schedules, venue details and
+          every update will be shared on our official channels.
         </Text>
 
-        <Text style={[styles.paragraph, { top: ART_TOP + s(BLOCK_Y + 178) }]}>
-          Get your squad ready, stay sharp and bring your best game on match
-          day — schedules, venue details and every update will be shared on
-          our official channels.
-        </Text>
-
-        <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 250) }]}>
-          <Text style={styles.noticeTitle}>Team Details</Text>
-          <Text style={styles.detailsRow}>
-            <Text style={styles.detailsLabel}>College: </Text>
+        <View style={[teamStyles.box, { left: ts(TEAM_BOX_LEFT_X) }]}>
+          <Text style={teamStyles.boxTitle}>Team Details</Text>
+          <Text style={teamStyles.boxRow}>
+            <Text style={teamStyles.boxRowLabel}>College: </Text>
             {data.collegeName}
           </Text>
           {data.captainName ? (
-            <Text style={styles.detailsRow}>
-              <Text style={styles.detailsLabel}>Captain: </Text>
+            <Text style={teamStyles.boxRow}>
+              <Text style={teamStyles.boxRowLabel}>Captain: </Text>
               {data.captainName}
             </Text>
           ) : null}
           {data.players.length > 0 ? (
-            <Text style={styles.detailsRow}>
-              <Text style={styles.detailsLabel}>Players: </Text>
+            <Text style={teamStyles.boxRow}>
+              <Text style={teamStyles.boxRowLabel}>Players: </Text>
               {data.players.join(", ")}
             </Text>
           ) : null}
         </View>
 
-        <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 420) }]}>
-          <Text style={styles.noticeTitle}>ID Card Mandatory</Text>
-          <Text style={styles.noticeBody}>
+        <View style={[teamStyles.box, { left: ts(TEAM_BOX_RIGHT_X) }]}>
+          <Text style={teamStyles.boxTitle}>ID Card Mandatory</Text>
+          <Text style={teamStyles.boxRow}>
             Every player must carry their ID card print or pdf (attached
             right after this letter) to the venue — entry will not be
             permitted without it. Keep it safe until match day.
