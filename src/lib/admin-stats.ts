@@ -534,24 +534,41 @@ export interface GamePlayRow {
 
 /**
  * Spin the Wheel / Mystery Box insights for the admin games page. Summary
- * counts scan every row (no limit — plain text columns, cheap) so totals
- * stay accurate regardless of volume; recentPlays is capped for the table.
+ * counts scan every matching row (no limit — plain text columns, cheap) so
+ * totals stay accurate regardless of volume; recentPlays is capped for the
+ * table, but the cap applies to the filtered set — a search stays useful
+ * even once total plays run well past 200.
  */
-export async function getGameInsights(): Promise<{
+export async function getGameInsights(
+  gameSlug?: string,
+  search?: string,
+): Promise<{
   summary: GameInsightsSummary[];
   recentPlays: GamePlayRow[];
 }> {
   const admin = createAdminClient();
+  const trimmedSearch = search?.trim();
+
+  let summaryQuery = admin.from("game_plays").select("game_slug, result");
+  if (gameSlug) summaryQuery = summaryQuery.eq("game_slug", gameSlug);
+
+  let recentQuery = admin
+    .from("game_plays")
+    .select(
+      "id, game_slug, player_name, team_label, source, is_captain, result, created_at",
+    )
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (gameSlug) recentQuery = recentQuery.eq("game_slug", gameSlug);
+  if (trimmedSearch) {
+    recentQuery = recentQuery.or(
+      `player_name.ilike.%${trimmedSearch}%,team_label.ilike.%${trimmedSearch}%`,
+    );
+  }
 
   const [{ data: allRows }, { data: recentRows }] = await Promise.all([
-    admin.from("game_plays").select("game_slug, result"),
-    admin
-      .from("game_plays")
-      .select(
-        "id, game_slug, player_name, team_label, source, is_captain, result, created_at",
-      )
-      .order("created_at", { ascending: false })
-      .limit(200),
+    summaryQuery,
+    recentQuery,
   ]);
 
   const bySlug = new Map<string, GameInsightsSummary>();

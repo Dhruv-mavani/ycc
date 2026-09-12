@@ -1,7 +1,11 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowLeftIcon, Crown, Gamepad2, Trophy, XCircle } from "lucide-react";
 import { getGameInsights } from "@/lib/admin-stats";
 import { GAMES } from "@/lib/games";
+import { GameFilter } from "@/components/admin/game-filter";
+import { GamePlaySearch } from "@/components/admin/game-play-search";
+import { PageSpinner } from "@/components/site/page-spinner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,25 +34,53 @@ function formatDate(iso: string) {
   });
 }
 
-export default async function AdminGamesPage() {
-  const { summary, recentPlays } = await getGameInsights();
+export default async function AdminGamesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ game?: string; q?: string }>;
+}) {
+  const { game, q } = await searchParams;
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-6 px-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <Button
+          variant="outline"
+          size="sm"
+          nativeButton={false}
+          render={
+            <Link href="/admin">
+              <ArrowLeftIcon className="size-4" />
+              Back to overview
+            </Link>
+          }
+        />
+        <div className="flex flex-col min-[480px]:flex-row gap-2 w-full sm:w-auto">
+          <GameFilter />
+          <GamePlaySearch />
+        </div>
+      </div>
+
+      <Suspense key={`${game ?? "all"}-${q ?? ""}`} fallback={<PageSpinner className="min-h-[40vh]" />}>
+        <GamesData gameSlug={game} search={q} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function GamesData({
+  gameSlug,
+  search,
+}: {
+  gameSlug?: string;
+  search?: string;
+}) {
+  const { summary, recentPlays } = await getGameInsights(gameSlug, search);
   const totalPlays = summary.reduce((sum, s) => sum + s.plays, 0);
   const totalWins = summary.reduce((sum, s) => sum + s.wins, 0);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4">
-      <Button
-        variant="outline"
-        size="sm"
-        nativeButton={false}
-        render={
-          <Link href="/admin">
-            <ArrowLeftIcon className="size-4" />
-            Back to overview
-          </Link>
-        }
-      />
-
+    <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardContent className="flex items-center gap-3 p-4 sm:p-5">
@@ -58,7 +90,7 @@ export default async function AdminGamesPage() {
             <div>
               <p className="text-2xl font-bold tracking-tight">{totalPlays}</p>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Total plays
+                {gameSlug ? "Plays" : "Total plays"}
               </p>
             </div>
           </CardContent>
@@ -71,7 +103,7 @@ export default async function AdminGamesPage() {
             <div>
               <p className="text-2xl font-bold tracking-tight">{totalWins}</p>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Total wins
+                {gameSlug ? "Wins" : "Total wins"}
               </p>
             </div>
           </CardContent>
@@ -86,14 +118,19 @@ export default async function AdminGamesPage() {
                 {totalPlays - totalWins}
               </p>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Total losses
+                {gameSlug ? "Losses" : "Total losses"}
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-4",
+          summary.length > 1 ? "sm:grid-cols-2" : "sm:max-w-sm",
+        )}
+      >
         {summary.length === 0 ? (
           <Card className="sm:col-span-2">
             <CardContent className="py-10 text-center text-muted-foreground">
@@ -136,8 +173,10 @@ export default async function AdminGamesPage() {
             <Badge variant="secondary">{recentPlays.length}</Badge>
           </CardTitle>
           <CardDescription>
-            Most recent 200 rounds — who played, for which team, and the
-            result.
+            {gameSlug
+              ? `Most recent 200 matching rounds of ${GAME_TITLE_BY_SLUG.get(gameSlug) ?? gameSlug}`
+              : "Most recent 200 matching rounds"}
+            {search ? ` — filtered to "${search}"` : ""}.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
@@ -146,7 +185,9 @@ export default async function AdminGamesPage() {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-semibold text-foreground/80 pl-6">Player</TableHead>
                 <TableHead className="font-semibold text-foreground/80">Team</TableHead>
-                <TableHead className="font-semibold text-foreground/80">Game</TableHead>
+                {gameSlug ? null : (
+                  <TableHead className="font-semibold text-foreground/80">Game</TableHead>
+                )}
                 <TableHead className="font-semibold text-foreground/80">Result</TableHead>
                 <TableHead className="font-semibold text-foreground/80 pr-6">Played</TableHead>
               </TableRow>
@@ -168,7 +209,9 @@ export default async function AdminGamesPage() {
                       ({p.source === "partner" ? "Partner" : "Team"})
                     </span>
                   </TableCell>
-                  <TableCell>{GAME_TITLE_BY_SLUG.get(p.gameSlug) ?? p.gameSlug}</TableCell>
+                  {gameSlug ? null : (
+                    <TableCell>{GAME_TITLE_BY_SLUG.get(p.gameSlug) ?? p.gameSlug}</TableCell>
+                  )}
                   <TableCell>
                     <Badge
                       variant="secondary"
@@ -188,7 +231,7 @@ export default async function AdminGamesPage() {
               ))}
               {recentPlays.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-muted-foreground text-center py-12">
+                  <TableCell colSpan={gameSlug ? 4 : 5} className="text-muted-foreground text-center py-12">
                     No rounds played yet.
                   </TableCell>
                 </TableRow>
