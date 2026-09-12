@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Users, Banknote, CalendarCheck, UserCheck, UserX, Wallet, type LucideIcon } from "lucide-react";
+import { Users, Banknote, CalendarCheck, UserCheck, UserX, type LucideIcon } from "lucide-react";
 import {
   getEventOverview,
-  getCashCollectionOverview,
   getPartnerSquadReadiness,
   getRegistrationsOverTime,
   type DateRange,
@@ -94,12 +93,11 @@ async function DashboardData({
   eventId?: string;
   range?: DateRange;
 }) {
-  const [overview, trend, squadReadiness, cashCollection, { data: colleges }] =
+  const [overview, trend, squadReadiness, { data: colleges }] =
     await Promise.all([
       getEventOverview(eventId || undefined, range),
       getRegistrationsOverTime(eventId || undefined, range),
       getPartnerSquadReadiness(),
-      getCashCollectionOverview(),
       createAdminClient().from("colleges").select("id, name").eq("is_public", true).order("name"),
     ]);
 
@@ -142,71 +140,6 @@ async function DashboardData({
           bgClass="bg-rose-500/10"
         />
       </div>
-
-      {cashCollection.length > 0 ? (
-        <Card className="border-amber-200/60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wallet className="size-5 text-amber-600" />
-              Cash collection
-            </CardTitle>
-            <CardDescription>
-              Pay-at-venue events — &quot;Revenue&quot; above counts a
-              registration&apos;s fee as soon as it&apos;s confirmed, before
-              cash is actually collected at the venue. This breaks that same
-              money into paid vs. still-pending for each such event.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {cashCollection.map((c) => (
-              <div
-                key={c.eventId}
-                className="rounded-lg border border-border/50 p-4"
-              >
-                <p className="font-semibold text-foreground">{c.eventName}</p>
-                <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wide">
-                      Confirmed
-                    </p>
-                    <p className="text-lg font-bold">{c.confirmedRegistrations}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wide">
-                      Paid
-                    </p>
-                    <p className="text-lg font-bold text-emerald-600">
-                      {c.paidRegistrations}{" "}
-                      <span className="text-sm font-medium">
-                        ({formatRupees(c.paidPaise)})
-                      </span>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wide">
-                      Pending
-                    </p>
-                    <p className="text-lg font-bold text-amber-600">
-                      {c.pendingRegistrations}{" "}
-                      <span className="text-sm font-medium">
-                        ({formatRupees(c.pendingPaise)})
-                      </span>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wide">
-                      Total due
-                    </p>
-                    <p className="text-lg font-bold">
-                      {formatRupees(c.paidPaise + c.pendingPaise)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ) : null}
 
       <Card>
         <CardHeader>
