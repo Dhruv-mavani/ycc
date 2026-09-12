@@ -108,6 +108,13 @@ const NEAR_MISS_CHANCE = 0.7;
 const STAGE1_MS = 3600; // spin-toward-the-tease-point duration
 const SHAKE_MS = 380; // pause/shake/vibrate beat at the tease point
 const STAGE2_MS = 900; // quick corrective snap from the tease point to the real landing
+// How far into the picked number's own slice the tease point sits, as a
+// fraction of the slice's width, measured from its trailing (start-angle)
+// edge — small on purpose. The tease must visually read as "resting on
+// your number", not dead-center on it (a perfect center-stop right before
+// jumping away looks scripted/rigged); sitting just inside the edge still
+// looks like a real, uncertain near-stop.
+const NEAR_MISS_EDGE_FRACTION = 0.15;
 
 const NUMBER_COLORS = ["#fb923c", "#0e7490"] as const;
 // A small gold/amber family so multiple prize sections stay visually
@@ -201,12 +208,29 @@ function sectionCenterAngle(section: WheelSection): number {
   return (section.start + section.end) / 2;
 }
 
+// Total clockwise rotation so the given angle (in the wheel's own,
+// unrotated frame) ends up under the fixed pointer at the top, after
+// `spins` extra full turns for effect.
+function rotationForAngle(angle: number, spins: number): number {
+  const base = (360 - angle) % 360;
+  return spins * 360 + base;
+}
+
 // Total clockwise rotation so `section`'s center ends up under the fixed
 // pointer at the top, after `spins` extra full turns for effect.
 function rotationFor(section: WheelSection, spins: number): number {
-  const base = (360 - sectionCenterAngle(section)) % 360;
-  return spins * 360 + base;
+  return rotationForAngle(sectionCenterAngle(section), spins);
 }
+
+// As wheel rotation increases, the angle under the fixed pointer decreases
+// (rotating the disc clockwise sweeps the pointer backward through the
+// disc's own angle order) — so continuing to spin past a section always
+// arrives next at the section with the next-lower start angle (wrapping
+// past index 0 to the last section). NEAR_MISS_EDGE_FRACTION uses this: it
+// targets a point just inside the picked number's *trailing* (start-angle)
+// edge, so the tease reads as "resting on your number" rather than
+// "centered on it" — the small forward nudge afterward then tips straight
+// into that next section, instead of jumping away from a dead-center stop.
 
 // Draws which section index the wheel lands on for this spin (an index
 // into the `sections` array built by buildSections — 0..NUM_COUNT-1 are
@@ -628,12 +652,19 @@ function SpinningWheel({
 
   const wheelBackground = buildConicGradient(sections);
   const finalRotation = rotationFor(sections[landedIndex], EXTRA_SPINS);
-  // One full rotation short of the final spin count, guaranteeing the tease
-  // point always falls strictly before the final landing in rotation order
-  // (rotation only ever increases) — see the component-level comment above
-  // NEAR_MISS_CHANCE for why this ordering is safe regardless of where the
-  // picked section sits relative to the real landing section.
-  const nearMissRotation = rotationFor(sections[pickedIndex], EXTRA_SPINS - 1);
+  // Just inside the picked number's trailing edge (see
+  // NEAR_MISS_EDGE_FRACTION) rather than its center — a dead-center stop
+  // right before jumping away reads as scripted; sitting near the edge
+  // still looks like a real, uncertain near-stop that could tip either
+  // way. One full rotation short of the final spin count, which guarantees
+  // this point always falls strictly before the final landing in rotation
+  // order (rotation only ever increases) — see the component-level comment
+  // above NEAR_MISS_CHANCE for why that ordering holds regardless of where
+  // the picked section sits relative to the real landing section.
+  const pickedSection = sections[pickedIndex];
+  const nearMissAngle =
+    pickedSection.start + (pickedSection.end - pickedSection.start) * NEAR_MISS_EDGE_FRACTION;
+  const nearMissRotation = rotationForAngle(nearMissAngle, EXTRA_SPINS - 1);
 
   const rotationDeg =
     stage === "idle"
