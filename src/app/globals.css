@@ -302,19 +302,6 @@
   animation: mystery-box-glow 1.8s ease-in-out infinite;
 }
 
-@keyframes wheel-near-miss-shake {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  20% { transform: translate(-3px, 1px) rotate(-1.5deg); }
-  40% { transform: translate(3px, -1px) rotate(1.5deg); }
-  60% { transform: translate(-2px, 1px) rotate(-1deg); }
-  80% { transform: translate(2px, -1px) rotate(1deg); }
-}
-.animate-wheel-near-miss-shake {
-  /* 2 iterations of 0.19s = 0.38s, matching SHAKE_MS in spin-wheel-game.tsx
-     so the shake completes cleanly instead of being cut off mid-jitter. */
-  animation: wheel-near-miss-shake 0.19s ease-in-out 2;
-}
-
 @keyframes mystery-box-pop {
   0% { transform: scale(0.3); opacity: 0; }
   70% { transform: scale(1.14); opacity: 1; }
