@@ -688,7 +688,7 @@ export interface GamePlayRow {
   gameSlug: string;
   playerName: string;
   teamLabel: string;
-  source: "registration" | "partner";
+  source: "registration" | "partner" | "school";
   isCaptain: boolean;
   result: "won" | "lost";
   createdAt: string;
@@ -759,7 +759,7 @@ export async function getGameInsights(
       gameSlug: r.game_slug,
       playerName: r.player_name,
       teamLabel: r.team_label,
-      source: r.source as "registration" | "partner",
+      source: r.source as "registration" | "partner" | "school",
       isCaptain: r.is_captain,
       result: r.result as "won" | "lost",
       createdAt: r.created_at,

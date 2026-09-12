@@ -212,7 +212,13 @@ async function GamesData({
                   <TableCell className="text-muted-foreground">
                     {p.teamLabel}
                     <span className="ml-1.5 text-xs text-muted-foreground/60">
-                      ({p.source === "partner" ? "Partner" : "Team"})
+                      (
+                      {p.source === "partner"
+                        ? "Partner"
+                        : p.source === "school"
+                          ? "Super Champs"
+                          : "Team"}
+                      )
                     </span>
                   </TableCell>
                   {gameSlug ? null : (

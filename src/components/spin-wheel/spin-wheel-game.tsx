@@ -92,10 +92,22 @@ const NUM_SLICE_DEG = (360 - SPECIAL_TOTAL_DEG) / NUM_COUNT;
 const PICKED_WIN_CHANCE = 0.000000000001; // 0.0000000001% — lands on the player's own number
 const PRIZE_WIN_CHANCE = 0.000000000001; // 0.0000000001% — lands on any one bonus-prize section
 
-const SPIN_MS = 4500; // must match the transition duration set on the wheel
+const SPIN_MS = 4500; // must match the transition duration set on the wheel (clean, non-teased spins)
 const PRESPIN_MS = 300; // short beat between the click and the wheel moving
 const READ_MS = 700; // pause on the landed section before the result screen
 const EXTRA_SPINS = 6; // full rotations before the wheel settles
+
+// "Near miss" tease: on most losing spins, the wheel first slows toward the
+// player's own picked number as if it's about to land there, pauses with a
+// shake/vibration/sting right at the edge, then snaps forward to the real
+// (losing) section. NEAR_MISS_CHANCE < 1 so it doesn't happen on literally
+// every loss — repeating the exact same fake-out every round would read as
+// formulaic rather than dramatic. Only ever applies to losses; a real win
+// (the picked number or a prize) always lands cleanly.
+const NEAR_MISS_CHANCE = 0.7;
+const STAGE1_MS = 3600; // spin-toward-the-tease-point duration
+const SHAKE_MS = 380; // pause/shake/vibrate beat at the tease point
+const STAGE2_MS = 900; // quick corrective snap from the tease point to the real landing
 
 const NUMBER_COLORS = ["#fb923c", "#0e7490"] as const;
 // A small gold/amber family so multiple prize sections stay visually
@@ -173,6 +185,14 @@ const WHEEL_SFX = {
       { freq: 246.94, start: 0, dur: 0.24, type: "sine", gain: 0.17 },
       { freq: 196.0, start: 0.2, dur: 0.38, type: "sine", gain: 0.15 },
     ]),
+  // A low double-thump "uh oh" sting for the near-miss tease — sits right
+  // at the moment the wheel pauses on the tease point, before the
+  // corrective snap.
+  tease: (): ActiveSound =>
+    playNotes([
+      { freq: 160, start: 0, dur: 0.16, type: "sawtooth", gain: 0.22 },
+      { freq: 110, start: 0.14, dur: 0.22, type: "sawtooth", gain: 0.2 },
+    ]),
 };
 
 // Center angle of a section, measured clockwise from the top (matches the
@@ -220,6 +240,10 @@ interface GameState {
   // `selection` were somehow to change mid-round.
   sections: WheelSection[];
   landedIndex: number | null;
+  // Whether this round plays the near-miss tease — decided once at OPEN
+  // time (never on a win, and only sometimes on a loss) so it stays fixed
+  // for the rest of the round; see SpinningWheel for the actual timeline.
+  tease: boolean;
 }
 
 type Action =
@@ -230,7 +254,7 @@ type Action =
   | { type: "RESTART" };
 
 function initialState(): GameState {
-  return { phase: "start", picked: null, sections: [], landedIndex: null };
+  return { phase: "start", picked: null, sections: [], landedIndex: null, tease: false };
 }
 
 function reducer(state: GameState, action: Action): GameState {
@@ -243,7 +267,11 @@ function reducer(state: GameState, action: Action): GameState {
       if (state.phase !== "pick" || state.picked === null) return state;
       const sections = buildSections(action.prizes);
       const landedIndex = drawSection(state.picked, action.prizes.length);
-      return { ...state, phase: "spinning", sections, landedIndex };
+      const landed = sections[landedIndex];
+      const willWin =
+        landed.kind === "prize" || (landed.kind === "number" && landed.value === state.picked);
+      const tease = !willWin && Math.random() < NEAR_MISS_CHANCE;
+      return { ...state, phase: "spinning", sections, landedIndex, tease };
     }
     case "SETTLE": {
       if (state.phase !== "spinning" || state.landedIndex === null || state.picked === null)
@@ -460,6 +488,8 @@ export function SpinWheelGame() {
         <SpinningWheel
           sections={state.sections}
           landedIndex={state.landedIndex ?? 0}
+          pickedIndex={(state.picked ?? 1) - 1}
+          tease={state.tease}
           play={play}
           stopSfx={stopSfx}
           onSettle={() => dispatch({ type: "SETTLE" })}
@@ -523,23 +553,30 @@ export function SpinWheelGame() {
 
 // Mounts only while spinning, so `spinning` (has the wheel started turning?)
 // is fresh false every round with no reset effect. The timeline — a short
-// beat, then the spin, then a pause on the landed section, then SETTLE — is
-// driven entirely by timers in a mount-once effect; callers are reached
-// through refs so that effect keeps empty deps.
+// beat, then the spin, then (if `tease`) a pause/shake/snap detour, then a
+// pause on the landed section, then SETTLE — is driven entirely by timers
+// in a mount-once effect; callers are reached through refs so that effect
+// keeps stable deps (only `tease`, which never changes after mount).
+type SpinStage = "idle" | "spinning" | "shaking" | "correcting";
+
 function SpinningWheel({
   sections,
   landedIndex,
+  pickedIndex,
+  tease,
   play,
   stopSfx,
   onSettle,
 }: {
   sections: WheelSection[];
   landedIndex: number;
+  pickedIndex: number;
+  tease: boolean;
   play: (kind: keyof typeof WHEEL_SFX) => void;
   stopSfx: () => void;
   onSettle: () => void;
 }) {
-  const [spinning, setSpinning] = useState(false);
+  const [stage, setStage] = useState<SpinStage>("idle");
   const onSettleRef = useRef(onSettle);
   const playRef = useRef(play);
   const stopSfxRef = useRef(stopSfx);
@@ -550,23 +587,67 @@ function SpinningWheel({
   });
 
   useEffect(() => {
-    let settleTimer = 0;
+    const timers: number[] = [];
     const startTimer = window.setTimeout(() => {
-      setSpinning(true);
+      setStage("spinning");
       playRef.current("spin");
-      settleTimer = window.setTimeout(() => onSettleRef.current(), SPIN_MS + READ_MS);
+      if (tease) {
+        const shakeTimer = window.setTimeout(() => {
+          setStage("shaking");
+          playRef.current("tease");
+          try {
+            navigator.vibrate?.([40, 30, 70]);
+          } catch {
+            // Vibration API can throw in some embedded/iframe contexts —
+            // it's a nice-to-have, never worth failing the round over.
+          }
+          const correctTimer = window.setTimeout(() => {
+            setStage("correcting");
+            const settleTimer = window.setTimeout(
+              () => onSettleRef.current(),
+              STAGE2_MS + READ_MS,
+            );
+            timers.push(settleTimer);
+          }, SHAKE_MS);
+          timers.push(correctTimer);
+        }, STAGE1_MS);
+        timers.push(shakeTimer);
+      } else {
+        const settleTimer = window.setTimeout(() => onSettleRef.current(), SPIN_MS + READ_MS);
+        timers.push(settleTimer);
+      }
     }, PRESPIN_MS);
+    timers.push(startTimer);
     return () => {
-      window.clearTimeout(startTimer);
-      window.clearTimeout(settleTimer);
+      timers.forEach((t) => window.clearTimeout(t));
       // Stop the spin tick if we leave mid-spin (settle -> result, or the
       // back link). On a normal settle the parent then plays win/lose.
       stopSfxRef.current();
     };
-  }, []);
+  }, [tease]);
 
   const wheelBackground = buildConicGradient(sections);
-  const rotationDeg = spinning ? rotationFor(sections[landedIndex], EXTRA_SPINS) : 0;
+  const finalRotation = rotationFor(sections[landedIndex], EXTRA_SPINS);
+  // One full rotation short of the final spin count, guaranteeing the tease
+  // point always falls strictly before the final landing in rotation order
+  // (rotation only ever increases) — see the component-level comment above
+  // NEAR_MISS_CHANCE for why this ordering is safe regardless of where the
+  // picked section sits relative to the real landing section.
+  const nearMissRotation = rotationFor(sections[pickedIndex], EXTRA_SPINS - 1);
+
+  const rotationDeg =
+    stage === "idle"
+      ? 0
+      : stage === "spinning"
+        ? tease
+          ? nearMissRotation
+          : finalRotation
+        : stage === "shaking"
+          ? nearMissRotation
+          : finalRotation; // "correcting"
+
+  const transitionMs =
+    stage === "spinning" ? (tease ? STAGE1_MS : SPIN_MS) : stage === "correcting" ? STAGE2_MS : 0;
 
   return (
     <div className="relative flex flex-col items-center">
@@ -578,18 +659,28 @@ function SpinningWheel({
         style={{ clipPath: "polygon(50% 100%, 0 0, 100% 0)" }}
       />
 
-      <div className="relative -mt-px size-56 rounded-full border-[6px] border-white/90 shadow-2xl sm:size-80">
+      <div
+        className={cn(
+          "relative -mt-px size-56 rounded-full border-[6px] border-white/90 shadow-2xl sm:size-80",
+          stage === "shaking" && "animate-wheel-near-miss-shake",
+        )}
+      >
         <div className="absolute inset-0 overflow-hidden rounded-full">
           <div
-            // Transition is always present so flipping `spinning` only
-            // changes the rotation value — a change against an
+            // Transition is always present so flipping the target rotation
+            // only changes the rotation value — a change against an
             // already-painted state, which the browser reliably animates
-            // (no rAF paint-sync needed).
+            // (no rAF paint-sync needed). Duration/easing vary by stage so
+            // the tease's slow-approach, pause, and quick corrective snap
+            // each feel distinct.
             className="absolute inset-0"
             style={{
               background: wheelBackground,
               transform: `rotate(${rotationDeg}deg)`,
-              transition: `transform ${SPIN_MS}ms cubic-bezier(0.12, 0.67, 0.15, 1)`,
+              transition:
+                transitionMs > 0
+                  ? `transform ${transitionMs}ms cubic-bezier(0.12, 0.67, 0.15, 1)`
+                  : "none",
             }}
           >
             {sections.map((section, i) => {
