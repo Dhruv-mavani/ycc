@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   if (typeof gameSlug !== "string" || !GAME_SLUGS.includes(gameSlug as never)) {
     return NextResponse.json({ error: "Invalid game" }, { status: 400 });
   }
-  if (source !== "registration" && source !== "partner") {
+  if (source !== "registration" && source !== "partner" && source !== "school") {
     return NextResponse.json({ error: "Invalid source" }, { status: 400 });
   }
   if (typeof teamRefId !== "string" || typeof playerRefId !== "string") {

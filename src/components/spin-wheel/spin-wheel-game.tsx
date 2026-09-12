@@ -9,19 +9,27 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 
 // ---------------------------------------------------------------------------
 // Spin the Wheel — a solo, self-serve prize-wheel game (/spin-wheel). The
-// player picks a number from 1 to 10, then spins an 11-section wheel: ten
-// sections hold the numbers 1-10, the eleventh holds "Goa Trip with Gang
-// (free to all)". Two ways to win: the wheel lands on the player's own
-// number, or it lands on the Goa Trip section.
+// player picks a number from 1 to 10, then spins a wheel: ten sections hold
+// the numbers 1-10, and a handful of bonus-prize sections share the
+// remaining SPECIAL_TOTAL_DEG of the circle. Two ways to win: the wheel
+// lands on the player's own number, or it lands on any bonus-prize section.
+//
+// Which prizes are on offer is audience-dependent (see PRIZES_BY_SOURCE
+// below) — a Box Cricket team or YCC Partner sees the single Goa Trip
+// prize (matching this game's original spirit), while a Super Champs
+// entrant sees three real-item prizes instead. The audience is only known
+// once TeamPlayerGate resolves a code, so `prizes` is computed from
+// `selection?.source` and stays fixed for the rest of that round — see
+// `prizes` below.
 //
 // Win odds are deliberately real, if vanishingly tiny: landing on the
-// player's own number and landing on Goa Trip are each an explicit,
-// independent 0.000001% (1-in-100,000,000) draw — set exactly, not
-// simulated to look small while secretly being zero. The remaining
-// ~99.999998% is spread evenly across the other nine number sections
+// player's own number, and landing on each individual bonus-prize section,
+// are all independent 0.0000000001% (1-in-1,000,000,000,000) draws — set
+// exactly, not simulated to look small while secretly being zero. The
+// remaining ~100% is spread evenly across the other nine number sections
 // (whichever the player didn't pick), which are always losing outcomes for
-// that spin. There is no real prize behind the Goa Trip section — it's
-// flavor, same as the rest of this game family.
+// that spin. There is no real prize behind any of these sections — same
+// "just for fun" flavor for Goa Trip and the Super Champs items alike.
 //
 // Same lessons as the sibling games (see mystery-box-game.tsx):
 //  - All spin timing is setTimeout, never requestAnimationFrame — rAF is
@@ -40,54 +48,101 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // ---------------------------------------------------------------------------
 
 const NUM_COUNT = 10;
-const GOA_INDEX = 10; // the 11th section, index 10
-// The Goa Trip section is deliberately much wider than the number sections —
-// pure visual real estate for its label to be as big and legible as
-// possible. Slice width has no bearing on odds (those are the explicit
-// PICKED_WIN_CHANCE / GOA_WIN_CHANCE draws below); it's purely cosmetic.
-const GOA_SLICE_DEG = 90;
-const NUM_SLICE_DEG = (360 - GOA_SLICE_DEG) / NUM_COUNT;
 
-const PICKED_WIN_CHANCE = 0.00000001; // 0.000001% — lands on the player's own number
-const GOA_WIN_CHANCE = 0.00000001; // 0.000001% — lands on Goa Trip with Gang
+interface PrizeSection {
+  id: string;
+  emoji: string;
+  // Stacked lines shown on the wheel slice itself — short, since a slice
+  // only gets SPECIAL_TOTAL_DEG / prizes.length degrees of width.
+  wheelLines: string[];
+  // Full name, used in result-screen prose and the recorded play detail.
+  name: string;
+}
+
+const GOA_TRIP: PrizeSection = {
+  id: "goa",
+  emoji: "🏖️",
+  wheelLines: ["GOA TRIP", "WITH GANG", "(FREE TO ALL)"],
+  name: "Goa Trip with Gang (free to all)",
+};
+
+const SUPERCHAMPS_PRIZES: PrizeSection[] = [
+  { id: "sneakers", emoji: "👟", wheelLines: ["SNEAKERS"], name: "Nike Sneakers" },
+  { id: "ps5", emoji: "🎮", wheelLines: ["PS5"], name: "PS5" },
+  { id: "cycle", emoji: "🚲", wheelLines: ["CYCLE"], name: "Gear Cycle" },
+];
+
+// Box Cricket teams and YCC Partners see the original single Goa Trip
+// prize; Super Champs entrants see three real-item prizes instead. Falls
+// back to Goa Trip before a code is entered (source is still unknown) —
+// the common case, so the start screen isn't stuck showing placeholder
+// copy for most players.
+function prizesFor(source: GameTeamSelection["source"] | undefined): PrizeSection[] {
+  return source === "school" ? SUPERCHAMPS_PRIZES : [GOA_TRIP];
+}
+
+// Degrees the bonus-prize sections share, split evenly regardless of how
+// many there are — 1 prize gets the full width (more spacious than a
+// single number section), 3 prizes get a third each (still enough for an
+// emoji + one short word). The 10 number sections always split the rest
+// evenly, so they're a constant width no matter the prize count.
+const SPECIAL_TOTAL_DEG = 120;
+const NUM_SLICE_DEG = (360 - SPECIAL_TOTAL_DEG) / NUM_COUNT;
+
+const PICKED_WIN_CHANCE = 0.000000000001; // 0.0000000001% — lands on the player's own number
+const PRIZE_WIN_CHANCE = 0.000000000001; // 0.0000000001% — lands on any one bonus-prize section
 
 const SPIN_MS = 4500; // must match the transition duration set on the wheel
 const PRESPIN_MS = 300; // short beat between the click and the wheel moving
 const READ_MS = 700; // pause on the landed section before the result screen
 const EXTRA_SPINS = 6; // full rotations before the wheel settles
 
-const SLICE_COLORS = [
-  "#fb923c",
-  "#0e7490",
-  "#fb923c",
-  "#0e7490",
-  "#fb923c",
-  "#0e7490",
-  "#fb923c",
-  "#0e7490",
-  "#fb923c",
-  "#0e7490",
-  "#facc15",
-] as const;
+const NUMBER_COLORS = ["#fb923c", "#0e7490"] as const;
+// A small gold/amber family so multiple prize sections stay visually
+// grouped as "these are the bonus slices" while still being distinguishable
+// from each other.
+const PRIZE_COLORS = ["#facc15", "#f59e0b", "#eab308"] as const;
 
-// Start/end angle of section i (clockwise from the top / 12 o'clock,
-// matching conic-gradient's own "from 0deg" convention). Sections 0-9 are
-// the equal-width number slices; section 10 (Goa Trip) takes the remaining,
-// much wider, slice.
-function sectionStart(index: number): number {
-  return index < NUM_COUNT ? index * NUM_SLICE_DEG : NUM_COUNT * NUM_SLICE_DEG;
-}
-function sectionEnd(index: number): number {
-  return index < NUM_COUNT ? (index + 1) * NUM_SLICE_DEG : 360;
+type WheelSection =
+  | { kind: "number"; start: number; end: number; color: string; value: number }
+  | { kind: "prize"; start: number; end: number; color: string; prize: PrizeSection };
+
+// Builds the wheel's sections (10 numbers + one per prize) with each one's
+// angular slice, computed fresh whenever `prizes` changes (i.e. once per
+// round, when the audience is resolved) rather than off module-level
+// constants — everything downstream (colors, the conic-gradient, spoke
+// rotations, which section index wins) is derived from this single array.
+function buildSections(prizes: PrizeSection[]): WheelSection[] {
+  const sections: WheelSection[] = [];
+  for (let i = 0; i < NUM_COUNT; i++) {
+    sections.push({
+      kind: "number",
+      start: i * NUM_SLICE_DEG,
+      end: (i + 1) * NUM_SLICE_DEG,
+      color: NUMBER_COLORS[i % NUMBER_COLORS.length],
+      value: i + 1,
+    });
+  }
+  const prizeSliceDeg = SPECIAL_TOTAL_DEG / prizes.length;
+  const base = NUM_COUNT * NUM_SLICE_DEG;
+  prizes.forEach((prize, i) => {
+    sections.push({
+      kind: "prize",
+      start: base + i * prizeSliceDeg,
+      end: base + (i + 1) * prizeSliceDeg,
+      color: PRIZE_COLORS[i % PRIZE_COLORS.length],
+      prize,
+    });
+  });
+  return sections;
 }
 
-function buildConicGradient(colors: readonly string[]): string {
-  const stops = colors
-    .map((c, i) => `${c} ${sectionStart(i).toFixed(4)}deg ${sectionEnd(i).toFixed(4)}deg`)
+function buildConicGradient(sections: WheelSection[]): string {
+  const stops = sections
+    .map((s) => `${s.color} ${s.start.toFixed(4)}deg ${s.end.toFixed(4)}deg`)
     .join(", ");
   return `conic-gradient(from 0deg, ${stops})`;
 }
-const WHEEL_BACKGROUND = buildConicGradient(SLICE_COLORS);
 
 const WHEEL_SFX = {
   // A crisp ratchet-peg click train, roughly matching the spin's length and
@@ -120,28 +175,35 @@ const WHEEL_SFX = {
     ]),
 };
 
-// Center angle of section i, measured clockwise from the top (matches the
+// Center angle of a section, measured clockwise from the top (matches the
 // conic-gradient's own "from 0deg" convention, i.e. 0 = top = 12 o'clock).
-function sectionCenterAngle(index: number): number {
-  return (sectionStart(index) + sectionEnd(index)) / 2;
+function sectionCenterAngle(section: WheelSection): number {
+  return (section.start + section.end) / 2;
 }
 
-// Total clockwise rotation so section `index`'s center ends up under the
-// fixed pointer at the top, after `spins` extra full turns for effect.
-function rotationFor(index: number, spins: number): number {
-  const base = (360 - sectionCenterAngle(index)) % 360;
+// Total clockwise rotation so `section`'s center ends up under the fixed
+// pointer at the top, after `spins` extra full turns for effect.
+function rotationFor(section: WheelSection, spins: number): number {
+  const base = (360 - sectionCenterAngle(section)) % 360;
   return spins * 360 + base;
 }
 
-// Draws which section the wheel lands on for this spin. `picked` is the
-// player's chosen number (1-10). Both win paths are explicit, independent
-// draws at PICKED_WIN_CHANCE / GOA_WIN_CHANCE; everything else falls back to
-// a uniform pick among the other nine (losing) number sections.
-function drawSection(picked: number): number {
+// Draws which section index the wheel lands on for this spin (an index
+// into the `sections` array built by buildSections — 0..NUM_COUNT-1 are
+// numbers, the rest are prizes, in prize order). `picked` is the player's
+// chosen number (1-10). Every win path — the picked number, and each
+// individual prize — is an explicit, independent draw at PICKED_WIN_CHANCE
+// / PRIZE_WIN_CHANCE; everything else falls back to a uniform pick among
+// the other nine (losing) number sections.
+function drawSection(picked: number, prizeCount: number): number {
   const pickedIndex = picked - 1;
   const r = Math.random();
   if (r < PICKED_WIN_CHANCE) return pickedIndex;
-  if (r < PICKED_WIN_CHANCE + GOA_WIN_CHANCE) return GOA_INDEX;
+  let acc = PICKED_WIN_CHANCE;
+  for (let i = 0; i < prizeCount; i++) {
+    acc += PRIZE_WIN_CHANCE;
+    if (r < acc) return NUM_COUNT + i;
+  }
   const losingIndexes = Array.from({ length: NUM_COUNT }, (_, i) => i).filter(
     (i) => i !== pickedIndex,
   );
@@ -153,18 +215,22 @@ type Phase = "start" | "pick" | "spinning" | "won" | "lost";
 interface GameState {
   phase: Phase;
   picked: number | null;
+  // Snapshotted at OPEN time from the resolved audience's prizes, so
+  // SETTLE and rendering agree on what each section index means even if
+  // `selection` were somehow to change mid-round.
+  sections: WheelSection[];
   landedIndex: number | null;
 }
 
 type Action =
   | { type: "START" }
   | { type: "PICK"; n: number }
-  | { type: "OPEN" }
+  | { type: "OPEN"; prizes: PrizeSection[] }
   | { type: "SETTLE" }
   | { type: "RESTART" };
 
 function initialState(): GameState {
-  return { phase: "start", picked: null, landedIndex: null };
+  return { phase: "start", picked: null, sections: [], landedIndex: null };
 }
 
 function reducer(state: GameState, action: Action): GameState {
@@ -175,12 +241,16 @@ function reducer(state: GameState, action: Action): GameState {
       return state.phase === "pick" ? { ...state, picked: action.n } : state;
     case "OPEN": {
       if (state.phase !== "pick" || state.picked === null) return state;
-      return { ...state, phase: "spinning", landedIndex: drawSection(state.picked) };
+      const sections = buildSections(action.prizes);
+      const landedIndex = drawSection(state.picked, action.prizes.length);
+      return { ...state, phase: "spinning", sections, landedIndex };
     }
     case "SETTLE": {
       if (state.phase !== "spinning" || state.landedIndex === null || state.picked === null)
         return state;
-      const won = state.landedIndex === GOA_INDEX || state.landedIndex === state.picked - 1;
+      const landed = state.sections[state.landedIndex];
+      const won =
+        landed.kind === "prize" || (landed.kind === "number" && landed.value === state.picked);
       return { ...state, phase: won ? "won" : "lost" };
     }
     case "RESTART":
@@ -239,6 +309,8 @@ export function SpinWheelGame() {
 
     const sel = selectionRef.current;
     if (!sel) return;
+    const landed =
+      state.landedIndex !== null ? state.sections[state.landedIndex] : null;
     fetch("/api/games/record-play", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -248,10 +320,14 @@ export function SpinWheelGame() {
         teamRefId: sel.teamRefId,
         playerRefId: sel.playerRefId,
         result: state.phase,
-        detail: { picked: state.picked, landedIndex: state.landedIndex },
+        detail: {
+          picked: state.picked,
+          landedIndex: state.landedIndex,
+          prizeId: landed?.kind === "prize" ? landed.prize.id : null,
+        },
       }),
     }).catch(() => {});
-  }, [state.phase, state.picked, state.landedIndex]);
+  }, [state.phase, state.picked, state.landedIndex, state.sections]);
 
   function toggleMute() {
     setMuted((m) => {
@@ -259,6 +335,12 @@ export function SpinWheelGame() {
       return !m;
     });
   }
+
+  // Fixed for the rest of the round the instant Play is clicked (selection
+  // can't change after that point — TeamPlayerGate only renders on
+  // "start"), so it's safe to recompute on every render rather than memo.
+  const prizes = prizesFor(selection?.source);
+  const prizeNames = prizes.map((p) => p.name).join(prizes.length > 2 ? ", " : " or ");
 
   const muteButton = (
     <button
@@ -291,9 +373,10 @@ export function SpinWheelGame() {
           <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-amber-300">
             <li>Choose any number from 1 to {NUM_COUNT}.</li>
             <li>
-              Spin the wheel featuring {NUM_COUNT} numbered boxes + 1 GOA box.
+              Spin the wheel featuring {NUM_COUNT} numbered boxes
+              {prizes.length > 1 ? ` + ${prizes.length} bonus boxes` : " + 1 bonus box"}.
             </li>
-            <li>Hit your number or GOA — win a Goa Trip with Gang!</li>
+            <li>Hit your number or a bonus box — win {prizeNames}!</li>
           </ol>
         </div>
 
@@ -350,7 +433,7 @@ export function SpinWheelGame() {
         <button
           type="button"
           disabled={state.picked === null}
-          onClick={() => dispatch({ type: "OPEN" })}
+          onClick={() => dispatch({ type: "OPEN", prizes })}
           className={cn(
             "mt-10 rounded-xl px-6 py-2.5 text-base font-bold shadow-lg transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
             state.picked === null
@@ -375,6 +458,7 @@ export function SpinWheelGame() {
           Spinning…
         </p>
         <SpinningWheel
+          sections={state.sections}
           landedIndex={state.landedIndex ?? 0}
           play={play}
           stopSfx={stopSfx}
@@ -385,11 +469,11 @@ export function SpinWheelGame() {
   }
 
   const won = state.phase === "won";
-  const wonViaGoa = won && state.landedIndex === GOA_INDEX;
+  const landedSection =
+    state.landedIndex !== null ? state.sections[state.landedIndex] : null;
+  const wonPrize = won && landedSection?.kind === "prize" ? landedSection.prize : null;
   const landedLabel =
-    state.landedIndex === GOA_INDEX
-      ? "Goa Trip with Gang (free to all)"
-      : String((state.landedIndex ?? 0) + 1);
+    landedSection?.kind === "prize" ? landedSection.prize.name : String(landedSection?.value ?? "");
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
@@ -397,20 +481,18 @@ export function SpinWheelGame() {
       {won ? <ResultConfetti /> : null}
 
       <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
-        {won ? (wonViaGoa ? "🏖️" : "🎉") : "🎡"}
+        {won ? (wonPrize?.emoji ?? "🎉") : "🎡"}
       </div>
       <h1 className="mt-4 text-3xl font-black sm:text-4xl md:text-6xl">
-        {won ? (wonViaGoa ? "Jackpot!" : "You nailed it!") : "Not this time"}
+        {won ? (wonPrize ? "Jackpot!" : "You nailed it!") : "Not this time"}
       </h1>
       <p className="mt-4 max-w-sm text-sm text-white/80 sm:text-base md:text-lg">
         {won ? (
-          wonViaGoa ? (
+          wonPrize ? (
             <>
               The wheel landed on{" "}
-              <span className="font-bold text-amber-300">
-                Goa Trip with Gang (free to all)
-              </span>{" "}
-              — just for fun, no real trip, but what a spin.
+              <span className="font-bold text-amber-300">{wonPrize.name}</span> — just
+              for fun, but what a spin.
             </>
           ) : (
             <>
@@ -445,11 +527,13 @@ export function SpinWheelGame() {
 // driven entirely by timers in a mount-once effect; callers are reached
 // through refs so that effect keeps empty deps.
 function SpinningWheel({
+  sections,
   landedIndex,
   play,
   stopSfx,
   onSettle,
 }: {
+  sections: WheelSection[];
   landedIndex: number;
   play: (kind: keyof typeof WHEEL_SFX) => void;
   stopSfx: () => void;
@@ -481,7 +565,8 @@ function SpinningWheel({
     };
   }, []);
 
-  const rotationDeg = spinning ? rotationFor(landedIndex, EXTRA_SPINS) : 0;
+  const wheelBackground = buildConicGradient(sections);
+  const rotationDeg = spinning ? rotationFor(sections[landedIndex], EXTRA_SPINS) : 0;
 
   return (
     <div className="relative flex flex-col items-center">
@@ -502,13 +587,13 @@ function SpinningWheel({
             // (no rAF paint-sync needed).
             className="absolute inset-0"
             style={{
-              background: WHEEL_BACKGROUND,
+              background: wheelBackground,
               transform: `rotate(${rotationDeg}deg)`,
               transition: `transform ${SPIN_MS}ms cubic-bezier(0.12, 0.67, 0.15, 1)`,
             }}
           >
-            {SLICE_COLORS.map((_, i) => {
-              const spokeRotation = sectionCenterAngle(i) - 90;
+            {sections.map((section, i) => {
+              const spokeRotation = sectionCenterAngle(section) - 90;
               return (
                 <div
                   key={i}
@@ -516,20 +601,22 @@ function SpinningWheel({
                   style={{ transform: `rotate(${spokeRotation}deg)` }}
                 >
                   <div className="absolute right-[8%] top-1/2 flex -translate-y-1/2 flex-col items-center leading-[0.85] whitespace-nowrap">
-                    {i === GOA_INDEX ? (
+                    {section.kind === "prize" ? (
                       <>
-                        <span className="text-[12px] font-black text-slate-900 sm:text-[18px] tracking-tighter">
-                          GOA TRIP
-                        </span>
-                        <span className="text-[11px] font-black text-slate-900 sm:text-[16px] tracking-tighter">
-                          WITH GANG
-                        </span>
-                        <span className="text-[8px] font-black text-slate-900 sm:text-[12px] tracking-tighter">
-                          (FREE TO ALL)
-                        </span>
+                        <span className="text-base sm:text-2xl">{section.prize.emoji}</span>
+                        {section.prize.wheelLines.map((line, li) => (
+                          <span
+                            key={li}
+                            className="text-[8px] font-black text-slate-900 sm:text-[12px] tracking-tighter"
+                          >
+                            {line}
+                          </span>
+                        ))}
                       </>
                     ) : (
-                      <span className="text-base font-black text-white sm:text-xl">{i + 1}</span>
+                      <span className="text-base font-black text-white sm:text-xl">
+                        {section.value}
+                      </span>
                     )}
                   </div>
                 </div>

@@ -24,7 +24,7 @@ export const GAMES: GameLink[] = [
     href: "/mystry-box",
     title: "Mystery Box",
     description:
-      "Pick a number from 1 to 50, then open the spinning Mystery Box. Land on your number and you win — a rare 0.000001% shot.",
+      "Pick a number from 1 to 50, then open the spinning Mystery Box. Land on your number and you win — a rare 0.0000000001% shot.",
     emoji: "🎁",
   },
   {
@@ -32,7 +32,7 @@ export const GAMES: GameLink[] = [
     href: "/spin-wheel",
     title: "Spin the Wheel",
     description:
-      "Pick a number from 1 to 10 and spin an 11-section wheel. Land on your number, or land on the rare Goa Trip with Gang (free to all) section, and you win.",
+      "Pick a number from 1 to 10 and spin the wheel. Land on your number, or land on a rare bonus prize section, and you win.",
     emoji: "🎡",
   },
 ];

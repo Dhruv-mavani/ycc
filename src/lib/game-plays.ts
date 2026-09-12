@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const GAME_SLUGS = ["spin-wheel", "mystry-box"] as const;
 export type GameSlug = (typeof GAME_SLUGS)[number];
 
+export type GameTeamSource = "registration" | "partner" | "school";
+
 export interface GamePlayer {
   id: string;
   name: string;
@@ -11,7 +13,7 @@ export interface GamePlayer {
 }
 
 export interface GameTeamLookup {
-  source: "registration" | "partner";
+  source: GameTeamSource;
   teamRefId: string;
   teamLabel: string;
   players: GamePlayer[];
@@ -98,10 +100,36 @@ async function partnerRoster(
 }
 
 /**
- * Resolves any team member's Unique ID, or a Partner/Co-Partner's team code
- * or Unique ID, into a roster. Registrations are tried first (exact
- * participant match), falling back to the partner-program hierarchy — the
- * two id spaces never collide since they're separate tables/uuids.
+ * Roster for a Super Champs individual registration, keyed by
+ * school_tournament_registrations.id — always a single "player" (no
+ * team/squad concept for this event), so the code just resolves to their
+ * own name, same as a Partner with no Squad attached.
+ */
+async function schoolRoster(
+  registrationId: string,
+): Promise<GameTeamLookup | null> {
+  const admin = createAdminClient();
+  const { data: registration } = await admin
+    .from("school_tournament_registrations")
+    .select("id, name")
+    .eq("id", registrationId)
+    .maybeSingle();
+  if (!registration) return null;
+
+  return {
+    source: "school",
+    teamRefId: registration.id,
+    teamLabel: registration.name,
+    players: [{ id: registration.id, name: registration.name, isCaptain: false }],
+  };
+}
+
+/**
+ * Resolves any team member's Unique ID, a Partner/Co-Partner's team code or
+ * Unique ID, or a Super Champs personalized code, into a roster.
+ * Registrations are tried first (exact participant match), then the
+ * partner-program hierarchy, then Super Champs — the three id spaces never
+ * collide since they're separate tables/uuids.
  */
 export async function lookupGameTeamByCode(
   rawCode: string,
@@ -132,16 +160,28 @@ export async function lookupGameTeamByCode(
     if (roster) return roster;
   }
 
+  const { data: school } = await admin
+    .from("school_tournament_registrations")
+    .select("id")
+    .eq("code", code)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (school) {
+    const roster = await schoolRoster(school.id);
+    if (roster) return roster;
+  }
+
   return null;
 }
 
 function lookupGameTeamById(
-  source: "registration" | "partner",
+  source: GameTeamSource,
   teamRefId: string,
 ): Promise<GameTeamLookup | null> {
-  return source === "registration"
-    ? registrationRoster(teamRefId)
-    : partnerRoster(teamRefId);
+  if (source === "registration") return registrationRoster(teamRefId);
+  if (source === "partner") return partnerRoster(teamRefId);
+  return schoolRoster(teamRefId);
 }
 
 /**
@@ -151,7 +191,7 @@ function lookupGameTeamById(
  */
 export async function recordGamePlay(input: {
   gameSlug: GameSlug;
-  source: "registration" | "partner";
+  source: GameTeamSource;
   teamRefId: string;
   playerRefId: string;
   result: "won" | "lost";

@@ -14,10 +14,11 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // drawn one. Match = win, otherwise lose.
 //
 // Win odds are deliberately real, if vanishingly tiny: landing on the
-// player's own number is an explicit 0.000001% (1-in-100,000,000) draw —
-// set exactly, same approach as Spin the Wheel (see spin-wheel-game.tsx),
-// not simulated to look small while secretly being zero. The remaining
-// ~99.999999% is spread evenly across the other 49 (losing) numbers.
+// player's own number is an explicit 0.0000000001% (1-in-1,000,000,000,000)
+// draw — set exactly, same approach as Spin the Wheel (see
+// spin-wheel-game.tsx), not simulated to look small while secretly being
+// zero. The remaining ~100% is spread evenly across the other 49 (losing)
+// numbers.
 //
 // Animations are plain CSS (keyframes in globals.css + a runtime-value
 // translateY transition on the reel), not framer-motion — the same setup
@@ -37,7 +38,7 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // ---------------------------------------------------------------------------
 
 const MAX_NUMBER = 50;
-const PICKED_WIN_CHANCE = 0.00000001; // 0.000001% — box lands on the player's own number
+const PICKED_WIN_CHANCE = 0.000000000001; // 0.0000000001% — box lands on the player's own number
 const CELL_HEIGHT = 88; // px — one reel cell, and the box's viewing window
 const REEL_LENGTH = 44; // cells the reel travels through before it lands
 const SPIN_MS = 4200; // must match the transition duration set on the reel
