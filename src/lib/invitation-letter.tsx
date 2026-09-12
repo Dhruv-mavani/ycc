@@ -106,7 +106,7 @@ const teamStyles = StyleSheet.create({
   },
   logo: {
     position: "absolute",
-    top: tsy(TEAM_SAFE_Y + 20),
+    top: tsy(TEAM_SAFE_Y + 40),
     left: ts(TEAM_SAFE_X + TEAM_SAFE_W / 2 - TEAM_LOGO_W / 2),
     width: ts(TEAM_LOGO_W),
     height: tsy(TEAM_LOGO_H),
@@ -141,7 +141,7 @@ const teamStyles = StyleSheet.create({
   },
   box: {
     position: "absolute",
-    top: tsy(760),
+    top: tsy(830),
     width: ts(720),
     border: `${ts(1.5)} solid ${TEAM_NAVY}`,
     borderRadius: ts(6),
@@ -165,6 +165,15 @@ const teamStyles = StyleSheet.create({
   },
   boxRowLabel: {
     fontFamily: "Helvetica-Bold",
+  },
+  closing: {
+    position: "absolute",
+    left: ts(TEAM_SAFE_X),
+    width: ts(TEAM_SAFE_W),
+    textAlign: "center",
+    fontFamily: "Alex Brush",
+    fontSize: ts(40),
+    color: TEAM_LOGO_BLUE,
   },
 });
 
@@ -347,10 +356,10 @@ export function InvitationLetterPage(data: InvitationLetterData) {
         {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
         <Image src={teamLogoDataUri} style={teamStyles.logo} />
 
-        <Text style={[teamStyles.dearLine, { top: tsy(380) }]}>Dear,</Text>
-        <Text style={[teamStyles.name, { top: tsy(460) }]}>{data.teamName}</Text>
+        <Text style={[teamStyles.dearLine, { top: tsy(420) }]}>Dear,</Text>
+        <Text style={[teamStyles.name, { top: tsy(500) }]}>{data.teamName}</Text>
         <Svg
-          style={{ position: "absolute", top: tsy(530), left: 0 }}
+          style={{ position: "absolute", top: tsy(572), left: 0 }}
           width={TEAM_PAGE_WIDTH}
           height={tsy(6)}
         >
@@ -365,7 +374,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           />
         </Svg>
 
-        <Text style={[teamStyles.paragraph, { top: tsy(580) }]}>
+        <Text style={[teamStyles.paragraph, { top: tsy(630) }]}>
           Congratulations on registering for the {data.eventName}! Your team
           is officially confirmed — get your squad ready, stay sharp, and
           bring your best game on match day. Schedules, venue details and
@@ -400,6 +409,10 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             permitted without it. Keep it safe until match day.
           </Text>
         </View>
+
+        <Text style={[teamStyles.closing, { top: tsy(1060) }]}>
+          See you on the ground!
+        </Text>
       </Page>
     );
   }
