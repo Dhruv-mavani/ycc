@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { registrationRequestSchema } from "@/lib/validations/registration";
 import { calculateGst } from "@/lib/gst";
 import { createTeamRegistration } from "@/lib/create-team-registration";
+import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
       cgstPaise: result.cgstPaise,
       sgstPaise: result.sgstPaise,
       igstPaise: result.igstPaise,
+      confirmed: result.confirmed,
     });
   }
 
@@ -133,6 +135,10 @@ export async function POST(request: Request) {
     );
   }
 
+  if (event.pay_at_venue) {
+    await confirmPayAtVenueRegistration(admin, registration.id);
+  }
+
   return NextResponse.json({
     registrationId: registration.id,
     amountPaise: registration.amount_paise,
@@ -140,5 +146,6 @@ export async function POST(request: Request) {
     cgstPaise: gst.cgstPaise,
     sgstPaise: gst.sgstPaise,
     igstPaise: gst.igstPaise,
+    confirmed: event.pay_at_venue,
   });
 }

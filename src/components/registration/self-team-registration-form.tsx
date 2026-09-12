@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -40,14 +41,20 @@ export function SelfTeamRegistrationForm({
   eventName,
   maxTeamSize,
   feePaise,
+  payAtVenue = false,
   colleges,
 }: {
   eventId: string;
   eventName: string;
   maxTeamSize: number;
   feePaise: number;
+  /** Skips Cashfree entirely — registration confirms immediately and the
+   * entry fee is collected in cash at the venue instead. */
+  payAtVenue?: boolean;
   colleges: CollegeOption[];
 }) {
+  const router = useRouter();
+  const [redirecting, setRedirecting] = useState(false);
   const [submitted, setSubmitted] = useState<{
     registrationId: string;
     amountPaise: number;
@@ -143,6 +150,18 @@ export function SelfTeamRegistrationForm({
       }
 
       const data = await res.json();
+
+      // pay_at_venue events skip Cashfree entirely — the registration is
+      // already "confirmed" server-side, so send the captain straight to
+      // the same success page a paid registration lands on after checkout.
+      // That page polls status, finds it already confirmed, and
+      // auto-downloads the receipt — no separate UI needed here.
+      if (data.confirmed) {
+        setRedirecting(true);
+        router.push(`/payment/success?registration=${data.registrationId}`);
+        return;
+      }
+
       setSubmitted({
         registrationId: data.registrationId,
         amountPaise: data.amountPaise,
@@ -183,6 +202,7 @@ export function SelfTeamRegistrationForm({
           <CardDescription>
             Entry fee: ₹{(feePaise / 100).toLocaleString("en-IN")} per team +
             18% GST
+            {payAtVenue ? " — payable in cash at the venue" : ""}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -272,8 +292,12 @@ export function SelfTeamRegistrationForm({
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Submitting..." : "Continue to payment"}
+      <Button type="submit" className="w-full" disabled={isSubmitting || redirecting}>
+        {isSubmitting || redirecting
+          ? "Submitting..."
+          : payAtVenue
+            ? "Register"
+            : "Continue to payment"}
       </Button>
     </form>
   );

@@ -106,6 +106,15 @@ const styles = StyleSheet.create({
   },
   summaryTotalLabel: { fontSize: 11, fontWeight: 700, color: "#111" },
   summaryTotalValue: { fontSize: 14, fontWeight: 700, color: "#1d4ed8" },
+  dueNotice: {
+    border: "1 solid #f59e0b",
+    backgroundColor: "#fffbeb",
+    borderRadius: 4,
+    padding: 10,
+    marginBottom: 16,
+  },
+  dueNoticeTitle: { fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 2 },
+  dueNoticeBody: { fontSize: 9, color: "#92400e" },
   section: { marginBottom: 14 },
   participantCard: {
     flexDirection: "row",
@@ -150,6 +159,16 @@ export interface ReceiptData {
   participants: ReceiptParticipant[];
   /** Self-registered (non-partner-gated) team events get a congrats letter as the opening page. */
   includeCongratsLetter?: boolean;
+  /** True for a pay_at_venue registration — no online payment was taken,
+   * the fee is still owed in cash at the venue. Changes the document from
+   * a paid receipt to a registration confirmation with an amount-due notice. */
+  paymentDue?: boolean;
+  /** True to omit the invoice-style "payment receipt" page (org header,
+   * order summary, GST breakdown, roster QR list) from the PDF entirely —
+   * only the invitation letter (if any) and ID card pages are included.
+   * The GST/amount figures are still computed above; they're just not
+   * rendered anywhere in this document when this is set. */
+  hideReceiptPage?: boolean;
 }
 
 function formatRupees(paise: number) {
@@ -181,6 +200,7 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
           eventName={data.eventName}
         />
       ) : null}
+      {!data.hideReceiptPage && (
       <Page size="A4" style={styles.page}>
         <View style={styles.topRow}>
           <View style={styles.orgBlock}>
@@ -188,7 +208,9 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
             <Image src={logoDataUri} style={styles.logo} />
             <View>
               <Text style={styles.orgName}>Yuva Champions Cricket</Text>
-              <Text style={styles.orgSubtitle}>Payment Receipt</Text>
+              <Text style={styles.orgSubtitle}>
+                {data.paymentDue ? "Registration Confirmation" : "Payment Receipt"}
+              </Text>
             </View>
           </View>
           <View style={styles.metaBlock}>
@@ -220,6 +242,18 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
             <Text style={styles.infoValue}>{data.collegeName}</Text>
           </View>
         </View>
+
+        {data.paymentDue ? (
+          <View style={styles.dueNotice}>
+            <Text style={styles.dueNoticeTitle}>
+              Entry fee due: {formatRupees(gst.totalPaise)}
+            </Text>
+            <Text style={styles.dueNoticeBody}>
+              This registration is confirmed, but the entry fee has not been
+              paid online — pay in cash at the venue check-in counter.
+            </Text>
+          </View>
+        ) : null}
 
         <Text style={styles.sectionTitle}>Order summary</Text>
         <View style={styles.table}>
@@ -277,7 +311,9 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
             </Text>
           </View>
           <View style={styles.summaryTotalRow}>
-            <Text style={styles.summaryTotalLabel}>Payable Total</Text>
+            <Text style={styles.summaryTotalLabel}>
+              {data.paymentDue ? "Amount Due (Cash at Venue)" : "Payable Total"}
+            </Text>
             <Text style={styles.summaryTotalValue}>
               {formatRupees(gst.totalPaise)}
             </Text>
@@ -305,8 +341,12 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
         <Text style={styles.footer}>
           Show this QR code at the venue for entry verification. Keep this
           receipt safe — it is your proof of registration.
+          {data.paymentDue
+            ? " Entry fee is payable in cash at the venue check-in counter."
+            : ""}
         </Text>
       </Page>
+      )}
 
       {data.participants.map((p) => {
         const cardData = {

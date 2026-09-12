@@ -19,7 +19,7 @@ export async function finalizeRegistration(registrationId: string) {
   });
   if (allocError) throw allocError;
 
-  const { pdfBuffer, registration } = await buildReceiptPdf(registrationId);
+  const { pdfBuffer, registration, paymentDue } = await buildReceiptPdf(registrationId);
 
   if (!registration.captain_email) return;
 
@@ -29,6 +29,7 @@ export async function finalizeRegistration(registrationId: string) {
     html: `<p>Hi ${registration.captain_name ?? ""},</p>
       <p>Your registration is confirmed.
       Your receipt with unique ID(s) and QR code(s) for venue entry is attached.</p>
+      ${paymentDue ? "<p><strong>The entry fee has not been paid online — please pay in cash at the venue check-in counter.</strong></p>" : ""}
       <p>See you there!<br/>Team YCC</p>`,
     pdfBuffer,
     filename: `YCC-Receipt-${registration.id}.pdf`,

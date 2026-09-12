@@ -103,6 +103,8 @@ export interface Database {
           registration_open: boolean;
           is_partner_only: boolean;
           requires_referral: boolean;
+          pay_at_venue: boolean;
+          hide_receipt_page: boolean;
           created_at: string;
         };
         Insert: {
@@ -120,6 +122,8 @@ export interface Database {
           registration_open?: boolean;
           is_partner_only?: boolean;
           requires_referral?: boolean;
+          pay_at_venue?: boolean;
+          hide_receipt_page?: boolean;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;

@@ -18,6 +18,9 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
     captain_name: string | null;
     captain_email: string | null;
   };
+  /** True when the fee is still owed in cash at the venue (pay_at_venue,
+   * no online payment on record) — see the `paymentDue` field on ReceiptData. */
+  paymentDue: boolean;
 }> {
   const admin = createAdminClient();
 
@@ -76,6 +79,12 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
     })),
   );
 
+  // No online (Cashfree) payment on record for a fee-owing registration
+  // means it's a pay_at_venue entry — cash is still due at the venue. This
+  // is derived from actual data (not the event's pay_at_venue flag) so the
+  // receipt always reflects reality even if that flag changes later.
+  const paymentDue = !payment && event.fee_paise > 0;
+
   const pdfBuffer = await renderReceiptPdf({
     registrationId: registration.id,
     eventName: event.name,
@@ -90,7 +99,9 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
     captainName: registration.captain_name,
     participants: participantsWithQr,
     includeCongratsLetter: registration.type === "team" && !event.requires_referral,
+    paymentDue,
+    hideReceiptPage: event.hide_receipt_page,
   });
 
-  return { pdfBuffer, registration };
+  return { pdfBuffer, registration, paymentDue };
 }

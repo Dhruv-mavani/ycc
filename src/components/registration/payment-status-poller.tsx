@@ -20,6 +20,9 @@ interface StatusResponse {
   eventName: string;
   teamName: string | null;
   amountPaise: number;
+  /** True for a confirmed registration with no online payment on record —
+   * i.e. a pay_at_venue event where the fee is still owed in cash. */
+  paymentDue: boolean;
   participants: { id: string; name: string; uniqueId: string | null }[];
 }
 
@@ -134,6 +137,17 @@ export function PaymentStatusPoller({
 
         {data.status === "confirmed" && (
           <>
+            {data.paymentDue && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                <strong>Entry fee due:</strong> ₹
+                {(data.amountPaise / 100).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                — payable in <strong>cash at the venue</strong>. This
+                registration is confirmed; the fee has not been paid online.
+              </div>
+            )}
             {downloadStarted && (
               <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
                 <strong>Please wait</strong> — your receipt is downloading

@@ -1,6 +1,7 @@
 import "server-only";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { calculateGst } from "@/lib/gst";
+import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
 
 export interface CreateTeamRegistrationInput {
   eventId: string;
@@ -19,6 +20,10 @@ export type TeamRegistrationResult =
       cgstPaise: number;
       sgstPaise: number;
       igstPaise: number;
+      /** True when the event is `pay_at_venue` — registration is already
+       * confirmed (no Cashfree checkout needed); the caller should send the
+       * player straight to the receipt/download step instead of payment. */
+      confirmed: boolean;
     }
   | { ok: false; status: number; error: string };
 
@@ -170,6 +175,10 @@ export async function createTeamRegistration(
     return { ok: false, status: 500, error: "Could not save participants" };
   }
 
+  if (event.pay_at_venue) {
+    await confirmPayAtVenueRegistration(admin, registration.id);
+  }
+
   return {
     ok: true,
     registrationId: registration.id,
@@ -178,5 +187,6 @@ export async function createTeamRegistration(
     cgstPaise: gst.cgstPaise,
     sgstPaise: gst.sgstPaise,
     igstPaise: gst.igstPaise,
+    confirmed: event.pay_at_venue,
   };
 }
