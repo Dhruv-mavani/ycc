@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildReceiptPdf } from "@/lib/receipt-builder";
+import { getAdminSession } from "@/lib/auth";
 
 export async function GET(
   request: Request,
@@ -9,9 +10,14 @@ export async function GET(
   const url = new URL(request.url);
   const isInline = url.searchParams.get("view") === "true";
 
+  // Derived from a verified server-side session, never from a query param —
+  // an admin always sees the full PDF (payment-receipt page included)
+  // regardless of payment status, across every registration type.
+  const isAdmin = (await getAdminSession()) !== null;
+
   let pdfBuffer: Buffer;
   try {
-    ({ pdfBuffer } = await buildReceiptPdf(id));
+    ({ pdfBuffer } = await buildReceiptPdf(id, { forceFullReceipt: isAdmin }));
   } catch (err) {
     console.error("buildReceiptPdf failed for", id, err);
     const missingIds = err instanceof Error && err.message.includes("missing a unique_id");

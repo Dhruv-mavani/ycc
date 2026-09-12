@@ -11,7 +11,17 @@ import { renderReceiptPdf } from "@/lib/receipts";
  * have already been allocated (finalizeRegistration does this once, at
  * confirmation time).
  */
-export async function buildReceiptPdf(registrationId: string): Promise<{
+export async function buildReceiptPdf(
+  registrationId: string,
+  options: {
+    /** Admin view: always include the payment-receipt page, even while
+     * payment is still due in cash — the page still correctly labels it
+     * "Registration Confirmation" / "Amount Due" rather than pretending
+     * it's been paid. Only ever set this from a server-verified admin
+     * session, never from a client-supplied flag. */
+    forceFullReceipt?: boolean;
+  } = {},
+): Promise<{
   pdfBuffer: Buffer;
   registration: {
     id: string;
@@ -103,8 +113,11 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
     // Only hidden while payment is still due — once a staff member marks
     // the cash payment paid (adding a `payments` row), paymentDue flips to
     // false and this same PDF (from the same "Download receipt" flow)
-    // starts including the payment-receipt page automatically.
-    hideReceiptPage: event.hide_receipt_page && paymentDue,
+    // starts including the payment-receipt page automatically. Admins
+    // always get the full PDF (forceFullReceipt) regardless of payment
+    // status, across every registration type — team squads and
+    // Partner/Co-Partner registrations alike.
+    hideReceiptPage: !options.forceFullReceipt && event.hide_receipt_page && paymentDue,
     gstExempt: event.gst_exempt,
   });
 

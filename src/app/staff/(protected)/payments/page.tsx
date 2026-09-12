@@ -1,6 +1,8 @@
-import { Wallet } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeftIcon, Wallet } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CollectPaymentsPanel } from "@/components/staff/collect-payments-panel";
+import { Button } from "@/components/ui/button";
 
 export default async function StaffPaymentsPage() {
   const admin = createAdminClient();
@@ -13,6 +15,17 @@ export default async function StaffPaymentsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-2 py-6 sm:py-10 space-y-8">
+      <Button
+        variant="outline"
+        size="sm"
+        nativeButton={false}
+        render={
+          <Link href="/staff">
+            <ArrowLeftIcon className="size-4" />
+            Back
+          </Link>
+        }
+      />
       <div className="flex flex-col items-center justify-center text-center space-y-4">
         <div className="bg-emerald-500/10 p-4 rounded-full">
           <Wallet className="size-10 text-emerald-600" />
