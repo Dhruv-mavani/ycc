@@ -201,6 +201,11 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
           kind="team"
           teamName={data.teamName}
           eventName={data.eventName}
+          collegeName={data.collegeName}
+          captainName={data.captainName}
+          // participants is ordered captain-first (see buildReceiptPdf's
+          // query), so the rest of the array is the non-captain roster.
+          players={data.participants.slice(1).map((p) => p.name)}
         />
       ) : null}
       {!data.hideReceiptPage && (

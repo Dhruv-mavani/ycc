@@ -134,6 +134,16 @@ const styles = StyleSheet.create({
     color: TEXT_DARK,
     textAlign: "center",
   },
+  detailsRow: {
+    fontFamily: "Helvetica",
+    fontSize: s(12.5),
+    lineHeight: 1.5,
+    color: TEXT_DARK,
+    textAlign: "center",
+  },
+  detailsLabel: {
+    fontFamily: "Helvetica-Bold",
+  },
   codeLabel: {
     position: "absolute",
     left: s(BLOCK_X),
@@ -175,7 +185,15 @@ function NameUnderline({ top }: { top: number }) {
 
 export type InvitationLetterData =
   | { kind: "partner"; name: string; code: string; partnerType: "campus" | "class" | "classmate" }
-  | { kind: "team"; teamName: string; eventName: string };
+  | {
+      kind: "team";
+      teamName: string;
+      eventName: string;
+      collegeName: string;
+      captainName: string | null;
+      /** Non-captain roster — the captain is already shown on its own line. */
+      players: string[];
+    };
 
 export function InvitationLetterPage(data: InvitationLetterData) {
   if (data.kind === "team") {
@@ -200,7 +218,27 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           our official channels.
         </Text>
 
-        <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 280) }]}>
+        <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 250) }]}>
+          <Text style={styles.noticeTitle}>Team Details</Text>
+          <Text style={styles.detailsRow}>
+            <Text style={styles.detailsLabel}>College: </Text>
+            {data.collegeName}
+          </Text>
+          {data.captainName ? (
+            <Text style={styles.detailsRow}>
+              <Text style={styles.detailsLabel}>Captain: </Text>
+              {data.captainName}
+            </Text>
+          ) : null}
+          {data.players.length > 0 ? (
+            <Text style={styles.detailsRow}>
+              <Text style={styles.detailsLabel}>Players: </Text>
+              {data.players.join(", ")}
+            </Text>
+          ) : null}
+        </View>
+
+        <View style={[styles.noticeBox, { top: ART_TOP + s(BLOCK_Y + 420) }]}>
           <Text style={styles.noticeTitle}>ID Card Mandatory</Text>
           <Text style={styles.noticeBody}>
             Every player must carry their ID card print or pdf (attached
