@@ -5,6 +5,7 @@ import { getGameInsights } from "@/lib/admin-stats";
 import { GAMES } from "@/lib/games";
 import { GameFilter } from "@/components/admin/game-filter";
 import { GamePlaySearch } from "@/components/admin/game-play-search";
+import { GameResultFilter } from "@/components/admin/game-result-filter";
 import { PageSpinner } from "@/components/site/page-spinner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,9 +38,9 @@ function formatDate(iso: string) {
 export default async function AdminGamesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ game?: string; q?: string }>;
+  searchParams: Promise<{ game?: string; q?: string; result?: "won" | "lost" }>;
 }) {
-  const { game, q } = await searchParams;
+  const { game, q, result } = await searchParams;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4">
@@ -57,12 +58,13 @@ export default async function AdminGamesPage({
         />
         <div className="flex flex-col min-[480px]:flex-row gap-2 w-full sm:w-auto">
           <GameFilter />
+          <GameResultFilter />
           <GamePlaySearch />
         </div>
       </div>
 
-      <Suspense key={`${game ?? "all"}-${q ?? ""}`} fallback={<PageSpinner className="min-h-[40vh]" />}>
-        <GamesData gameSlug={game} search={q} />
+      <Suspense key={`${game ?? "all"}-${q ?? ""}-${result ?? "all"}`} fallback={<PageSpinner className="min-h-[40vh]" />}>
+        <GamesData gameSlug={game} search={q} result={result} />
       </Suspense>
     </div>
   );
@@ -71,11 +73,14 @@ export default async function AdminGamesPage({
 async function GamesData({
   gameSlug,
   search,
+  result,
 }: {
   gameSlug?: string;
   search?: string;
+  result?: "won" | "lost";
 }) {
-  const { summary, recentPlays } = await getGameInsights(gameSlug, search);
+  const { summary, recentPlays } = await getGameInsights(gameSlug, search, result);
+  const resultLabel = result === "won" ? "won" : result === "lost" ? "lost" : null;
   const totalPlays = summary.reduce((sum, s) => sum + s.plays, 0);
   const totalWins = summary.reduce((sum, s) => sum + s.wins, 0);
 
@@ -176,6 +181,7 @@ async function GamesData({
             {gameSlug
               ? `Most recent 200 matching rounds of ${GAME_TITLE_BY_SLUG.get(gameSlug) ?? gameSlug}`
               : "Most recent 200 matching rounds"}
+            {resultLabel ? ` that ${resultLabel}` : ""}
             {search ? ` — filtered to "${search}"` : ""}.
           </CardDescription>
         </CardHeader>

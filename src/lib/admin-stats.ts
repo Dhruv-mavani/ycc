@@ -704,6 +704,7 @@ export interface GamePlayRow {
 export async function getGameInsights(
   gameSlug?: string,
   search?: string,
+  result?: "won" | "lost",
 ): Promise<{
   summary: GameInsightsSummary[];
   recentPlays: GamePlayRow[];
@@ -711,6 +712,9 @@ export async function getGameInsights(
   const admin = createAdminClient();
   const trimmedSearch = search?.trim();
 
+  // Summary totals stay scoped to gameSlug only (not `result`) — they're
+  // meant to show overall wins/losses regardless of which one the "Recent
+  // plays" table below is currently filtered to.
   let summaryQuery = admin.from("game_plays").select("game_slug, result");
   if (gameSlug) summaryQuery = summaryQuery.eq("game_slug", gameSlug);
 
@@ -722,6 +726,7 @@ export async function getGameInsights(
     .order("created_at", { ascending: false })
     .limit(200);
   if (gameSlug) recentQuery = recentQuery.eq("game_slug", gameSlug);
+  if (result) recentQuery = recentQuery.eq("result", result);
   if (trimmedSearch) {
     recentQuery = recentQuery.or(
       `player_name.ilike.%${trimmedSearch}%,team_label.ilike.%${trimmedSearch}%`,
