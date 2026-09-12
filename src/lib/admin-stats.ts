@@ -222,6 +222,168 @@ export async function getCashCollectionOverview(): Promise<
   );
 }
 
+export interface CashCollectionRegistrationDetail {
+  registrationId: string;
+  eventId: string;
+  eventName: string;
+  type: "team" | "individual";
+  teamName: string | null;
+  captainName: string | null;
+  captainPhone: string;
+  captainEmail: string | null;
+  collegeName: string;
+  participants: { name: string; uniqueId: string | null; isCaptain: boolean }[];
+  amountPaise: number;
+  registeredAt: string;
+  paid: boolean;
+  paidAt: string | null;
+  markedByName: string | null;
+}
+
+/**
+ * Per-registration detail for every pay_at_venue registration — who they
+ * are, how to reach them, whether/when the cash was collected and by whom,
+ * for the admin cash-collection page's full breakdown table. `search`
+ * matches team name, captain name/phone/email, college name, or any
+ * participant's name/unique ID (case-insensitive substring) — small enough
+ * datasets (one cash event, a few hundred registrations at most) that
+ * filtering in JS after one fetch beats hand-rolling a cross-table SQL
+ * search.
+ */
+export async function getCashCollectionDetail(
+  search?: string,
+): Promise<CashCollectionRegistrationDetail[]> {
+  const admin = createAdminClient();
+
+  const { data: events } = await admin
+    .from("events")
+    .select("id, name")
+    .eq("pay_at_venue", true)
+    .eq("is_active", true);
+  if (!events || events.length === 0) return [];
+
+  const eventIds = events.map((e) => e.id);
+  const eventNameById = new Map(events.map((e) => [e.id, e.name]));
+
+  const { data: registrations } = await admin
+    .from("registrations")
+    .select("*")
+    .in("event_id", eventIds)
+    .eq("status", "confirmed")
+    .order("created_at", { ascending: false });
+  const regs = registrations ?? [];
+  const regIds = regs.map((r) => r.id);
+  const collegeIds = [...new Set(regs.map((r) => r.college_id))];
+
+  const [{ data: colleges }, { data: participants }, { data: payments }] =
+    await Promise.all([
+      collegeIds.length > 0
+        ? admin.from("colleges").select("id, name").in("id", collegeIds)
+        : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+      regIds.length > 0
+        ? admin
+            .from("participants")
+            .select("registration_id, name, unique_id, is_captain")
+            .in("registration_id", regIds)
+        : Promise.resolve({
+            data: [] as {
+              registration_id: string;
+              name: string;
+              unique_id: string | null;
+              is_captain: boolean;
+            }[],
+          }),
+      regIds.length > 0
+        ? admin
+            .from("payments")
+            .select("registration_id, raw_payload, updated_at")
+            .in("registration_id", regIds)
+            .eq("status", "paid")
+        : Promise.resolve({
+            data: [] as {
+              registration_id: string;
+              raw_payload: Record<string, unknown> | null;
+              updated_at: string;
+            }[],
+          }),
+    ]);
+
+  const collegeNameById = new Map((colleges ?? []).map((c) => [c.id, c.name]));
+  const paymentByReg = new Map((payments ?? []).map((p) => [p.registration_id, p]));
+
+  const markerIds = [
+    ...new Set(
+      (payments ?? [])
+        .map((p) => (p.raw_payload as { marked_by?: string } | null)?.marked_by)
+        .filter((id): id is string => !!id),
+    ),
+  ];
+  const staffNameById = new Map<string, string>();
+  if (markerIds.length > 0) {
+    const [{ data: staff }, { data: admins }] = await Promise.all([
+      admin.from("staff").select("user_id, name").in("user_id", markerIds),
+      admin.from("admins").select("user_id, name").in("user_id", markerIds),
+    ]);
+    for (const s of staff ?? []) if (s.name) staffNameById.set(s.user_id, s.name);
+    for (const a of admins ?? []) if (a.name) staffNameById.set(a.user_id, a.name);
+  }
+
+  const participantsByReg = new Map<
+    string,
+    { name: string; uniqueId: string | null; isCaptain: boolean }[]
+  >();
+  for (const p of participants ?? []) {
+    const list = participantsByReg.get(p.registration_id) ?? [];
+    list.push({ name: p.name, uniqueId: p.unique_id, isCaptain: p.is_captain });
+    participantsByReg.set(p.registration_id, list);
+  }
+
+  const details = regs.map((reg) => {
+    const payment = paymentByReg.get(reg.id);
+    const payload = payment?.raw_payload as
+      | { marked_by?: string; marked_at?: string }
+      | null
+      | undefined;
+    return {
+      registrationId: reg.id,
+      eventId: reg.event_id,
+      eventName: eventNameById.get(reg.event_id) ?? "",
+      type: reg.type,
+      teamName: reg.team_name,
+      captainName: reg.captain_name,
+      captainPhone: reg.captain_phone,
+      captainEmail: reg.captain_email,
+      collegeName: collegeNameById.get(reg.college_id) ?? "Unknown",
+      participants: participantsByReg.get(reg.id) ?? [],
+      amountPaise: reg.amount_paise,
+      registeredAt: reg.created_at,
+      paid: !!payment,
+      paidAt: payment ? (payload?.marked_at ?? payment.updated_at) : null,
+      markedByName: payload?.marked_by
+        ? (staffNameById.get(payload.marked_by) ?? null)
+        : null,
+    };
+  });
+
+  const trimmedSearch = search?.trim().toLowerCase();
+  if (!trimmedSearch) return details;
+
+  return details.filter((d) => {
+    const haystack = [
+      d.teamName,
+      d.captainName,
+      d.captainPhone,
+      d.captainEmail,
+      d.collegeName,
+      ...d.participants.flatMap((p) => [p.name, p.uniqueId]),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(trimmedSearch);
+  });
+}
+
 export interface RegistrationsByDay {
   date: string; // "YYYY-MM-DD", IST calendar day
   registrations: number;
