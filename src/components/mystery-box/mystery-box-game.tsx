@@ -5,6 +5,7 @@ import Confetti from "react-confetti";
 import { Gift, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
+import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
 
 // ---------------------------------------------------------------------------
 // Mystery Box — a solo, self-serve number-draw game (/mystry-box). The player
@@ -145,6 +146,11 @@ function reducer(state: GameState, action: Action): GameState {
 export function MysteryBoxGame() {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
   const [muted, setMuted] = useState(false);
+  const [selection, setSelection] = useState<GameTeamSelection | null>(null);
+  const selectionRef = useRef(selection);
+  useEffect(() => {
+    selectionRef.current = selection;
+  }, [selection]);
   const mutedRef = useRef(muted);
   useEffect(() => {
     mutedRef.current = muted;
@@ -176,6 +182,35 @@ export function MysteryBoxGame() {
     if (state.phase === "won") play("win");
     if (state.phase === "lost") play("lose");
   }, [state.phase, play]);
+
+  // Reports the round's outcome once it settles. Guarded by a ref (not
+  // state) so StrictMode's double-invoke and any re-render mid-phase can't
+  // fire this twice for the same round; it re-arms on the next "pick".
+  const recordedRef = useRef(false);
+  useEffect(() => {
+    if (state.phase === "pick") {
+      recordedRef.current = false;
+      return;
+    }
+    if (state.phase !== "won" && state.phase !== "lost") return;
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+
+    const sel = selectionRef.current;
+    if (!sel) return;
+    fetch("/api/games/record-play", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gameSlug: "mystry-box",
+        source: sel.source,
+        teamRefId: sel.teamRefId,
+        playerRefId: sel.playerRefId,
+        result: state.phase,
+        detail: { picked: state.picked, drawn: state.drawn },
+      }),
+    }).catch(() => {});
+  }, [state.phase, state.picked, state.drawn]);
 
   function toggleMute() {
     setMuted((m) => {
@@ -221,10 +256,19 @@ export function MysteryBoxGame() {
             <li>Match your number — win!</li>
           </ol>
         </div>
+
+        <TeamPlayerGate onSelectionChange={setSelection} />
+
         <button
           type="button"
+          disabled={!selection}
           onClick={() => dispatch({ type: "START" })}
-          className="mt-10 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-2.5 text-lg font-bold text-black shadow-xl shadow-amber-500/20 transition-all duration-300 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 sm:px-10 sm:py-3 sm:text-xl md:text-2xl"
+          className={cn(
+            "mt-8 rounded-xl px-8 py-2.5 text-lg font-bold shadow-xl transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
+            selection
+              ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-amber-500/20 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40"
+              : "cursor-not-allowed border border-white/10 bg-white/5 text-white/40",
+          )}
         >
           Play
         </button>

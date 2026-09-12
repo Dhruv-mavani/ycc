@@ -261,6 +261,36 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["attendance"]["Insert"]>;
         Relationships: [];
       };
+      game_plays: {
+        Row: {
+          id: string;
+          game_slug: string;
+          source: string;
+          team_ref_id: string;
+          player_ref_id: string;
+          player_name: string;
+          team_label: string;
+          is_captain: boolean;
+          result: string;
+          detail: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          game_slug: string;
+          source: string;
+          team_ref_id: string;
+          player_ref_id: string;
+          player_name: string;
+          team_label: string;
+          is_captain?: boolean;
+          result: string;
+          detail?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["game_plays"]["Insert"]>;
+        Relationships: [];
+      };
       staff: {
         Row: {
           user_id: string;

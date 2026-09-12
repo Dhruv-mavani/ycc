@@ -513,3 +513,72 @@ export async function getCollegeDetail(
 
   return { collegeName: college?.name ?? "Unknown", registrations: details };
 }
+
+export interface GameInsightsSummary {
+  gameSlug: string;
+  plays: number;
+  wins: number;
+  losses: number;
+}
+
+export interface GamePlayRow {
+  id: string;
+  gameSlug: string;
+  playerName: string;
+  teamLabel: string;
+  source: "registration" | "partner";
+  isCaptain: boolean;
+  result: "won" | "lost";
+  createdAt: string;
+}
+
+/**
+ * Spin the Wheel / Mystery Box insights for the admin games page. Summary
+ * counts scan every row (no limit — plain text columns, cheap) so totals
+ * stay accurate regardless of volume; recentPlays is capped for the table.
+ */
+export async function getGameInsights(): Promise<{
+  summary: GameInsightsSummary[];
+  recentPlays: GamePlayRow[];
+}> {
+  const admin = createAdminClient();
+
+  const [{ data: allRows }, { data: recentRows }] = await Promise.all([
+    admin.from("game_plays").select("game_slug, result"),
+    admin
+      .from("game_plays")
+      .select(
+        "id, game_slug, player_name, team_label, source, is_captain, result, created_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(200),
+  ]);
+
+  const bySlug = new Map<string, GameInsightsSummary>();
+  for (const r of allRows ?? []) {
+    const entry = bySlug.get(r.game_slug) ?? {
+      gameSlug: r.game_slug,
+      plays: 0,
+      wins: 0,
+      losses: 0,
+    };
+    entry.plays += 1;
+    if (r.result === "won") entry.wins += 1;
+    else entry.losses += 1;
+    bySlug.set(r.game_slug, entry);
+  }
+
+  return {
+    summary: Array.from(bySlug.values()),
+    recentPlays: (recentRows ?? []).map((r) => ({
+      id: r.id,
+      gameSlug: r.game_slug,
+      playerName: r.player_name,
+      teamLabel: r.team_label,
+      source: r.source as "registration" | "partner",
+      isCaptain: r.is_captain,
+      result: r.result as "won" | "lost",
+      createdAt: r.created_at,
+    })),
+  };
+}
