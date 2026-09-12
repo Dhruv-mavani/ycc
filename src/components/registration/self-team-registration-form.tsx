@@ -42,6 +42,7 @@ export function SelfTeamRegistrationForm({
   maxTeamSize,
   feePaise,
   payAtVenue = false,
+  gstExempt = false,
   colleges,
 }: {
   eventId: string;
@@ -51,6 +52,9 @@ export function SelfTeamRegistrationForm({
   /** Skips Cashfree entirely — registration confirms immediately and the
    * entry fee is collected in cash at the venue instead. */
   payAtVenue?: boolean;
+  /** No GST on top of feePaise — it's the flat total, so the "+ 18% GST"
+   * copy is dropped. */
+  gstExempt?: boolean;
   colleges: CollegeOption[];
 }) {
   const router = useRouter();
@@ -178,10 +182,12 @@ export function SelfTeamRegistrationForm({
       <Card>
         <CardHeader>
           <CardTitle>Review & pay</CardTitle>
-          <CardDescription>18% GST applies at payment</CardDescription>
+          <CardDescription>
+            {gstExempt ? "No GST on this event" : "18% GST applies at payment"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GstBreakdown basePaise={feePaise} />
+          {gstExempt ? null : <GstBreakdown basePaise={feePaise} />}
           <CashfreeCheckoutButton
             registrationId={submitted.registrationId}
             eventName={eventName}
@@ -200,8 +206,8 @@ export function SelfTeamRegistrationForm({
         <CardHeader>
           <CardTitle>Team details</CardTitle>
           <CardDescription>
-            Entry fee: ₹{(feePaise / 100).toLocaleString("en-IN")} per team +
-            18% GST
+            Entry fee: ₹{(feePaise / 100).toLocaleString("en-IN")} per team
+            {gstExempt ? "" : " + 18% GST"}
             {payAtVenue ? " — payable in cash at the venue" : ""}
           </CardDescription>
         </CardHeader>

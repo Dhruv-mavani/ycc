@@ -22,3 +22,15 @@ export function calculateGst(basePaise: number): GstBreakdown {
   const totalPaise = basePaise + cgstPaise + sgstPaise + igstPaise;
   return { basePaise, cgstPaise, sgstPaise, igstPaise, totalPaise };
 }
+
+/**
+ * Same as calculateGst, but returns a flat, tax-free breakdown when
+ * `exempt` is true — for events (see events.gst_exempt) where fee_paise IS
+ * the total charged, with no CGST/SGST/IGST added on top.
+ */
+export function applyGst(basePaise: number, exempt: boolean): GstBreakdown {
+  if (exempt) {
+    return { basePaise, cgstPaise: 0, sgstPaise: 0, igstPaise: 0, totalPaise: basePaise };
+  }
+  return calculateGst(basePaise);
+}

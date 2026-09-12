@@ -125,6 +125,7 @@ export default async function RegisterPage({
                   maxTeamSize={event.max_team_size ?? 6}
                   feePaise={event.fee_paise}
                   payAtVenue={event.pay_at_venue}
+                  gstExempt={event.gst_exempt}
                   colleges={colleges ?? []}
                 />
               )

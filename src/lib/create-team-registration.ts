@@ -1,6 +1,6 @@
 import "server-only";
 import type { createAdminClient } from "@/lib/supabase/admin";
-import { calculateGst } from "@/lib/gst";
+import { applyGst } from "@/lib/gst";
 import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
 
 export interface CreateTeamRegistrationInput {
@@ -139,7 +139,7 @@ export async function createTeamRegistration(
   if (!primaryContact.phone) {
     return { ok: false, status: 400, error: "Captain's phone number is required" };
   }
-  const gst = calculateGst(event.fee_paise);
+  const gst = applyGst(event.fee_paise, event.gst_exempt);
 
   const { data: registration, error: regError } = await admin
     .from("registrations")

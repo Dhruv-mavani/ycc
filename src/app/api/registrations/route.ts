@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { registrationRequestSchema } from "@/lib/validations/registration";
-import { calculateGst } from "@/lib/gst";
+import { applyGst } from "@/lib/gst";
 import { createTeamRegistration } from "@/lib/create-team-registration";
 import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
 
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const gst = calculateGst(event.fee_paise);
+  const gst = applyGst(event.fee_paise, event.gst_exempt);
 
   const { data: registration, error: regError } = await admin
     .from("registrations")

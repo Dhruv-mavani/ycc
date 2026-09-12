@@ -10,7 +10,7 @@ import {
 } from "@react-pdf/renderer";
 import fs from "node:fs";
 import path from "node:path";
-import { calculateGst } from "@/lib/gst";
+import { applyGst } from "@/lib/gst";
 import { BoxCricketIdCardPage } from "@/lib/box-cricket-id-card";
 import { QuizIdCardPage } from "@/lib/quiz-id-card";
 import { InvitationLetterPage } from "@/lib/invitation-letter";
@@ -169,6 +169,9 @@ export interface ReceiptData {
    * The GST/amount figures are still computed above; they're just not
    * rendered anywhere in this document when this is set. */
   hideReceiptPage?: boolean;
+  /** True to skip GST entirely — basePaise IS the flat total, no
+   * CGST/SGST/IGST rows/columns appear anywhere in this document. */
+  gstExempt?: boolean;
 }
 
 function formatRupees(paise: number) {
@@ -188,7 +191,7 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
       ? `${data.eventName} — ${data.teamName ?? "Team Registration"}`
       : `${data.eventName} — Individual Entry`;
 
-  const gst = calculateGst(data.basePaise);
+  const gst = applyGst(data.basePaise, data.gstExempt ?? false);
   const totalTaxPaise = gst.cgstPaise + gst.sgstPaise + gst.igstPaise;
 
   return (
@@ -259,57 +262,95 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
         <View style={styles.table}>
           <View style={styles.tableHeaderRow}>
             <Text style={[styles.colNo, styles.th]}>No.</Text>
-            <Text style={[styles.colItem, styles.th]}>Item</Text>
+            <Text
+              style={[
+                data.gstExempt ? { width: "56%", paddingHorizontal: 4 } : styles.colItem,
+                styles.th,
+              ]}
+            >
+              Item
+            </Text>
             <Text style={[styles.colQty, styles.th]}>Qty</Text>
-            <Text style={[styles.colTax, styles.th]}>IGST</Text>
-            <Text style={[styles.colTax, styles.th]}>SGST</Text>
-            <Text style={[styles.colTax, styles.th]}>CGST</Text>
-            <Text style={[styles.colPrice, styles.th]}>Price</Text>
+            {data.gstExempt ? null : (
+              <>
+                <Text style={[styles.colTax, styles.th]}>IGST</Text>
+                <Text style={[styles.colTax, styles.th]}>SGST</Text>
+                <Text style={[styles.colTax, styles.th]}>CGST</Text>
+              </>
+            )}
+            <Text
+              style={[
+                data.gstExempt ? { width: "24%", paddingHorizontal: 4, textAlign: "right" } : styles.colPrice,
+                styles.th,
+              ]}
+            >
+              Price
+            </Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={[styles.colNo, styles.td]}>1</Text>
-            <Text style={[styles.colItem, styles.td]}>{itemLabel}</Text>
+            <Text
+              style={[
+                data.gstExempt ? { width: "56%", paddingHorizontal: 4 } : styles.colItem,
+                styles.td,
+              ]}
+            >
+              {itemLabel}
+            </Text>
             <Text style={[styles.colQty, styles.td]}>1</Text>
-            <Text style={[styles.colTax, styles.td]}>0.00%</Text>
-            <Text style={[styles.colTax, styles.td]}>9.00%</Text>
-            <Text style={[styles.colTax, styles.td]}>9.00%</Text>
-            <Text style={[styles.colPrice, styles.td]}>
+            {data.gstExempt ? null : (
+              <>
+                <Text style={[styles.colTax, styles.td]}>0.00%</Text>
+                <Text style={[styles.colTax, styles.td]}>9.00%</Text>
+                <Text style={[styles.colTax, styles.td]}>9.00%</Text>
+              </>
+            )}
+            <Text
+              style={[
+                data.gstExempt ? { width: "24%", paddingHorizontal: 4, textAlign: "right" } : styles.colPrice,
+                styles.td,
+              ]}
+            >
               {formatRupees(gst.basePaise)}
             </Text>
           </View>
         </View>
 
         <View style={styles.summaryBlock}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Sub Total</Text>
-            <Text style={styles.summaryValue}>
-              {formatRupees(gst.basePaise)}
-            </Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>IGST (0%)</Text>
-            <Text style={styles.summaryValue}>
-              {formatRupees(gst.igstPaise)}
-            </Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>SGST (9%)</Text>
-            <Text style={styles.summaryValue}>
-              {formatRupees(gst.sgstPaise)}
-            </Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>CGST (9%)</Text>
-            <Text style={styles.summaryValue}>
-              {formatRupees(gst.cgstPaise)}
-            </Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Tax</Text>
-            <Text style={styles.summaryValue}>
-              {formatRupees(totalTaxPaise)}
-            </Text>
-          </View>
+          {data.gstExempt ? null : (
+            <>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Sub Total</Text>
+                <Text style={styles.summaryValue}>
+                  {formatRupees(gst.basePaise)}
+                </Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>IGST (0%)</Text>
+                <Text style={styles.summaryValue}>
+                  {formatRupees(gst.igstPaise)}
+                </Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>SGST (9%)</Text>
+                <Text style={styles.summaryValue}>
+                  {formatRupees(gst.sgstPaise)}
+                </Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>CGST (9%)</Text>
+                <Text style={styles.summaryValue}>
+                  {formatRupees(gst.cgstPaise)}
+                </Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Total Tax</Text>
+                <Text style={styles.summaryValue}>
+                  {formatRupees(totalTaxPaise)}
+                </Text>
+              </View>
+            </>
+          )}
           <View style={styles.summaryTotalRow}>
             <Text style={styles.summaryTotalLabel}>
               {data.paymentDue ? "Amount Due (Cash at Venue)" : "Payable Total"}

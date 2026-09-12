@@ -101,6 +101,7 @@ export async function buildReceiptPdf(registrationId: string): Promise<{
     includeCongratsLetter: registration.type === "team" && !event.requires_referral,
     paymentDue,
     hideReceiptPage: event.hide_receipt_page,
+    gstExempt: event.gst_exempt,
   });
 
   return { pdfBuffer, registration, paymentDue };
