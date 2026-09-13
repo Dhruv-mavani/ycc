@@ -161,7 +161,7 @@ const teamStyles = StyleSheet.create({
   },
   box: {
     width: ts(760),
-    marginTop: tsy(28),
+    marginTop: tsy(55),
     border: `${ts(1.5)} solid ${TEAM_NAVY}`,
     borderRadius: ts(6),
     paddingVertical: ts(16),
