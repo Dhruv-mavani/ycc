@@ -129,6 +129,21 @@ const teamStyles = StyleSheet.create({
     fontSize: ts(54),
     color: TEAM_NAVY,
   },
+  // Captain/players, right below the team name — same script family as
+  // "Dear," and the name, just smaller since this is secondary detail, not
+  // the headline. Wider box than dearLine/name (down to the paragraph's own
+  // margins) since a full player roster can run long and needs room to wrap
+  // without looking cramped in a cursive face.
+  roster: {
+    position: "absolute",
+    left: ts(TEAM_SAFE_X + 150),
+    width: ts(TEAM_SAFE_W - 300),
+    textAlign: "center",
+    fontFamily: "Alex Brush",
+    fontSize: ts(34),
+    lineHeight: 1.3,
+    color: TEAM_LOGO_BLUE,
+  },
   paragraph: {
     position: "absolute",
     left: ts(TEAM_SAFE_X + 150),
@@ -141,7 +156,7 @@ const teamStyles = StyleSheet.create({
   },
   box: {
     position: "absolute",
-    top: tsy(830),
+    top: tsy(940),
     width: ts(720),
     border: `${ts(1.5)} solid ${TEAM_NAVY}`,
     borderRadius: ts(6),
@@ -356,10 +371,10 @@ export function InvitationLetterPage(data: InvitationLetterData) {
         {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
         <Image src={teamLogoDataUri} style={teamStyles.logo} />
 
-        <Text style={[teamStyles.dearLine, { top: tsy(420) }]}>Dear,</Text>
-        <Text style={[teamStyles.name, { top: tsy(500) }]}>{data.teamName}</Text>
+        <Text style={[teamStyles.dearLine, { top: tsy(400) }]}>Dear,</Text>
+        <Text style={[teamStyles.name, { top: tsy(478) }]}>{data.teamName}</Text>
         <Svg
-          style={{ position: "absolute", top: tsy(572), left: 0 }}
+          style={{ position: "absolute", top: tsy(548), left: 0 }}
           width={TEAM_PAGE_WIDTH}
           height={tsy(6)}
         >
@@ -374,7 +389,18 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           />
         </Svg>
 
-        <Text style={[teamStyles.paragraph, { top: tsy(630) }]}>
+        {data.captainName ? (
+          <Text style={[teamStyles.roster, { top: tsy(590) }]}>
+            Captain — {data.captainName}
+          </Text>
+        ) : null}
+        {data.players.length > 0 ? (
+          <Text style={[teamStyles.roster, { top: tsy(638) }]}>
+            Players — {data.players.join(", ")}
+          </Text>
+        ) : null}
+
+        <Text style={[teamStyles.paragraph, { top: tsy(740) }]}>
           Congratulations on registering for the {data.eventName}! Your team
           is officially confirmed — get your squad ready, stay sharp, and
           bring your best game on match day. Schedules, venue details and
@@ -387,18 +413,6 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             <Text style={teamStyles.boxRowLabel}>College: </Text>
             {data.collegeName}
           </Text>
-          {data.captainName ? (
-            <Text style={teamStyles.boxRow}>
-              <Text style={teamStyles.boxRowLabel}>Captain: </Text>
-              {data.captainName}
-            </Text>
-          ) : null}
-          {data.players.length > 0 ? (
-            <Text style={teamStyles.boxRow}>
-              <Text style={teamStyles.boxRowLabel}>Players: </Text>
-              {data.players.join(", ")}
-            </Text>
-          ) : null}
         </View>
 
         <View style={[teamStyles.box, { left: ts(TEAM_BOX_RIGHT_X) }]}>
@@ -410,7 +424,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           </Text>
         </View>
 
-        <Text style={[teamStyles.closing, { top: tsy(1060) }]}>
+        <Text style={[teamStyles.closing, { top: tsy(1170) }]}>
           See you on the ground!
         </Text>
       </Page>
