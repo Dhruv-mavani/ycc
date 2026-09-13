@@ -124,18 +124,18 @@ const teamStyles = StyleSheet.create({
   logo: {
     width: ts(TEAM_LOGO_W),
     height: tsy(TEAM_LOGO_H),
-    marginBottom: tsy(30),
+    marginBottom: tsy(48),
   },
   dearLine: {
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: ts(48),
+    fontSize: ts(56),
     color: TEAM_LOGO_BLUE,
   },
   nameLine: {
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: ts(46),
+    fontSize: ts(52),
     color: TEAM_NAVY,
   },
   underline: {
@@ -143,25 +143,25 @@ const teamStyles = StyleSheet.create({
     marginBottom: tsy(18),
   },
   paragraph: {
-    width: ts(TEAM_SAFE_W - 260),
+    width: ts(TEAM_SAFE_W - 180),
     textAlign: "center",
     fontFamily: "Times-Italic",
-    fontSize: ts(24),
-    lineHeight: 1.4,
+    fontSize: ts(28),
+    lineHeight: 1.35,
     color: TEAM_TEXT_DARK,
-    marginBottom: tsy(16),
+    marginBottom: tsy(14),
   },
   // Captain/player names inline within the paragraph prose — same script
   // family as "Dear," and the team name, scaled down to sit comfortably
   // mid-sentence instead of overpowering the surrounding Times-Italic text.
   inlineName: {
     fontFamily: "Alex Brush",
-    fontSize: ts(28),
+    fontSize: ts(32),
     color: TEAM_NAVY,
   },
   box: {
-    width: ts(720),
-    marginTop: tsy(10),
+    width: ts(760),
+    marginTop: tsy(28),
     border: `${ts(1.5)} solid ${TEAM_NAVY}`,
     borderRadius: ts(6),
     paddingVertical: ts(16),
@@ -169,7 +169,7 @@ const teamStyles = StyleSheet.create({
   },
   boxTitle: {
     fontFamily: "Helvetica-Bold",
-    fontSize: ts(24),
+    fontSize: ts(26),
     letterSpacing: ts(1.5),
     color: TEAM_NAVY,
     textAlign: "center",
@@ -177,10 +177,17 @@ const teamStyles = StyleSheet.create({
   },
   boxRow: {
     fontFamily: "Helvetica",
-    fontSize: ts(20),
-    lineHeight: 1.5,
+    fontSize: ts(22),
+    lineHeight: 1.45,
     color: TEAM_TEXT_DARK,
     textAlign: "center",
+  },
+  closing: {
+    textAlign: "center",
+    fontFamily: "Alex Brush",
+    fontSize: ts(42),
+    color: TEAM_LOGO_BLUE,
+    marginTop: tsy(16),
   },
 });
 
@@ -468,6 +475,8 @@ export function InvitationLetterPage(data: InvitationLetterData) {
               permitted without it. Keep it safe until match day.
             </Text>
           </View>
+
+          <Text style={teamStyles.closing}>See you on the ground!</Text>
         </View>
       </Page>
     );
