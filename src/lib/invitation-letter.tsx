@@ -126,16 +126,26 @@ const teamStyles = StyleSheet.create({
     height: tsy(TEAM_LOGO_H),
     marginBottom: tsy(48),
   },
+  // Alex Brush's space glyph renders at near-zero width in react-pdf/pdfkit
+  // — a multi-word team name like "SCET Titans" collapses into
+  // "SCETTitans" without help. letterSpacing is the only inter-character
+  // control react-pdf exposes, so it's applied everywhere this font is
+  // used (dearLine/nameLine/inlineName) — it does nudge apart letters
+  // *within* a word too, but at this small a value the cursive strokes
+  // still read as connected, and it's the only way to open up the actual
+  // word gaps.
   dearLine: {
     textAlign: "center",
     fontFamily: "Alex Brush",
     fontSize: ts(56),
+    letterSpacing: ts(10),
     color: TEAM_LOGO_BLUE,
   },
   nameLine: {
     textAlign: "center",
     fontFamily: "Alex Brush",
     fontSize: ts(52),
+    letterSpacing: ts(10),
     color: TEAM_NAVY,
   },
   underline: {
@@ -157,6 +167,7 @@ const teamStyles = StyleSheet.create({
   inlineName: {
     fontFamily: "Alex Brush",
     fontSize: ts(32),
+    letterSpacing: ts(2.5),
     color: TEAM_NAVY,
   },
   box: {
@@ -186,6 +197,7 @@ const teamStyles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Alex Brush",
     fontSize: ts(42),
+    letterSpacing: ts(3),
     color: TEAM_LOGO_BLUE,
     marginTop: tsy(16),
   },
