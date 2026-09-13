@@ -95,6 +95,14 @@ const TEAM_NAVY = "#173a8f";
 const TEAM_LOGO_BLUE = "#2a5e9a";
 const TEAM_TEXT_DARK = "#2a2118";
 
+// Content is laid out as a normal top-to-bottom flow inside one
+// absolutely-positioned column (anchored to the safe zone's top-left),
+// rather than each element getting its own hand-computed absolute `top` —
+// the body copy's length varies with roster size and event/college name
+// length, so fixed pixel offsets would risk overlap for anything longer
+// than whatever sample text they were tuned against. Flow means each
+// element's position instead just follows from the actual rendered height
+// of everything above it.
 const teamStyles = StyleSheet.create({
   page: { position: "relative" },
   background: {
@@ -104,59 +112,43 @@ const teamStyles = StyleSheet.create({
     width: TEAM_PAGE_WIDTH,
     height: TEAM_PAGE_HEIGHT,
   },
-  logo: {
+  content: {
     position: "absolute",
-    top: tsy(TEAM_SAFE_Y + 40),
-    left: ts(TEAM_SAFE_X + TEAM_SAFE_W / 2 - TEAM_LOGO_W / 2),
+    top: tsy(TEAM_SAFE_Y + 30),
+    left: ts(TEAM_SAFE_X),
+    width: ts(TEAM_SAFE_W),
+    alignItems: "center",
+  },
+  logo: {
     width: ts(TEAM_LOGO_W),
     height: tsy(TEAM_LOGO_H),
+    marginBottom: tsy(16),
   },
-  dearLine: {
-    position: "absolute",
-    left: ts(TEAM_SAFE_X),
-    width: ts(TEAM_SAFE_W),
+  greeting: {
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: ts(58),
+    fontSize: ts(50),
     color: TEAM_LOGO_BLUE,
   },
-  name: {
-    position: "absolute",
-    left: ts(TEAM_SAFE_X),
-    width: ts(TEAM_SAFE_W),
-    textAlign: "center",
-    fontFamily: "Alex Brush",
-    fontSize: ts(54),
-    color: TEAM_NAVY,
-  },
-  // Captain/players, right below the team name — same script family as
-  // "Dear," and the name, just smaller since this is secondary detail, not
-  // the headline. Wider box than dearLine/name (down to the paragraph's own
-  // margins) since a full player roster can run long and needs room to wrap
-  // without looking cramped in a cursive face.
-  roster: {
-    position: "absolute",
-    left: ts(TEAM_SAFE_X + 150),
-    width: ts(TEAM_SAFE_W - 300),
-    textAlign: "center",
-    fontFamily: "Alex Brush",
-    fontSize: ts(34),
-    lineHeight: 1.3,
-    color: TEAM_LOGO_BLUE,
+  underline: {
+    marginTop: tsy(8),
+    marginBottom: tsy(18),
   },
   paragraph: {
-    position: "absolute",
-    left: ts(TEAM_SAFE_X + 150),
-    width: ts(TEAM_SAFE_W - 300),
+    width: ts(TEAM_SAFE_W - 260),
     textAlign: "center",
     fontFamily: "Times-Italic",
-    fontSize: ts(30),
-    lineHeight: 1.45,
+    fontSize: ts(24),
+    lineHeight: 1.4,
     color: TEAM_TEXT_DARK,
+    marginBottom: tsy(16),
+  },
+  boxesRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: tsy(10),
   },
   box: {
-    position: "absolute",
-    top: tsy(940),
     width: ts(720),
     border: `${ts(1.5)} solid ${TEAM_NAVY}`,
     borderRadius: ts(6),
@@ -181,27 +173,12 @@ const teamStyles = StyleSheet.create({
   boxRowLabel: {
     fontFamily: "Helvetica-Bold",
   },
-  closing: {
-    position: "absolute",
-    left: ts(TEAM_SAFE_X),
-    width: ts(TEAM_SAFE_W),
-    textAlign: "center",
-    fontFamily: "Alex Brush",
-    fontSize: ts(40),
-    color: TEAM_LOGO_BLUE,
-  },
 });
 
-// Two boxes side by side, each TEAM_LOGO_W-independent 720-native wide,
-// centered as a pair within the safe content width with a gap between —
-// landscape has the width to spare, so putting Team Details and the ID
-// Card notice side by side keeps the whole block well clear of the safe
-// zone's bottom edge (y 1266) instead of stacking them the way the
-// taller portrait design does.
+// Gap between the two boxes in the row — landscape has the width to spare,
+// so Team Details and the ID Card notice sit side by side rather than
+// stacked the way the taller portrait design does.
 const TEAM_BOX_GAP = 160;
-const TEAM_BOX_LEFT_X =
-  TEAM_SAFE_X + (TEAM_SAFE_W - 720 * 2 - TEAM_BOX_GAP) / 2;
-const TEAM_BOX_RIGHT_X = TEAM_BOX_LEFT_X + 720 + TEAM_BOX_GAP;
 
 // The square art is scaled to fill the page width and centered vertically,
 // so the whole envelope+card stays visible (no cropping) and every
@@ -350,83 +327,110 @@ export type InvitationLetterData =
       eventName: string;
       collegeName: string;
       captainName: string | null;
-      /** Non-captain roster — the captain is already shown on its own line. */
+      /** Non-captain roster — woven into the congrats paragraph alongside the captain, not shown separately. */
       players: string[];
     };
 
+// "a, b, and c" — Oxford comma, so it reads as a real sentence rather than
+// a bare comma-separated dump when folded into prose.
+function joinWithAnd(items: string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+// The captain/roster sentence in the team congrats letter — handles the
+// (unlikely but possible) cases of a missing captain or an empty
+// non-captain roster gracefully instead of leaving a dangling clause.
+function rosterSentence(captainName: string | null, players: string[]): string {
+  if (captainName && players.length > 0) {
+    return `With ${captainName} leading the squad as Captain, alongside ${joinWithAnd(players)}, your team is all set to take on the competition.`;
+  }
+  if (captainName) {
+    return `With ${captainName} leading the squad as Captain, your team is all set to take on the competition.`;
+  }
+  if (players.length > 0) {
+    return `With ${joinWithAnd(players)} rounding out the squad, your team is all set to take on the competition.`;
+  }
+  return "Your team is all set to take on the competition.";
+}
+
 export function InvitationLetterPage(data: InvitationLetterData) {
   if (data.kind === "team") {
-    // Underline centered under the team name, sized for the wider
-    // landscape safe zone — a fixed width reads as a deliberate
-    // signature-line accent regardless of name length, same idea as
-    // NameUnderline below (kept separate since the two pages don't share a
-    // coordinate space).
-    const underlineNativeW = 460;
-    const underlineCenterX = TEAM_SAFE_X + TEAM_SAFE_W / 2;
+    // Underline width, in native units — a fixed, generous width reads as
+    // a deliberate signature-line accent regardless of name length, same
+    // idea as NameUnderline below. Local to the Svg's own box now (flow
+    // layout, not page-absolute), so it's just 0..width, no center-offset
+    // math needed.
+    const underlineNativeW = 420;
 
     return (
       <Page size={[TEAM_PAGE_WIDTH, TEAM_PAGE_HEIGHT]} style={teamStyles.page}>
         {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
         <Image src={teamBgDataUri} style={teamStyles.background} />
-        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
-        <Image src={teamLogoDataUri} style={teamStyles.logo} />
 
-        <Text style={[teamStyles.dearLine, { top: tsy(400) }]}>Dear,</Text>
-        <Text style={[teamStyles.name, { top: tsy(478) }]}>{data.teamName}</Text>
-        <Svg
-          style={{ position: "absolute", top: tsy(548), left: 0 }}
-          width={TEAM_PAGE_WIDTH}
-          height={tsy(6)}
-        >
-          <Line
-            x1={ts(underlineCenterX - underlineNativeW / 2)}
-            y1={tsy(3)}
-            x2={ts(underlineCenterX + underlineNativeW / 2)}
-            y2={tsy(3)}
-            stroke={TEAM_LOGO_BLUE}
-            strokeWidth={ts(2.5)}
-            strokeLinecap="round"
-          />
-        </Svg>
+        <View style={teamStyles.content}>
+          {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
+          <Image src={teamLogoDataUri} style={teamStyles.logo} />
 
-        {data.captainName ? (
-          <Text style={[teamStyles.roster, { top: tsy(590) }]}>
-            Captain — {data.captainName}
+          <Text style={teamStyles.greeting}>Dear {data.teamName},</Text>
+          <Svg
+            style={[{ alignSelf: "center" }, teamStyles.underline]}
+            width={ts(underlineNativeW)}
+            height={tsy(6)}
+          >
+            <Line
+              x1={0}
+              y1={tsy(3)}
+              x2={ts(underlineNativeW)}
+              y2={tsy(3)}
+              stroke={TEAM_LOGO_BLUE}
+              strokeWidth={ts(2.5)}
+              strokeLinecap="round"
+            />
+          </Svg>
+
+          <Text style={teamStyles.paragraph}>
+            Congratulations on registering for the {data.eventName}! Your
+            team is officially confirmed.
           </Text>
-        ) : null}
-        {data.players.length > 0 ? (
-          <Text style={[teamStyles.roster, { top: tsy(638) }]}>
-            Players — {data.players.join(", ")}
-          </Text>
-        ) : null}
 
-        <Text style={[teamStyles.paragraph, { top: tsy(740) }]}>
-          Congratulations on registering for the {data.eventName}! Your team
-          is officially confirmed — get your squad ready, stay sharp, and
-          bring your best game on match day. Schedules, venue details and
-          every update will be shared on our official channels.
-        </Text>
-
-        <View style={[teamStyles.box, { left: ts(TEAM_BOX_LEFT_X) }]}>
-          <Text style={teamStyles.boxTitle}>Team Details</Text>
-          <Text style={teamStyles.boxRow}>
-            <Text style={teamStyles.boxRowLabel}>College: </Text>
-            {data.collegeName}
+          <Text style={teamStyles.paragraph}>
+            {rosterSentence(data.captainName, data.players)}
           </Text>
+
+          <Text style={teamStyles.paragraph}>
+            Now that your squad is officially confirmed, it&apos;s time to
+            start preparing for the challenge ahead. Bring your teamwork,
+            strategy, energy, and competitive spirit to the field as you
+            battle it out for the championship. Give every match your best,
+            play as one squad, and make your mark at the {data.eventName}!
+          </Text>
+
+          <Text style={[teamStyles.paragraph, { marginBottom: tsy(6) }]}>
+            Schedules, venue details, match updates, and every important
+            announcement will be shared through our official channels.
+          </Text>
+
+          <View style={teamStyles.boxesRow}>
+            <View style={[teamStyles.box, { marginRight: ts(TEAM_BOX_GAP) }]}>
+              <Text style={teamStyles.boxTitle}>Team Details</Text>
+              <Text style={teamStyles.boxRow}>
+                <Text style={teamStyles.boxRowLabel}>College: </Text>
+                {data.collegeName}
+              </Text>
+            </View>
+
+            <View style={teamStyles.box}>
+              <Text style={teamStyles.boxTitle}>ID Card Mandatory</Text>
+              <Text style={teamStyles.boxRow}>
+                Every player must carry their ID card print or pdf (attached
+                right after this letter) to the venue — entry will not be
+                permitted without it. Keep it safe until match day.
+              </Text>
+            </View>
+          </View>
         </View>
-
-        <View style={[teamStyles.box, { left: ts(TEAM_BOX_RIGHT_X) }]}>
-          <Text style={teamStyles.boxTitle}>ID Card Mandatory</Text>
-          <Text style={teamStyles.boxRow}>
-            Every player must carry their ID card print or pdf (attached
-            right after this letter) to the venue — entry will not be
-            permitted without it. Keep it safe until match day.
-          </Text>
-        </View>
-
-        <Text style={[teamStyles.closing, { top: tsy(1170) }]}>
-          See you on the ground!
-        </Text>
       </Page>
     );
   }
