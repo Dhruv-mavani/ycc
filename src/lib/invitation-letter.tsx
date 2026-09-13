@@ -1,4 +1,6 @@
 import "server-only";
+import { Fragment } from "react";
+import type { Style } from "@react-pdf/types";
 import {
   Document,
   Page,
@@ -122,16 +124,22 @@ const teamStyles = StyleSheet.create({
   logo: {
     width: ts(TEAM_LOGO_W),
     height: tsy(TEAM_LOGO_H),
-    marginBottom: tsy(16),
+    marginBottom: tsy(30),
   },
-  greeting: {
+  dearLine: {
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: ts(50),
+    fontSize: ts(48),
     color: TEAM_LOGO_BLUE,
   },
+  nameLine: {
+    textAlign: "center",
+    fontFamily: "Alex Brush",
+    fontSize: ts(46),
+    color: TEAM_NAVY,
+  },
   underline: {
-    marginTop: tsy(8),
+    marginTop: tsy(10),
     marginBottom: tsy(18),
   },
   paragraph: {
@@ -143,13 +151,17 @@ const teamStyles = StyleSheet.create({
     color: TEAM_TEXT_DARK,
     marginBottom: tsy(16),
   },
-  boxesRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: tsy(10),
+  // Captain/player names inline within the paragraph prose — same script
+  // family as "Dear," and the team name, scaled down to sit comfortably
+  // mid-sentence instead of overpowering the surrounding Times-Italic text.
+  inlineName: {
+    fontFamily: "Alex Brush",
+    fontSize: ts(28),
+    color: TEAM_NAVY,
   },
   box: {
     width: ts(720),
+    marginTop: tsy(10),
     border: `${ts(1.5)} solid ${TEAM_NAVY}`,
     borderRadius: ts(6),
     paddingVertical: ts(16),
@@ -170,15 +182,7 @@ const teamStyles = StyleSheet.create({
     color: TEAM_TEXT_DARK,
     textAlign: "center",
   },
-  boxRowLabel: {
-    fontFamily: "Helvetica-Bold",
-  },
 });
-
-// Gap between the two boxes in the row — landscape has the width to spare,
-// so Team Details and the ID Card notice sit side by side rather than
-// stacked the way the taller portrait design does.
-const TEAM_BOX_GAP = 160;
 
 // The square art is scaled to fill the page width and centered vertically,
 // so the whole envelope+card stays visible (no cropping) and every
@@ -331,28 +335,66 @@ export type InvitationLetterData =
       players: string[];
     };
 
-// "a, b, and c" — Oxford comma, so it reads as a real sentence rather than
-// a bare comma-separated dump when folded into prose.
-function joinWithAnd(items: string[]): string {
-  if (items.length === 0) return "";
-  if (items.length === 1) return items[0];
-  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+type TextStyleProp = Style | Style[];
+
+// Renders a name list as "a, b, and c" (Oxford comma) but with each NAME
+// itself wrapped in its own styled <Text> (the script inlineName style) —
+// the separators ("," / ", and ") are plain siblings so they stay in the
+// surrounding paragraph's own font rather than inheriting the name style.
+function NameList({ names, nameStyle }: { names: string[]; nameStyle: TextStyleProp }) {
+  return (
+    <>
+      {names.map((name, i) => (
+        <Fragment key={i}>
+          <Text style={nameStyle}>{name}</Text>
+          {i < names.length - 2 ? ", " : i === names.length - 2 ? ", and " : ""}
+        </Fragment>
+      ))}
+    </>
+  );
 }
 
-// The captain/roster sentence in the team congrats letter — handles the
-// (unlikely but possible) cases of a missing captain or an empty
-// non-captain roster gracefully instead of leaving a dangling clause.
-function rosterSentence(captainName: string | null, players: string[]): string {
+// The captain/roster sentence in the team congrats letter, as JSX rather
+// than a plain string — captain/player names render in the script
+// inlineName style, everything else stays in the paragraph's own
+// Times-Italic. Handles the (unlikely but possible) cases of a missing
+// captain or an empty non-captain roster gracefully instead of leaving a
+// dangling clause.
+function RosterSentence({
+  captainName,
+  players,
+  nameStyle,
+}: {
+  captainName: string | null;
+  players: string[];
+  nameStyle: TextStyleProp;
+}) {
   if (captainName && players.length > 0) {
-    return `With ${captainName} leading the squad as Captain, alongside ${joinWithAnd(players)}, your team is all set to take on the competition.`;
+    return (
+      <>
+        With <Text style={nameStyle}>{captainName}</Text> leading the squad
+        as Captain, alongside <NameList names={players} nameStyle={nameStyle} />, your
+        team is all set to take on the competition.
+      </>
+    );
   }
   if (captainName) {
-    return `With ${captainName} leading the squad as Captain, your team is all set to take on the competition.`;
+    return (
+      <>
+        With <Text style={nameStyle}>{captainName}</Text> leading the squad
+        as Captain, your team is all set to take on the competition.
+      </>
+    );
   }
   if (players.length > 0) {
-    return `With ${joinWithAnd(players)} rounding out the squad, your team is all set to take on the competition.`;
+    return (
+      <>
+        With <NameList names={players} nameStyle={nameStyle} /> rounding out
+        the squad, your team is all set to take on the competition.
+      </>
+    );
   }
-  return "Your team is all set to take on the competition.";
+  return <>Your team is all set to take on the competition.</>;
 }
 
 export function InvitationLetterPage(data: InvitationLetterData) {
@@ -373,7 +415,8 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
           <Image src={teamLogoDataUri} style={teamStyles.logo} />
 
-          <Text style={teamStyles.greeting}>Dear {data.teamName},</Text>
+          <Text style={teamStyles.dearLine}>Dear,</Text>
+          <Text style={teamStyles.nameLine}>{data.teamName}</Text>
           <Svg
             style={[{ alignSelf: "center" }, teamStyles.underline]}
             width={ts(underlineNativeW)}
@@ -391,12 +434,17 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           </Svg>
 
           <Text style={teamStyles.paragraph}>
-            Congratulations on registering for the {data.eventName}! Your
-            team is officially confirmed.
+            Congratulations on registering for the {data.eventName}{" "}
+            representing {data.collegeName}! Your team is officially
+            confirmed.
           </Text>
 
           <Text style={teamStyles.paragraph}>
-            {rosterSentence(data.captainName, data.players)}
+            <RosterSentence
+              captainName={data.captainName}
+              players={data.players}
+              nameStyle={teamStyles.inlineName}
+            />
           </Text>
 
           <Text style={teamStyles.paragraph}>
@@ -407,28 +455,18 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             play as one squad, and make your mark at the {data.eventName}!
           </Text>
 
-          <Text style={[teamStyles.paragraph, { marginBottom: tsy(6) }]}>
+          <Text style={[teamStyles.paragraph, { marginBottom: 0 }]}>
             Schedules, venue details, match updates, and every important
             announcement will be shared through our official channels.
           </Text>
 
-          <View style={teamStyles.boxesRow}>
-            <View style={[teamStyles.box, { marginRight: ts(TEAM_BOX_GAP) }]}>
-              <Text style={teamStyles.boxTitle}>Team Details</Text>
-              <Text style={teamStyles.boxRow}>
-                <Text style={teamStyles.boxRowLabel}>College: </Text>
-                {data.collegeName}
-              </Text>
-            </View>
-
-            <View style={teamStyles.box}>
-              <Text style={teamStyles.boxTitle}>ID Card Mandatory</Text>
-              <Text style={teamStyles.boxRow}>
-                Every player must carry their ID card print or pdf (attached
-                right after this letter) to the venue — entry will not be
-                permitted without it. Keep it safe until match day.
-              </Text>
-            </View>
+          <View style={teamStyles.box}>
+            <Text style={teamStyles.boxTitle}>ID Card Mandatory</Text>
+            <Text style={teamStyles.boxRow}>
+              Every player must carry their ID card print or pdf (attached
+              right after this letter) to the venue — entry will not be
+              permitted without it. Keep it safe until match day.
+            </Text>
           </View>
         </View>
       </Page>
