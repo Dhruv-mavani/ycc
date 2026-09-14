@@ -124,82 +124,131 @@ const teamStyles = StyleSheet.create({
   logo: {
     width: ts(TEAM_LOGO_W),
     height: tsy(TEAM_LOGO_H),
-    marginBottom: tsy(48),
+    marginBottom: tsy(22),
+  },
+  passTitle: {
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
+    fontSize: ts(24),
+    letterSpacing: ts(2.5),
+    color: TEAM_NAVY,
+    marginBottom: tsy(12),
   },
   // Alex Brush's space glyph renders at near-zero width in react-pdf/pdfkit
   // — a multi-word team name like "SCET Titans" collapses into
-  // "SCETTitans" without help. letterSpacing is the only inter-character
-  // control react-pdf exposes, so it's applied everywhere this font is
-  // used (dearLine/nameLine/inlineName) — it does nudge apart letters
-  // *within* a word too, but at this small a value the cursive strokes
-  // still read as connected, and it's the only way to open up the actual
-  // word gaps.
+  // "SCETTitans" without help, and the same happens to *any* plain-string
+  // separator (", " etc.) sitting directly between two Alex Brush runs
+  // (see rosterLine/rosterLabel). letterSpacing is the only
+  // inter-character control react-pdf exposes, so it's applied to every
+  // style that either uses this font directly, or wraps text adjacent to
+  // it — it does nudge apart letters *within* a word too, but at this
+  // small a value the cursive strokes still read as connected, and it's
+  // the only way to open up the actual word gaps.
   dearLine: {
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: ts(56),
+    fontSize: ts(46),
     letterSpacing: ts(10),
     color: TEAM_LOGO_BLUE,
   },
   nameLine: {
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: ts(52),
+    fontSize: ts(42),
     letterSpacing: ts(10),
     color: TEAM_NAVY,
   },
   underline: {
-    marginTop: tsy(10),
-    marginBottom: tsy(18),
+    marginTop: tsy(6),
+    marginBottom: tsy(10),
   },
   paragraph: {
-    width: ts(TEAM_SAFE_W - 180),
+    width: ts(TEAM_SAFE_W - 160),
     textAlign: "center",
     fontFamily: "Times-Italic",
-    fontSize: ts(28),
-    lineHeight: 1.35,
+    fontSize: ts(21),
+    lineHeight: 1.28,
     color: TEAM_TEXT_DARK,
-    marginBottom: tsy(14),
+    marginBottom: tsy(10),
   },
   // Captain/player names inline within the paragraph prose — same script
   // family as "Dear," and the team name, scaled down to sit comfortably
   // mid-sentence instead of overpowering the surrounding Times-Italic text.
   inlineName: {
     fontFamily: "Alex Brush",
-    fontSize: ts(32),
+    fontSize: ts(24),
     letterSpacing: ts(2.5),
     color: TEAM_NAVY,
   },
+  rosterHeading: {
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
+    fontSize: ts(16),
+    letterSpacing: ts(1.5),
+    color: TEAM_NAVY,
+    marginTop: tsy(2),
+    marginBottom: tsy(4),
+  },
+  rosterLine: {
+    width: ts(TEAM_SAFE_W - 160),
+    textAlign: "center",
+    fontFamily: "Helvetica",
+    fontSize: ts(16),
+    letterSpacing: ts(3),
+    color: TEAM_TEXT_DARK,
+    marginBottom: tsy(10),
+  },
+  rosterLabel: {
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: ts(3),
+  },
   box: {
     width: ts(760),
-    marginTop: tsy(55),
+    marginTop: tsy(14),
     border: `${ts(1.5)} solid ${TEAM_NAVY}`,
     borderRadius: ts(6),
-    paddingVertical: ts(16),
-    paddingHorizontal: ts(20),
+    paddingVertical: ts(10),
+    paddingHorizontal: ts(18),
   },
   boxTitle: {
     fontFamily: "Helvetica-Bold",
-    fontSize: ts(26),
+    fontSize: ts(18),
     letterSpacing: ts(1.5),
     color: TEAM_NAVY,
     textAlign: "center",
-    marginBottom: ts(10),
+    marginBottom: ts(6),
   },
   boxRow: {
     fontFamily: "Helvetica",
-    fontSize: ts(22),
-    lineHeight: 1.45,
+    fontSize: ts(16),
+    lineHeight: 1.3,
     color: TEAM_TEXT_DARK,
     textAlign: "center",
+  },
+  detailLine: {
+    fontFamily: "Helvetica",
+    fontSize: ts(18),
+    color: TEAM_TEXT_DARK,
+    textAlign: "center",
+    marginBottom: tsy(4),
+  },
+  detailLabel: {
+    fontFamily: "Helvetica-Bold",
   },
   closing: {
     textAlign: "center",
     fontFamily: "Alex Brush",
-    fontSize: ts(42),
+    fontSize: ts(28),
     letterSpacing: ts(3),
     color: TEAM_LOGO_BLUE,
-    marginTop: tsy(16),
+    marginTop: tsy(10),
+  },
+  tandc: {
+    textAlign: "center",
+    fontFamily: "Helvetica",
+    fontSize: ts(9),
+    color: "#8a8580",
+    marginTop: tsy(8),
   },
 });
 
@@ -360,26 +409,38 @@ type TextStyleProp = Style | Style[];
 // itself wrapped in its own styled <Text> (the script inlineName style) —
 // the separators ("," / ", and ") are plain siblings so they stay in the
 // surrounding paragraph's own font rather than inheriting the name style.
-function NameList({ names, nameStyle }: { names: string[]; nameStyle: TextStyleProp }) {
+function NameList({
+  names,
+  nameStyle,
+  useAnd = true,
+}: {
+  names: string[];
+  nameStyle: TextStyleProp;
+  /** false for a plain "A, B, C" roster list rather than "A, B, and C" prose. */
+  useAnd?: boolean;
+}) {
   return (
     <>
-      {names.map((name, i) => (
-        <Fragment key={i}>
-          <Text style={nameStyle}>{name}</Text>
-          {i < names.length - 2 ? ", " : i === names.length - 2 ? ", and " : ""}
-        </Fragment>
-      ))}
+      {names.map((name, i) => {
+        const isLast = i === names.length - 1;
+        const isSecondLast = i === names.length - 2;
+        const sep = isLast ? "" : useAnd && isSecondLast ? ", and " : ", ";
+        return (
+          <Fragment key={i}>
+            <Text style={nameStyle}>{name}</Text>
+            {sep}
+          </Fragment>
+        );
+      })}
     </>
   );
 }
 
-// The captain/roster sentence in the team congrats letter, as JSX rather
-// than a plain string — captain/player names render in the script
-// inlineName style, everything else stays in the paragraph's own
-// Times-Italic. Handles the (unlikely but possible) cases of a missing
-// captain or an empty non-captain roster gracefully instead of leaving a
-// dangling clause.
-function RosterSentence({
+// "Cap: {captain}, {player1}, {player2}, ..." — a plain roster list (no
+// "and" before the last name; this reads as a label + list, not prose),
+// captain first and unlabeled beyond the leading "Cap:" since their
+// position in the list already marks them out.
+function TeamRosterLine({
   captainName,
   players,
   nameStyle,
@@ -388,32 +449,14 @@ function RosterSentence({
   players: string[];
   nameStyle: TextStyleProp;
 }) {
-  if (captainName && players.length > 0) {
-    return (
-      <>
-        With <Text style={nameStyle}>{captainName}</Text> leading the squad
-        as Captain, alongside <NameList names={players} nameStyle={nameStyle} />, your
-        team is all set to take on the competition.
-      </>
-    );
-  }
-  if (captainName) {
-    return (
-      <>
-        With <Text style={nameStyle}>{captainName}</Text> leading the squad
-        as Captain, your team is all set to take on the competition.
-      </>
-    );
-  }
-  if (players.length > 0) {
-    return (
-      <>
-        With <NameList names={players} nameStyle={nameStyle} /> rounding out
-        the squad, your team is all set to take on the competition.
-      </>
-    );
-  }
-  return <>Your team is all set to take on the competition.</>;
+  const names = captainName ? [captainName, ...players] : players;
+  if (names.length === 0) return null;
+  return (
+    <Text style={teamStyles.rosterLine}>
+      <Text style={teamStyles.rosterLabel}>Cap: </Text>
+      <NameList names={names} nameStyle={nameStyle} useAnd={false} />
+    </Text>
+  );
 }
 
 export function InvitationLetterPage(data: InvitationLetterData) {
@@ -434,8 +477,10 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
           <Image src={teamLogoDataUri} style={teamStyles.logo} />
 
+          <Text style={teamStyles.passTitle}>OFFICIAL TEAM INVITATION PASS</Text>
+
           <Text style={teamStyles.dearLine}>Dear,</Text>
-          <Text style={teamStyles.nameLine}>{data.teamName}</Text>
+          <Text style={teamStyles.nameLine}>Team {data.teamName}</Text>
           <Svg
             style={[{ alignSelf: "center" }, teamStyles.underline]}
             width={ts(underlineNativeW)}
@@ -452,31 +497,37 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             />
           </Svg>
 
-          <Text style={teamStyles.paragraph}>
-            Congratulations on registering for the {data.eventName}{" "}
-            representing {data.collegeName}! Your team is officially
-            confirmed.
-          </Text>
+          <Text style={teamStyles.rosterHeading}>FELLOW TEAM MEMBERS</Text>
+          <TeamRosterLine
+            captainName={data.captainName}
+            players={data.players}
+            nameStyle={teamStyles.inlineName}
+          />
 
           <Text style={teamStyles.paragraph}>
-            <RosterSentence
-              captainName={data.captainName}
-              players={data.players}
-              nameStyle={teamStyles.inlineName}
-            />
+            Congratulations! Your team has been officially invited and
+            registered to play in the {data.eventName}. We&apos;re excited to
+            have you with us! We truly believe that your team&apos;s
+            participation will make the tournament more exciting, energetic,
+            memorable, and full of masti and fun.
           </Text>
 
-          <Text style={teamStyles.paragraph}>
-            Now that your squad is officially confirmed, it&apos;s time to
-            start preparing for the challenge ahead. Bring your teamwork,
-            strategy, energy, and competitive spirit to the field as you
-            battle it out for the championship. Give every match your best,
-            play as one squad, and make your mark at the {data.eventName}!
-          </Text>
+          <View style={teamStyles.box}>
+            <Text style={teamStyles.boxTitle}>Note</Text>
+            <Text style={teamStyles.boxRow}>
+              Complete your Early Registration + Entry Fee Payment for an
+              opportunity to win complimentary passes to the Goa Trip and
+              Stand-Up Comedy Shows. (Only for a few limited teams.)
+            </Text>
+          </View>
 
-          <Text style={[teamStyles.paragraph, { marginBottom: 0 }]}>
-            Schedules, venue details, match updates, and every important
-            announcement will be shared through our official channels.
+          <Text style={[teamStyles.detailLine, { marginTop: tsy(10) }]}>
+            <Text style={teamStyles.detailLabel}>College: </Text>
+            {data.collegeName}
+          </Text>
+          <Text style={teamStyles.detailLine}>
+            <Text style={teamStyles.detailLabel}>Team Name: </Text>
+            {data.teamName}
           </Text>
 
           <View style={teamStyles.box}>
@@ -488,7 +539,15 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             </Text>
           </View>
 
+          <Text style={[teamStyles.paragraph, { marginTop: tsy(12), marginBottom: 0 }]}>
+            For all schedules, venue details, match updates, and
+            announcements, stay connected with our official social media
+            channels.
+          </Text>
+
           <Text style={teamStyles.closing}>See you on the ground!</Text>
+
+          <Text style={teamStyles.tandc}>T&amp;C Applied</Text>
         </View>
       </Page>
     );
