@@ -739,7 +739,7 @@ export async function getGameInsights(
   recentPlays: RecentPlayRow[];
 }> {
   const admin = createAdminClient();
-  const trimmedSearch = search?.trim().toLowerCase();
+  const trimmedSearch = search?.trim();
   const dbSlugs = gameSlug === "level-up" ? LEVEL_UP_SLUGS : gameSlug ? [gameSlug] : null;
 
   // Summary totals stay scoped to gameSlug only (not `result`/`search`) —
@@ -748,11 +748,15 @@ export async function getGameInsights(
   let summaryQuery = admin.from("game_plays").select("game_slug, result");
   if (dbSlugs) summaryQuery = summaryQuery.in("game_slug", dbSlugs);
 
-  // `result` and `search` are applied in JS below, after spin-wheel/
-  // roll-a-dice rows are paired into whole Level Up runs — filtering at
-  // the SQL level first could split a pair apart (e.g. "Won only" matching
-  // Level 1 but excluding Level 2's own, genuinely separate result before
-  // pairing ever sees it). Fetches a wider 400-row window (not 200) since
+  // `search` is safe to apply at the SQL level as before: player_name/
+  // team_label are the same denormalized text on both of a run's rows (the
+  // same player played both levels), so a match on one implies a match on
+  // the other — pairing still sees both rows either way. `result` is NOT
+  // applied here, only in JS below after pairing: it genuinely can differ
+  // between Level 1 and Level 2, so filtering at the SQL level first could
+  // fetch only one of a run's two rows (e.g. "Won only" excluding Level 2's
+  // real, separate loss instead of showing it alongside the win). Fetches
+  // a wider 400-row window (not 200) when no search narrows it, since
   // pairing roughly halves the Level Up row count, keeping ~200 final rows
   // reachable after grouping.
   let recentQuery = admin
@@ -763,6 +767,11 @@ export async function getGameInsights(
     .order("created_at", { ascending: false })
     .limit(400);
   if (dbSlugs) recentQuery = recentQuery.in("game_slug", dbSlugs);
+  if (trimmedSearch) {
+    recentQuery = recentQuery.or(
+      `player_name.ilike.%${trimmedSearch}%,team_label.ilike.%${trimmedSearch}%`,
+    );
+  }
 
   const [{ data: allRows }, { data: recentRows }] = await Promise.all([
     summaryQuery,
@@ -833,11 +842,6 @@ export async function getGameInsights(
 
   let combined: RecentPlayRow[] = [...singles, ...runsById.values()];
 
-  if (trimmedSearch) {
-    combined = combined.filter((row) =>
-      `${row.playerName} ${row.teamLabel}`.toLowerCase().includes(trimmedSearch),
-    );
-  }
   if (result) {
     combined = combined.filter((row) =>
       row.kind === "single"

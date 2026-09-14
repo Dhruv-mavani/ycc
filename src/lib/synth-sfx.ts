@@ -1,9 +1,10 @@
 "use client";
 
 // Lightweight, dependency-free sound effects via the Web Audio API. Used by
-// the mini-games (mystery-box-game.tsx, spin-wheel-game.tsx) instead of
-// audio files, so each game can have its own distinct sound identity
-// without shipping/licensing more mp3s — everything here is synthesized.
+// the mini-games (mystery-box-game.tsx, and Level Up's spin-wheel-level.tsx
+// / roll-dice-level.tsx) instead of audio files, so each game can have its
+// own distinct sound identity without shipping/licensing more mp3s —
+// everything here is synthesized.
 
 let sharedCtx: AudioContext | null = null;
 
