@@ -162,21 +162,30 @@ export function LevelUpGame() {
         </ol>
       </div>
 
-      {/* Recorded gameplay demo — an actual video (h264 mp4, ~264KB),
-          recorded at a real phone viewport width so it shows the same
-          mobile-first layout most players actually see, not the desktop
-          one. autoPlay+loop+muted+playsInline makes it behave like the GIF
-          it replaces (starts and loops on its own, no controls, no sound,
-          no iOS fullscreen takeover on tap). */}
-      <div className="mt-6 w-full max-w-xs">
+      <div className="mt-6 w-full max-w-xs sm:max-w-xl">
+        {/* Two separately-recorded clips (mobile-viewport, portrait /
+            desktop-viewport, landscape) so the perspective always matches
+            the viewer's own screen — swapped via Tailwind's sm: breakpoint,
+            same as the rest of the codebase's responsive convention. The
+            wrapper's own max-width switches too, since the two clips have
+            very different aspect ratios. */}
         <video
-          src="/level-up/win-demo.mp4"
+          src="/level-up/win-demo-mobile.mp4"
           autoPlay
           loop
           muted
           playsInline
           aria-label="Gameplay demo of winning a round in Level Up"
-          className="w-full rounded-2xl border border-white/10 shadow-xl"
+          className="w-full rounded-2xl border border-white/10 shadow-xl sm:hidden"
+        />
+        <video
+          src="/level-up/win-demo-desktop.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-label="Gameplay demo of winning a round in Level Up"
+          className="hidden w-full rounded-2xl border border-white/10 shadow-xl sm:block"
         />
       </div>
 
