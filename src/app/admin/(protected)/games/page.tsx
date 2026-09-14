@@ -217,7 +217,9 @@ async function GamesData({
                         ? "Partner"
                         : p.source === "school"
                           ? "Super Champs"
-                          : "Team"}
+                          : p.source === "individual_free"
+                            ? "Money Heist"
+                            : "Team"}
                       )
                     </span>
                   </TableCell>

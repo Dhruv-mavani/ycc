@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const GAME_SLUGS = ["spin-wheel", "mystry-box"] as const;
 export type GameSlug = (typeof GAME_SLUGS)[number];
 
-export type GameTeamSource = "registration" | "partner" | "school";
+export type GameTeamSource = "registration" | "partner" | "school" | "individual_free";
 
 export interface GamePlayer {
   id: string;
@@ -125,11 +125,36 @@ async function schoolRoster(
 }
 
 /**
+ * Roster for a free individual registration like YCC Money Heist, keyed by
+ * individual_free_registrations.id — same shape as schoolRoster: a single
+ * "player" resolving to their own name, no team/squad concept.
+ */
+async function individualFreeRoster(
+  registrationId: string,
+): Promise<GameTeamLookup | null> {
+  const admin = createAdminClient();
+  const { data: registration } = await admin
+    .from("individual_free_registrations")
+    .select("id, name")
+    .eq("id", registrationId)
+    .maybeSingle();
+  if (!registration) return null;
+
+  return {
+    source: "individual_free",
+    teamRefId: registration.id,
+    teamLabel: registration.name,
+    players: [{ id: registration.id, name: registration.name, isCaptain: false }],
+  };
+}
+
+/**
  * Resolves any team member's Unique ID, a Partner/Co-Partner's team code or
- * Unique ID, or a Super Champs personalized code, into a roster.
- * Registrations are tried first (exact participant match), then the
- * partner-program hierarchy, then Super Champs — the three id spaces never
- * collide since they're separate tables/uuids.
+ * Unique ID, a Super Champs personalized code, or a free-individual code
+ * (e.g. YCC Money Heist) into a roster. Registrations are tried first
+ * (exact participant match), then the partner-program hierarchy, then
+ * Super Champs, then free-individual registrations — the four id spaces
+ * never collide since they're separate tables/uuids.
  */
 export async function lookupGameTeamByCode(
   rawCode: string,
@@ -172,6 +197,18 @@ export async function lookupGameTeamByCode(
     if (roster) return roster;
   }
 
+  const { data: individualFree } = await admin
+    .from("individual_free_registrations")
+    .select("id")
+    .eq("code", code)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (individualFree) {
+    const roster = await individualFreeRoster(individualFree.id);
+    if (roster) return roster;
+  }
+
   return null;
 }
 
@@ -181,7 +218,8 @@ function lookupGameTeamById(
 ): Promise<GameTeamLookup | null> {
   if (source === "registration") return registrationRoster(teamRefId);
   if (source === "partner") return partnerRoster(teamRefId);
-  return schoolRoster(teamRefId);
+  if (source === "school") return schoolRoster(teamRefId);
+  return individualFreeRoster(teamRefId);
 }
 
 /**
