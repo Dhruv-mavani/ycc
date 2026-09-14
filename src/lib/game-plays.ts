@@ -1,7 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const GAME_SLUGS = ["spin-wheel", "mystry-box"] as const;
+export const GAME_SLUGS = ["spin-wheel", "mystry-box", "roll-a-dice"] as const;
 export type GameSlug = (typeof GAME_SLUGS)[number];
 
 export type GameTeamSource = "registration" | "partner" | "school" | "individual_free";

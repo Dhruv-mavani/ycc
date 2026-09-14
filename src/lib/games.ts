@@ -35,4 +35,12 @@ export const GAMES: GameLink[] = [
       "Pick a number from 1 to 10 and spin the wheel. Land on your number, or land on a rare bonus prize section, and you win.",
     emoji: "🎡",
   },
+  {
+    slug: "roll-a-dice",
+    href: "/roll-a-dice",
+    title: "Roll a Dice",
+    description:
+      "Pick a total from 2 to 12, then watch two dice tumble through real 3D space. Match your total and you win.",
+    emoji: "🎲",
+  },
 ];

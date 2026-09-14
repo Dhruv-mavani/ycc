@@ -310,3 +310,21 @@
 .animate-mystery-box-pop {
   animation: mystery-box-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* Roll a Dice (/roll-a-dice) — a hand-throw flourish that plays once right
+   before the two dice start tumbling. The tumble itself is a runtime
+   rotateX/rotateY transition set inline on each die's cube (same technique
+   as Spin the Wheel's wheel rotation — see spin-wheel-game.tsx and
+   roll-dice-game.tsx), not a keyframe, since the landed faces depend on
+   the draw. Reuses .animate-mystery-box-glow / .animate-mystery-box-pop
+   above for the ambient glow and result-emoji pop, same as spin-wheel-game
+   already does — those two aren't actually box-specific. */
+@keyframes dice-hand-throw {
+  0% { transform: translate(10px, 10px) rotate(-8deg) scale(0.9); opacity: 0; }
+  25% { transform: translate(0, 0) rotate(6deg) scale(1); opacity: 1; }
+  60% { transform: translate(-6px, -16px) rotate(-25deg) scale(1.05); opacity: 1; }
+  100% { transform: translate(-20px, -38px) rotate(-50deg) scale(0.9); opacity: 0; }
+}
+.animate-dice-hand-throw {
+  animation: dice-hand-throw 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
