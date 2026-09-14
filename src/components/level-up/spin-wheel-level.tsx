@@ -2,51 +2,23 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Confetti from "react-confetti";
-import { RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
-import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
+import type { GameTeamSelection } from "@/components/games/team-player-gate";
 
 // ---------------------------------------------------------------------------
-// Spin the Wheel — a solo, self-serve prize-wheel game (/spin-wheel). The
-// player picks a number from 1 to 10, then spins a wheel: ten sections hold
-// the numbers 1-10, and a handful of bonus-prize sections share the
-// remaining SPECIAL_TOTAL_DEG of the circle. Two ways to win: the wheel
-// lands on the player's own number, or it lands on any bonus-prize section.
-//
-// Which prizes are on offer is audience-dependent (see prizesFor below) —
-// a Box Cricket team or YCC Partner sees the single Cash Prize section,
-// while a Super Champs entrant sees three real-item prizes instead. The
-// audience is only known once TeamPlayerGate resolves a code, so `prizes`
-// is computed from `selection?.source` and stays fixed for the rest of
-// that round — see `prizes` below.
-//
-// Win odds are deliberately real, if vanishingly tiny: landing on the
-// player's own number is an independent 0.0000000001% (1-in-1,000,000,000,000)
-// draw, same for each audience-specific prize (Cash Prize or the Super
-// Champs items) — set exactly, not simulated to look small while secretly
-// being zero. The Surprise Gift section (present for every audience) is
-// the one exception, at a real 0.05% (5-in-10,000) — still a long shot,
-// just a deliberately more reachable one than the others. The remaining
-// ~100% is spread evenly across the other nine number sections (whichever
-// the player didn't pick), which are always losing outcomes for that spin.
-// There is no real prize behind any of these sections — same "just for
-// fun" flavor throughout.
-//
-// Same lessons as the sibling games (see mystery-box-game.tsx):
-//  - All spin timing is setTimeout, never requestAnimationFrame — rAF is
-//    paused on a backgrounded tab, which would strand the wheel mid-spin.
-//  - The wheel's CSS `transition` is always present so flipping its target
-//    rotation animates reliably against an already-painted 0deg state,
-//    with no rAF paint-sync needed.
-//  - <SpinningWheel> mounts only while spinning, so its "has it started
-//    turning" state is fresh every round with no reset effect.
-//  - Exactly one sound effect is tracked and stopped on the next cue, on
-//    mute, and on unmount, so a clip can't outlive the page.
-//
-// Sound effects are synthesized (src/lib/synth-sfx.ts), not audio files —
-// a crisp ratchet-click spin, a fanfare win, and a gentle-descent loss, all
-// distinct in pitch and timbre from Mystery Box's warmer box-rattle sounds.
+// Level 1 of Level Up (/level-up) — Spin the Wheel, adapted from the former
+// standalone /spin-wheel game (same mechanics, sections, odds, sound and
+// visuals) to run as one level of a two-level flow instead of its own
+// self-contained page: `selection` is resolved once by the parent's own
+// TeamPlayerGate (not repeated here), mute is lifted to the parent so one
+// toggle covers both levels, and there's no "start"/gate phase — this
+// mounts straight into "pick". On win or lose it calls `onDone` instead of
+// offering "Play again": the parent always moves on to Level 2 regardless
+// of the result. See roll-dice-level.tsx for Level 2, and the header
+// comments on the former spin-wheel-game.tsx / roll-dice-game.tsx (git
+// history) for the full odds/animation rationale, unchanged here.
 // ---------------------------------------------------------------------------
 
 const NUM_COUNT = 10;
@@ -54,13 +26,8 @@ const NUM_COUNT = 10;
 interface PrizeSection {
   id: string;
   emoji: string;
-  // Stacked lines shown on the wheel slice itself — short, since a slice
-  // only gets SPECIAL_TOTAL_DEG / prizes.length degrees of width.
   wheelLines: string[];
-  // Full name, used in result-screen prose and the recorded play detail.
   name: string;
-  // This section's own independent landing probability — see the header
-  // comment above for why Surprise Gift's is set apart from the rest.
   winChance: number;
 }
 
@@ -78,10 +45,6 @@ const SUPERCHAMPS_PRIZES: PrizeSection[] = [
   { id: "cycle", emoji: "🚲", wheelLines: ["CYCLE"], name: "Gear Cycle", winChance: 0.000000000001 },
 ];
 
-// Present on every audience's wheel, in addition to their own prize(s)
-// above — a real, deliberately more reachable long shot at 5 in 10,000
-// (0.05%), same reasoning as the other win chances: set exactly, not
-// simulated to look small while secretly being zero.
 const SURPRISE_GIFT: PrizeSection = {
   id: "surprise",
   emoji: "🎁",
@@ -90,47 +53,28 @@ const SURPRISE_GIFT: PrizeSection = {
   winChance: 0.0005, // 5 in 10,000 = 0.05%
 };
 
-// Box Cricket teams and YCC Partners see the Cash Prize section; Super
-// Champs entrants see three real-item prizes instead — either way, the
-// Surprise Gift section is always on the wheel too. Falls back to Cash
-// Prize before a code is entered (source is still unknown) — the common
-// case, so the start screen isn't stuck showing placeholder copy for most
-// players.
 function prizesFor(source: GameTeamSelection["source"] | undefined): PrizeSection[] {
   const audiencePrizes = source === "school" ? SUPERCHAMPS_PRIZES : [CASH_PRIZE];
   return [...audiencePrizes, SURPRISE_GIFT];
 }
 
-// Degrees the bonus-prize sections share, split evenly regardless of how
-// many there are — 1 prize gets the full width (more spacious than a
-// single number section), 3 prizes get a third each (still enough for an
-// emoji + one short word). The 10 number sections always split the rest
-// evenly, so they're a constant width no matter the prize count.
 const SPECIAL_TOTAL_DEG = 120;
 const NUM_SLICE_DEG = (360 - SPECIAL_TOTAL_DEG) / NUM_COUNT;
 
-const PICKED_WIN_CHANCE = 0.000000000001; // 0.0000000001% — lands on the player's own number
+const PICKED_WIN_CHANCE = 0.000000000001;
 
-const SPIN_MS = 4500; // must match the transition duration set on the wheel
-const PRESPIN_MS = 300; // short beat between the click and the wheel moving
-const READ_MS = 700; // pause on the landed section before the result screen
-const EXTRA_SPINS = 6; // full rotations before the wheel settles
+const SPIN_MS = 4500;
+const PRESPIN_MS = 300;
+const READ_MS = 700;
+const EXTRA_SPINS = 6;
 
 const NUMBER_COLORS = ["#fb923c", "#0e7490"] as const;
-// A small gold/amber family so multiple prize sections stay visually
-// grouped as "these are the bonus slices" while still being distinguishable
-// from each other.
 const PRIZE_COLORS = ["#facc15", "#f59e0b", "#eab308"] as const;
 
 type WheelSection =
   | { kind: "number"; start: number; end: number; color: string; value: number }
   | { kind: "prize"; start: number; end: number; color: string; prize: PrizeSection };
 
-// Builds the wheel's sections (10 numbers + one per prize) with each one's
-// angular slice, computed fresh whenever `prizes` changes (i.e. once per
-// round, when the audience is resolved) rather than off module-level
-// constants — everything downstream (colors, the conic-gradient, spoke
-// rotations, which section index wins) is derived from this single array.
 function buildSections(prizes: PrizeSection[]): WheelSection[] {
   const sections: WheelSection[] = [];
   for (let i = 0; i < NUM_COUNT; i++) {
@@ -164,8 +108,6 @@ function buildConicGradient(sections: WheelSection[]): string {
 }
 
 const WHEEL_SFX = {
-  // A crisp ratchet-peg click train, roughly matching the spin's length and
-  // decelerating with it.
   spin: (): ActiveSound =>
     playClickTrain({
       count: 36,
@@ -176,7 +118,6 @@ const WHEEL_SFX = {
       type: "square",
       gain: 0.12,
     }),
-  // A short five-note fanfare, ending on a sustained high note.
   win: (): ActiveSound =>
     playNotes([
       { freq: 392.0, start: 0, dur: 0.12, type: "square", gain: 0.18 },
@@ -185,8 +126,6 @@ const WHEEL_SFX = {
       { freq: 783.99, start: 0.3, dur: 0.12, type: "square", gain: 0.18 },
       { freq: 1046.5, start: 0.42, dur: 0.35, type: "square", gain: 0.26 },
     ]),
-  // A gentle two-note descent — same shape as Mystery Box's loss cue but a
-  // different interval and a slower fade, so it doesn't sound identical.
   lose: (): ActiveSound =>
     playNotes([
       { freq: 246.94, start: 0, dur: 0.24, type: "sine", gain: 0.17 },
@@ -194,26 +133,15 @@ const WHEEL_SFX = {
     ]),
 };
 
-// Center angle of a section, measured clockwise from the top (matches the
-// conic-gradient's own "from 0deg" convention, i.e. 0 = top = 12 o'clock).
 function sectionCenterAngle(section: WheelSection): number {
   return (section.start + section.end) / 2;
 }
 
-// Total clockwise rotation so `section`'s center ends up under the fixed
-// pointer at the top, after `spins` extra full turns for effect.
 function rotationFor(section: WheelSection, spins: number): number {
   const base = (360 - sectionCenterAngle(section)) % 360;
   return spins * 360 + base;
 }
 
-// Draws which section index the wheel lands on for this spin (an index
-// into the `sections` array built by buildSections — 0..NUM_COUNT-1 are
-// numbers, the rest are prizes, in prize order). `picked` is the player's
-// chosen number (1-10). Every win path — the picked number, and each
-// individual prize at its own winChance — is an explicit, independent
-// draw; everything else falls back to a uniform pick among the other nine
-// (losing) number sections.
 function drawSection(picked: number, prizes: PrizeSection[]): number {
   const pickedIndex = picked - 1;
   const r = Math.random();
@@ -229,33 +157,26 @@ function drawSection(picked: number, prizes: PrizeSection[]): number {
   return losingIndexes[Math.floor(Math.random() * losingIndexes.length)];
 }
 
-type Phase = "start" | "pick" | "spinning" | "won" | "lost";
+type Phase = "pick" | "spinning" | "won" | "lost";
 
 interface GameState {
   phase: Phase;
   picked: number | null;
-  // Snapshotted at OPEN time from the resolved audience's prizes, so
-  // SETTLE and rendering agree on what each section index means even if
-  // `selection` were somehow to change mid-round.
   sections: WheelSection[];
   landedIndex: number | null;
 }
 
 type Action =
-  | { type: "START" }
   | { type: "PICK"; n: number }
   | { type: "OPEN"; prizes: PrizeSection[] }
-  | { type: "SETTLE" }
-  | { type: "RESTART" };
+  | { type: "SETTLE" };
 
 function initialState(): GameState {
-  return { phase: "start", picked: null, sections: [], landedIndex: null };
+  return { phase: "pick", picked: null, sections: [], landedIndex: null };
 }
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
-    case "START":
-      return { ...initialState(), phase: "pick" };
     case "PICK":
       return state.phase === "pick" ? { ...state, picked: action.n } : state;
     case "OPEN": {
@@ -272,27 +193,28 @@ function reducer(state: GameState, action: Action): GameState {
         landed.kind === "prize" || (landed.kind === "number" && landed.value === state.picked);
       return { ...state, phase: won ? "won" : "lost" };
     }
-    case "RESTART":
-      return { ...initialState(), phase: "pick" };
     default:
       return state;
   }
 }
 
-export function SpinWheelGame() {
+export function SpinWheelLevel({
+  selection,
+  muted,
+  onToggleMute,
+  onDone,
+}: {
+  selection: GameTeamSelection;
+  muted: boolean;
+  onToggleMute: () => void;
+  onDone: (result: "won" | "lost") => void;
+}) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
-  const [muted, setMuted] = useState(false);
-  const [selection, setSelection] = useState<GameTeamSelection | null>(null);
-  const selectionRef = useRef(selection);
-  useEffect(() => {
-    selectionRef.current = selection;
-  }, [selection]);
   const mutedRef = useRef(muted);
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
 
-  // Exactly one SFX in flight at a time — see the header comment.
   const sfxRef = useRef<ActiveSound | null>(null);
   const stopSfx = useCallback(() => {
     sfxRef.current?.stop();
@@ -311,10 +233,6 @@ export function SpinWheelGame() {
   useEffect(() => {
     if (state.phase !== "won" && state.phase !== "lost") return;
     play(state.phase === "won" ? "win" : "lose");
-    // Haptic buzz on reveal — a longer, punchier pattern for a win, a
-    // single short one for a loss. Silently does nothing where unsupported
-    // (desktop browsers, iOS Safari), so no feature check needed beyond the
-    // optional call itself.
     try {
       navigator.vibrate?.(state.phase === "won" ? [60, 40, 60, 40, 120] : [50]);
     } catch {
@@ -322,21 +240,14 @@ export function SpinWheelGame() {
     }
   }, [state.phase, play]);
 
-  // Reports the round's outcome once it settles. Guarded by a ref (not
-  // state) so StrictMode's double-invoke and any re-render mid-phase can't
-  // fire this twice for the same round; it re-arms on the next "pick".
+  // Reports Level 1's outcome once it settles. Guarded by a ref (not
+  // state) so StrictMode's double-invoke can't fire this twice.
   const recordedRef = useRef(false);
   useEffect(() => {
-    if (state.phase === "pick") {
-      recordedRef.current = false;
-      return;
-    }
     if (state.phase !== "won" && state.phase !== "lost") return;
     if (recordedRef.current) return;
     recordedRef.current = true;
 
-    const sel = selectionRef.current;
-    if (!sel) return;
     const landed =
       state.landedIndex !== null ? state.sections[state.landedIndex] : null;
     fetch("/api/games/record-play", {
@@ -344,9 +255,9 @@ export function SpinWheelGame() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         gameSlug: "spin-wheel",
-        source: sel.source,
-        teamRefId: sel.teamRefId,
-        playerRefId: sel.playerRefId,
+        source: selection.source,
+        teamRefId: selection.teamRefId,
+        playerRefId: selection.playerRefId,
         result: state.phase,
         detail: {
           picked: state.picked,
@@ -355,25 +266,14 @@ export function SpinWheelGame() {
         },
       }),
     }).catch(() => {});
-  }, [state.phase, state.picked, state.landedIndex, state.sections]);
+  }, [state.phase, state.picked, state.landedIndex, state.sections, selection]);
 
-  function toggleMute() {
-    setMuted((m) => {
-      if (!m) stopSfx();
-      return !m;
-    });
-  }
-
-  // Fixed for the rest of the round the instant Play is clicked (selection
-  // can't change after that point — TeamPlayerGate only renders on
-  // "start"), so it's safe to recompute on every render rather than memo.
-  const prizes = prizesFor(selection?.source);
-  const prizeNames = prizes.map((p) => p.name).join(prizes.length > 2 ? ", " : " or ");
+  const prizes = prizesFor(selection.source);
 
   const muteButton = (
     <button
       type="button"
-      onClick={toggleMute}
+      onClick={onToggleMute}
       aria-label={muted ? "Unmute" : "Mute"}
       className="absolute right-4 top-4 z-10 text-white/70 hover:text-white"
     >
@@ -385,53 +285,14 @@ export function SpinWheelGame() {
     </button>
   );
 
-  if (state.phase === "start") {
-    return (
-      <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
-        {muteButton}
-        <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-amber-400/30 blur-3xl sm:size-72" />
-        <span className="text-5xl sm:text-6xl">🎡</span>
-        <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
-          Spin the Wheel
-        </h1>
-        <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
-          <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
-            How to Play
-          </p>
-          <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-amber-300">
-            <li>Choose any number from 1 to {NUM_COUNT}.</li>
-            <li>
-              Spin the wheel featuring {NUM_COUNT} numbered boxes
-              {prizes.length > 1 ? ` + ${prizes.length} bonus boxes` : " + 1 bonus box"}.
-            </li>
-            <li>Hit your number or a bonus box — win {prizeNames}!</li>
-          </ol>
-        </div>
-
-        <TeamPlayerGate onSelectionChange={setSelection} />
-
-        <button
-          type="button"
-          disabled={!selection}
-          onClick={() => dispatch({ type: "START" })}
-          className={cn(
-            "mt-8 rounded-xl px-8 py-2.5 text-lg font-bold shadow-xl transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
-            selection
-              ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-amber-500/20 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40"
-              : "cursor-not-allowed border border-white/10 bg-white/5 text-white/40",
-          )}
-        >
-          Play
-        </button>
-      </div>
-    );
-  }
-
   if (state.phase === "pick") {
     return (
       <div className="relative flex min-h-screen flex-col items-center px-4 py-14">
         {muteButton}
-        <h1 className="mt-8 text-center text-xl font-black sm:mt-0 sm:text-2xl md:text-4xl">
+        <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-amber-300 sm:mt-0">
+          Level 1 of 2
+        </p>
+        <h1 className="mt-2 text-center text-xl font-black sm:text-2xl md:text-4xl">
           Pick your number
         </h1>
         <p className="mt-2 text-center text-xs text-white/70 sm:text-sm md:text-base">
@@ -508,6 +369,9 @@ export function SpinWheelGame() {
       {muteButton}
       {won ? <ResultConfetti /> : null}
 
+      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-300">
+        Level 1 of 2
+      </p>
       <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
         {won ? (wonPrize?.emoji ?? "🎉") : "🎡"}
       </div>
@@ -539,21 +403,16 @@ export function SpinWheelGame() {
 
       <button
         type="button"
-        onClick={() => dispatch({ type: "RESTART" })}
+        onClick={() => onDone(state.phase as "won" | "lost")}
         className="mt-10 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-amber-500/20 transition-all duration-300 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 sm:px-8 sm:py-3 sm:text-xl"
       >
-        <RotateCcw className="size-5" />
-        Play again
+        Continue to Level 2
+        <ArrowRight className="size-5" />
       </button>
     </div>
   );
 }
 
-// Mounts only while spinning, so `spinning` (has the wheel started turning?)
-// is fresh false every round with no reset effect. The timeline — a short
-// beat, then the spin, then a pause on the landed section, then SETTLE — is
-// driven entirely by timers in a mount-once effect; callers are reached
-// through refs so that effect keeps empty deps.
 function SpinningWheel({
   sections,
   landedIndex,
@@ -587,8 +446,6 @@ function SpinningWheel({
     return () => {
       window.clearTimeout(startTimer);
       window.clearTimeout(settleTimer);
-      // Stop the spin tick if we leave mid-spin (settle -> result, or the
-      // back link). On a normal settle the parent then plays win/lose.
       stopSfxRef.current();
     };
   }, []);
@@ -600,7 +457,6 @@ function SpinningWheel({
     <div className="relative flex flex-col items-center">
       <div className="animate-mystery-box-glow absolute inset-0 -z-10 rounded-full bg-amber-400/40 blur-2xl" />
 
-      {/* Pointer — fixed, does not rotate with the wheel. */}
       <div
         className="z-30 h-4 w-5 bg-white shadow-md sm:h-5 sm:w-6"
         style={{ clipPath: "polygon(50% 100%, 0 0, 100% 0)" }}
@@ -609,10 +465,6 @@ function SpinningWheel({
       <div className="relative -mt-px size-56 rounded-full border-[6px] border-white/90 shadow-2xl sm:size-80">
         <div className="absolute inset-0 overflow-hidden rounded-full">
           <div
-            // Transition is always present so flipping `spinning` only
-            // changes the rotation value — a change against an
-            // already-painted state, which the browser reliably animates
-            // (no rAF paint-sync needed).
             className="absolute inset-0"
             style={{
               background: wheelBackground,
@@ -660,8 +512,6 @@ function SpinningWheel({
 }
 
 function ResultConfetti() {
-  // Lazy init, not an effect — this only ever mounts client-side, after the
-  // reducer moves to a terminal phase post-hydration, so `window` is present.
   const [dimensions] = useState(() => ({
     width: window.innerWidth,
     height: window.innerHeight,

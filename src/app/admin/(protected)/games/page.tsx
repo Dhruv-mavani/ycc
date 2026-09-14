@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowLeftIcon, Crown, Gamepad2, Trophy, XCircle } from "lucide-react";
 import { getGameInsights } from "@/lib/admin-stats";
-import { GAMES } from "@/lib/games";
+import { GAME_SLUG_LABELS } from "@/lib/games";
 import { GameFilter } from "@/components/admin/game-filter";
 import { GamePlaySearch } from "@/components/admin/game-play-search";
 import { GameResultFilter } from "@/components/admin/game-result-filter";
@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-const GAME_TITLE_BY_SLUG = new Map(GAMES.map((g) => [g.slug, g.title]));
+const GAME_TITLE_BY_SLUG = new Map(GAME_SLUG_LABELS.map((g) => [g.slug, g.title]));
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-IN", {

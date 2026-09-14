@@ -311,20 +311,32 @@
   animation: mystery-box-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Roll a Dice (/roll-a-dice) — a hand-throw flourish that plays once right
-   before the two dice start tumbling. The tumble itself is a runtime
-   rotateX/rotateY transition set inline on each die's cube (same technique
-   as Spin the Wheel's wheel rotation — see spin-wheel-game.tsx and
-   roll-dice-game.tsx), not a keyframe, since the landed faces depend on
-   the draw. Reuses .animate-mystery-box-glow / .animate-mystery-box-pop
-   above for the ambient glow and result-emoji pop, same as spin-wheel-game
-   already does — those two aren't actually box-specific. */
+/* Roll a Dice (Level Up, /level-up — see roll-dice-level.tsx) — the hand
+   and both dice shake together on .animate-dice-shuffle (identical
+   keyframe on every element = visibly matching motion, each just at its
+   own resting position), then the hand flings/fades via
+   .animate-dice-hand-throw while each die's own position wrapper
+   transitions (a CSS transition, not a keyframe — see DieCube in
+   roll-dice-level.tsx for why) from the hand back to its resting spot.
+   The tumble itself is a runtime rotateX/rotateY transition set inline on
+   each die's cube, same technique as Spin the Wheel's wheel rotation.
+   Reuses .animate-mystery-box-glow / .animate-mystery-box-pop above for
+   the ambient glow and result-emoji pop — those two aren't box-specific. */
+@keyframes dice-shuffle {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-4px, -3px) rotate(-6deg); }
+  40% { transform: translate(4px, 2px) rotate(5deg); }
+  60% { transform: translate(-3px, -4px) rotate(-4deg); }
+  80% { transform: translate(3px, 2px) rotate(4deg); }
+}
+.animate-dice-shuffle {
+  animation: dice-shuffle 0.32s ease-in-out 2;
+}
+
 @keyframes dice-hand-throw {
-  0% { transform: translate(10px, 10px) rotate(-8deg) scale(0.9); opacity: 0; }
-  25% { transform: translate(0, 0) rotate(6deg) scale(1); opacity: 1; }
-  60% { transform: translate(-6px, -16px) rotate(-25deg) scale(1.05); opacity: 1; }
-  100% { transform: translate(-20px, -38px) rotate(-50deg) scale(0.9); opacity: 0; }
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(-26px, -46px) rotate(-55deg) scale(0.85); opacity: 0; }
 }
 .animate-dice-hand-throw {
-  animation: dice-hand-throw 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: dice-hand-throw 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -2,72 +2,65 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Confetti from "react-confetti";
-import { RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Trophy, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
-import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
+import type { GameTeamSelection } from "@/components/games/team-player-gate";
 
 // ---------------------------------------------------------------------------
-// Roll a Dice — a solo, self-serve dice game (/roll-a-dice). The player
-// picks a total from 2 to 12 (the real range of two six-sided dice — a
-// single die can never show 0, so the lowest possible total is 1+1=2), then
-// rolls: a hand flicks the dice into motion, and two independently
-// animated 3D cubes tumble through real rotateX/rotateY space before
-// settling on their landed faces. Match the total shown = win.
+// Level 2 of Level Up (/level-up) — Roll a Dice, adapted from the former
+// standalone /roll-a-dice game (same mechanics, odds, 3D dice and sound) to
+// run as the second level of the flow instead of its own page: `selection`
+// comes from the parent (resolved once, before Level 1), mute is lifted to
+// the parent, and there's no "start"/gate phase — this mounts straight into
+// "pick". On win or lose it calls `onDone` — the parent then shows the
+// two-level summary screen. See spin-wheel-level.tsx for Level 1.
 //
-// Win odds are deliberately real, if vanishingly tiny — same convention as
-// the sibling games (see mystery-box-game.tsx, spin-wheel-game.tsx):
-// landing on the player's own picked total is an explicit 0.0000000001%
-// (1-in-1,000,000,000,000) draw, not the "naturally" uneven distribution
-// real 2d6 combinatorics would give (a true roll makes 7 far likelier than
-// 2 or 12 — deliberately not modeled here, so every pickable total gets
-// the exact same odds). Losing totals are drawn uniformly from the other
-// ten. There is no real prize — same "just for fun" flavor throughout.
-//
-// The 3D dice: each cube is a plain CSS 3D transform (six faces placed via
-// translateZ + a 90°-aligned rotateX/rotateY, `transform-style:
-// preserve-3d`), not a canvas/WebGL library — six real DOM faces with pip
-// layouts, exactly like a physical die, so "landing" on a value is just
-// rotating the whole cube to bring that already-fixed face to the front.
-// The tumble is a runtime-computed rotateX/rotateY transition (several
-// extra full turns per axis + the landing correction), set inline and
-// animated via CSS transition — the exact same technique Spin the Wheel
-// uses for its wheel rotation (see rotationFor/EXTRA_SPINS there): the
-// transition is always present so flipping the target rotation animates
-// reliably against an already-painted identity transform, no rAF
-// paint-sync needed. A short hand-emoji "throw" keyframe (globals.css)
-// plays first, then the dice pop to full size and tumble.
-//
-// Sound effects are synthesized (src/lib/synth-sfx.ts) — a woodier, more
-// percussive click train than Mystery Box's rattle or Spin the Wheel's
-// ratchet, giving this game its own third distinct identity.
+// The roll itself is two stages, not one: "shuffle" (hand + both dice, held
+// small and offset near the hand, shake together on the identical
+// dice-shuffle keyframe — same relative motion on every element, so they
+// visibly move as one unit) then "throw" (the hand flings/fades via its own
+// keyframe while each die's position wrapper transitions, CSS transition
+// not keyframe, from its hand offset back to its resting spot — "flying
+// out of the hand" — as its inner cube starts the rotateX/rotateY tumble).
+// Three nested elements per die keep this composable: a position wrapper
+// (transition-driven hand->rest), a jitter wrapper (the shuffle keyframe),
+// and the 3D cube itself (the tumble) — see DieCube below for why a
+// keyframe and a differing per-die inline transform can't safely share one
+// element (the animation would just override the inline value outright).
 // ---------------------------------------------------------------------------
 
 const MIN_SUM = 2;
 const MAX_SUM = 12;
-const SUM_COUNT = MAX_SUM - MIN_SUM + 1; // 11 pickable totals
+const SUM_COUNT = MAX_SUM - MIN_SUM + 1;
 
-const PICKED_WIN_CHANCE = 0.000000000001; // 0.0000000001% — dice land on the player's own total
+const PICKED_WIN_CHANCE = 0.000000000001;
 
-const DIE_SIZE = 76; // px cube edge
+const DIE_SIZE = 76;
 const HALF = DIE_SIZE / 2;
 
-const HAND_MS = 550; // hand-throw flourish before the dice start tumbling
-const SPIN_MS = 2600; // must match the transition duration set on each die
+const SHUFFLE_MS = 640; // hand+dice shake together before the throw — must match the dice-shuffle keyframe's total duration (globals.css)
+const SPIN_MS = 2600; // dice tumble duration, after the throw releases them
 const READ_MS = 700; // pause on the landed faces before the result screen
 
-// Each die spins a different number of extra full turns per axis — purely
-// cosmetic (see the header comment on drawSum/facesForSum: multiples of
-// 360° never change which face ends up at the front), just so the two
-// dice don't tumble in lockstep.
 const DIE_EXTRA_TURNS = [
   { x: 3, y: 5 },
   { x: 4, y: 3 },
 ] as const;
 
+// Where each die sits during the shuffle — offset + tilted + shrunk toward
+// a shared point just above the hand emoji, so both dice visibly sit
+// "in" the hand while it shakes them, then transition back to their
+// resting flex-row spot (translate 0, scale 1) the instant the throw
+// releases them. Chosen to roughly converge at the hand's position
+// regardless of viewport width — not pixel-exact (the dice row's real gap
+// is responsive), just close enough to read as "held together".
+const DIE_HAND_OFFSET = [
+  { x: 46, y: 34, rotate: -12 },
+  { x: -46, y: 34, rotate: 14 },
+] as const;
+
 const DICE_SFX = {
-  // A woodier, more percussive click train than the sibling games' —
-  // mimics dice clattering across a table, decelerating as they settle.
   roll: (): ActiveSound =>
     playClickTrain({
       count: 26,
@@ -92,22 +85,12 @@ const DICE_SFX = {
     ]),
 };
 
-// Draws the total the dice land on. `picked` is the player's chosen total
-// (2-12); matching it is an explicit PICKED_WIN_CHANCE draw, not the
-// naturally uneven 2d6 distribution. Everything else falls back to a
-// uniform pick among the other ten (losing) totals via a modular shift —
-// the same "sample the others, skip picked" trick mystery-box-game.tsx
-// uses, generalized to a range that doesn't start at 1.
 function drawSum(picked: number): number {
   if (Math.random() < PICKED_WIN_CHANCE) return picked;
-  const offset = 1 + Math.floor(Math.random() * (SUM_COUNT - 1)); // 1..10
+  const offset = 1 + Math.floor(Math.random() * (SUM_COUNT - 1));
   return MIN_SUM + ((picked - MIN_SUM + offset) % SUM_COUNT);
 }
 
-// Picks a real (die1, die2) face pair — each 1-6 — that sums to `sum`, so
-// the two 3D dice always show faces that genuinely add up to the result
-// (not just an abstract number). Several valid pairs exist for most sums;
-// one is picked at random each round for visual variety.
 function facesForSum(sum: number): [number, number] {
   const options: [number, number][] = [];
   for (let a = 1; a <= 6; a++) {
@@ -117,7 +100,7 @@ function facesForSum(sum: number): [number, number] {
   return options[Math.floor(Math.random() * options.length)];
 }
 
-type Phase = "start" | "pick" | "rolling" | "won" | "lost";
+type Phase = "pick" | "rolling" | "won" | "lost";
 
 interface GameState {
   phase: Phase;
@@ -126,21 +109,14 @@ interface GameState {
   dieFaces: [number, number] | null;
 }
 
-type Action =
-  | { type: "START" }
-  | { type: "PICK"; n: number }
-  | { type: "ROLL" }
-  | { type: "SETTLE" }
-  | { type: "RESTART" };
+type Action = { type: "PICK"; n: number } | { type: "ROLL" } | { type: "SETTLE" };
 
 function initialState(): GameState {
-  return { phase: "start", picked: null, drawnSum: null, dieFaces: null };
+  return { phase: "pick", picked: null, drawnSum: null, dieFaces: null };
 }
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
-    case "START":
-      return { ...initialState(), phase: "pick" };
     case "PICK":
       return state.phase === "pick" ? { ...state, picked: action.n } : state;
     case "ROLL": {
@@ -151,30 +127,28 @@ function reducer(state: GameState, action: Action): GameState {
     case "SETTLE":
       if (state.phase !== "rolling" || state.drawnSum === null) return state;
       return { ...state, phase: state.picked === state.drawnSum ? "won" : "lost" };
-    case "RESTART":
-      return { ...initialState(), phase: "pick" };
     default:
       return state;
   }
 }
 
-export function RollDiceGame() {
+export function RollDiceLevel({
+  selection,
+  muted,
+  onToggleMute,
+  onDone,
+}: {
+  selection: GameTeamSelection;
+  muted: boolean;
+  onToggleMute: () => void;
+  onDone: (result: "won" | "lost") => void;
+}) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
-  const [muted, setMuted] = useState(false);
-  const [selection, setSelection] = useState<GameTeamSelection | null>(null);
-  const selectionRef = useRef(selection);
-  useEffect(() => {
-    selectionRef.current = selection;
-  }, [selection]);
   const mutedRef = useRef(muted);
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
 
-  // Exactly one SFX in flight at a time — see the header comment on the
-  // sibling games for why (a synthesized sound keeps playing on its own
-  // schedule after React tears the component down, so this is held to be
-  // cut the instant it's unwanted).
   const sfxRef = useRef<ActiveSound | null>(null);
   const stopSfx = useCallback(() => {
     sfxRef.current?.stop();
@@ -200,46 +174,32 @@ export function RollDiceGame() {
     }
   }, [state.phase, play]);
 
-  // Reports the round's outcome once it settles. Guarded by a ref (not
-  // state) so StrictMode's double-invoke and any re-render mid-phase can't
-  // fire this twice for the same round; it re-arms on the next "pick".
+  // Reports Level 2's outcome once it settles. Guarded by a ref (not
+  // state) so StrictMode's double-invoke can't fire this twice.
   const recordedRef = useRef(false);
   useEffect(() => {
-    if (state.phase === "pick") {
-      recordedRef.current = false;
-      return;
-    }
     if (state.phase !== "won" && state.phase !== "lost") return;
     if (recordedRef.current) return;
     recordedRef.current = true;
 
-    const sel = selectionRef.current;
-    if (!sel) return;
     fetch("/api/games/record-play", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         gameSlug: "roll-a-dice",
-        source: sel.source,
-        teamRefId: sel.teamRefId,
-        playerRefId: sel.playerRefId,
+        source: selection.source,
+        teamRefId: selection.teamRefId,
+        playerRefId: selection.playerRefId,
         result: state.phase,
         detail: { picked: state.picked, drawnSum: state.drawnSum, dieFaces: state.dieFaces },
       }),
     }).catch(() => {});
-  }, [state.phase, state.picked, state.drawnSum, state.dieFaces]);
-
-  function toggleMute() {
-    setMuted((m) => {
-      if (!m) stopSfx();
-      return !m;
-    });
-  }
+  }, [state.phase, state.picked, state.drawnSum, state.dieFaces, selection]);
 
   const muteButton = (
     <button
       type="button"
-      onClick={toggleMute}
+      onClick={onToggleMute}
       aria-label={muted ? "Unmute" : "Mute"}
       className="absolute right-4 top-4 z-10 text-white/70 hover:text-white"
     >
@@ -251,50 +211,14 @@ export function RollDiceGame() {
     </button>
   );
 
-  if (state.phase === "start") {
-    return (
-      <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
-        {muteButton}
-        <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-emerald-400/30 blur-3xl sm:size-72" />
-        <span className="text-5xl sm:text-6xl">🎲</span>
-        <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
-          Roll a Dice
-        </h1>
-        <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
-          <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
-            How to Play
-          </p>
-          <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-emerald-300">
-            <li>Choose any total from {MIN_SUM} to {MAX_SUM}.</li>
-            <li>Roll two dice — watch them tumble through real 3D space.</li>
-            <li>Match your total — win!</li>
-          </ol>
-        </div>
-
-        <TeamPlayerGate onSelectionChange={setSelection} />
-
-        <button
-          type="button"
-          disabled={!selection}
-          onClick={() => dispatch({ type: "START" })}
-          className={cn(
-            "mt-8 rounded-xl px-8 py-2.5 text-lg font-bold shadow-xl transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
-            selection
-              ? "bg-gradient-to-r from-emerald-400 to-emerald-500 text-black shadow-emerald-500/20 hover:scale-105 hover:from-emerald-300 hover:to-emerald-400 hover:shadow-emerald-500/40"
-              : "cursor-not-allowed border border-white/10 bg-white/5 text-white/40",
-          )}
-        >
-          Play
-        </button>
-      </div>
-    );
-  }
-
   if (state.phase === "pick") {
     return (
       <div className="relative flex min-h-screen flex-col items-center px-4 py-14">
         {muteButton}
-        <h1 className="mt-8 text-center text-xl font-black sm:mt-0 sm:text-2xl md:text-4xl">
+        <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-emerald-300 sm:mt-0">
+          Level 2 of 2
+        </p>
+        <h1 className="mt-2 text-center text-xl font-black sm:text-2xl md:text-4xl">
           Pick your total
         </h1>
         <p className="mt-2 text-center text-xs text-white/70 sm:text-sm md:text-base">
@@ -366,6 +290,9 @@ export function RollDiceGame() {
       {muteButton}
       {won ? <ResultConfetti /> : null}
 
+      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-emerald-300">
+        Level 2 of 2
+      </p>
       <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
         {won ? "🎉" : "🎲"}
       </div>
@@ -395,20 +322,16 @@ export function RollDiceGame() {
 
       <button
         type="button"
-        onClick={() => dispatch({ type: "RESTART" })}
+        onClick={() => onDone(state.phase as "won" | "lost")}
         className="mt-10 flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-emerald-500/20 transition-all duration-300 hover:scale-105 hover:from-emerald-300 hover:to-emerald-400 hover:shadow-emerald-500/40 sm:px-8 sm:py-3 sm:text-xl"
       >
-        <RotateCcw className="size-5" />
-        Play again
+        <Trophy className="size-5" />
+        See Results
       </button>
     </div>
   );
 }
 
-// Static, per-face placement of the six pip layouts inside a cube — face
-// "1" sits at the front (identity rotation) when the cube isn't spun,
-// exactly like a real die at rest. Opposite faces sum to 7 (1-6, 2-5,
-// 3-4), the standard Western die layout.
 const FACE_PLACEMENT: Record<number, string> = {
   1: `rotateY(0deg) translateZ(${HALF}px)`,
   2: `rotateY(90deg) translateZ(${HALF}px)`,
@@ -418,13 +341,6 @@ const FACE_PLACEMENT: Record<number, string> = {
   6: `rotateY(180deg) translateZ(${HALF}px)`,
 };
 
-// Rotation to apply to the whole CUBE (not a face) to bring a given face's
-// value to the front — the inverse of that face's own placement above.
-// Only ever rotates a single axis per target value (values 1/2/5/6 via Y,
-// 3/4 via X), so adding independent extra-360° spins to both axes for the
-// tumble (see DIE_EXTRA_TURNS) never disturbs which face ends up landed —
-// each axis's own multiple of 360° is a no-op on the final composed
-// transform regardless of the other axis's value.
 const LANDING_ROTATION: Record<number, { x: number; y: number }> = {
   1: { x: 0, y: 0 },
   2: { x: 0, y: -90 },
@@ -434,8 +350,6 @@ const LANDING_ROTATION: Record<number, { x: number; y: number }> = {
   6: { x: 0, y: 180 },
 };
 
-// Which of a 3x3 grid's 9 cells (row-major, 0-8) hold a visible pip, per
-// face value — the standard dice-pip layout.
 const PIPS: Record<number, number[]> = {
   1: [4],
   2: [2, 6],
@@ -468,53 +382,69 @@ function DieFace({ value, transform }: { value: number; transform: string }) {
   );
 }
 
-// One 3D die. `spinning` false = identity transform (face 1 resting at
-// the front — no semantic meaning, just the pre-throw pose); true =
-// several extra full turns per axis (DIE_EXTRA_TURNS) plus the landing
-// correction for `value`, animated via the transition below. The
-// transition is always present — flipping `spinning` only changes the
-// target rotation, a change against an already-painted state the browser
-// reliably animates, no rAF paint-sync needed (same technique as the
-// wheel in spin-wheel-game.tsx).
+// Three nested layers per die, so the shuffle jitter, the hand-to-rest
+// throw, and the tumble never fight over the same element's transform:
+//  1. (outer, in this function) position wrapper — transitions from the
+//     hand offset to identity (0,0, full scale) the instant `spinning`
+//     flips true. Never itself animated via keyframe.
+//  2. jitter wrapper — the dice-shuffle keyframe lives here, as a small
+//     position-agnostic wobble layered on top of whatever (1) placed it
+//     at; composes cleanly since it's a different element.
+//  3. (inner) the actual 3D cube — rotateX/rotateY tumble, unchanged.
 function DieCube({
   value,
   spinning,
+  shuffling,
   extra,
+  handOffset,
 }: {
   value: number;
   spinning: boolean;
+  shuffling: boolean;
   extra: { x: number; y: number };
+  handOffset: { x: number; y: number; rotate: number };
 }) {
   const landing = LANDING_ROTATION[value];
   const rotateX = spinning ? extra.x * 360 + landing.x : 0;
   const rotateY = spinning ? extra.y * 360 + landing.y : 0;
+  const positionTransform = spinning
+    ? "translate(0px, 0px) rotate(0deg) scale(1)"
+    : `translate(${handOffset.x}px, ${handOffset.y}px) rotate(${handOffset.rotate}deg) scale(0.55)`;
 
   return (
-    <div style={{ width: DIE_SIZE, height: DIE_SIZE, perspective: 700 }}>
+    <div
+      style={{
+        width: DIE_SIZE,
+        height: DIE_SIZE,
+        transform: positionTransform,
+        transition: "transform 520ms cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
+    >
       <div
-        className="relative"
-        style={{
-          width: DIE_SIZE,
-          height: DIE_SIZE,
-          transformStyle: "preserve-3d",
-          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-          transition: `transform ${SPIN_MS}ms cubic-bezier(0.16, 1, 0.3, 1)`,
-        }}
+        className={cn(shuffling && "animate-dice-shuffle")}
+        style={{ width: DIE_SIZE, height: DIE_SIZE, perspective: 700 }}
       >
-        {([1, 2, 3, 4, 5, 6] as const).map((v) => (
-          <DieFace key={v} value={v} transform={FACE_PLACEMENT[v]} />
-        ))}
+        <div
+          className="relative"
+          style={{
+            width: DIE_SIZE,
+            height: DIE_SIZE,
+            transformStyle: "preserve-3d",
+            transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+            transition: `transform ${SPIN_MS}ms cubic-bezier(0.16, 1, 0.3, 1)`,
+          }}
+        >
+          {([1, 2, 3, 4, 5, 6] as const).map((v) => (
+            <DieFace key={v} value={v} transform={FACE_PLACEMENT[v]} />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-// Mounts only while rolling, so `spinning` (has the throw released the
-// dice yet?) is fresh false every round with no reset effect. Timeline — a
-// hand-throw beat, then both cubes tumble, then a pause on the landed
-// faces, then SETTLE — is driven entirely by timers in a mount-once
-// effect; callers are reached through refs so that effect keeps empty deps
-// (same pattern as SpinningBox/SpinningWheel in the sibling games).
+type RollStage = "shuffle" | "throw";
+
 function RollingDice({
   dieFaces,
   play,
@@ -526,7 +456,7 @@ function RollingDice({
   stopSfx: () => void;
   onSettle: () => void;
 }) {
-  const [spinning, setSpinning] = useState(false);
+  const [stage, setStage] = useState<RollStage>("shuffle");
   const onSettleRef = useRef(onSettle);
   const playRef = useRef(play);
   const stopSfxRef = useRef(stopSfx);
@@ -537,12 +467,18 @@ function RollingDice({
   });
 
   useEffect(() => {
-    let settleTimer = 0;
+    // Roll rattle starts immediately — the click train's own deceleration
+    // (see DICE_SFX.roll) carries naturally across the shuffle and into
+    // the tumble, so one sound covers "hand shaking dice" through "dice
+    // hit the table".
+    playRef.current("roll");
     const throwTimer = window.setTimeout(() => {
-      setSpinning(true);
-      playRef.current("roll");
-      settleTimer = window.setTimeout(() => onSettleRef.current(), SPIN_MS + READ_MS);
-    }, HAND_MS);
+      setStage("throw");
+    }, SHUFFLE_MS);
+    const settleTimer = window.setTimeout(
+      () => onSettleRef.current(),
+      SHUFFLE_MS + SPIN_MS + READ_MS,
+    );
     return () => {
       window.clearTimeout(throwTimer);
       window.clearTimeout(settleTimer);
@@ -552,33 +488,47 @@ function RollingDice({
     };
   }, []);
 
+  const spinning = stage === "throw";
+  const shuffling = stage === "shuffle";
+
   return (
     <div className="relative flex flex-col items-center">
       <div className="animate-mystery-box-glow absolute inset-0 -z-10 rounded-full bg-emerald-400/40 blur-2xl" />
 
-      {/* Hand-throw flourish — plays once, then fades; the dice below start
-          tumbling right as it releases. */}
+      {/* Hand — shakes in place with the dice (same keyframe, so the
+          motion visibly matches), then flings forward and fades the
+          instant it releases them. */}
       <div
         className={cn(
-          "pointer-events-none absolute -bottom-4 text-6xl sm:-bottom-6 sm:text-7xl",
-          !spinning && "animate-dice-hand-throw",
-          spinning && "opacity-0",
+          "pointer-events-none absolute -bottom-6 z-10 text-6xl sm:-bottom-8 sm:text-7xl",
+          shuffling && "animate-dice-shuffle",
+          spinning && "animate-dice-hand-throw",
         )}
       >
         🤚
       </div>
 
       <div className="flex gap-8 sm:gap-12" style={{ perspective: 900 }}>
-        <DieCube value={dieFaces[0]} spinning={spinning} extra={DIE_EXTRA_TURNS[0]} />
-        <DieCube value={dieFaces[1]} spinning={spinning} extra={DIE_EXTRA_TURNS[1]} />
+        <DieCube
+          value={dieFaces[0]}
+          spinning={spinning}
+          shuffling={shuffling}
+          extra={DIE_EXTRA_TURNS[0]}
+          handOffset={DIE_HAND_OFFSET[0]}
+        />
+        <DieCube
+          value={dieFaces[1]}
+          spinning={spinning}
+          shuffling={shuffling}
+          extra={DIE_EXTRA_TURNS[1]}
+          handOffset={DIE_HAND_OFFSET[1]}
+        />
       </div>
     </div>
   );
 }
 
 function ResultConfetti() {
-  // Lazy init, not an effect — this only ever mounts client-side, after the
-  // reducer moves to a terminal phase post-hydration, so `window` is present.
   const [dimensions] = useState(() => ({
     width: window.innerWidth,
     height: window.innerHeight,

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GAMES } from "@/lib/games";
+import { GAME_SLUG_LABELS } from "@/lib/games";
 
 export function GameFilter() {
   const router = useRouter();
@@ -41,13 +41,13 @@ export function GameFilter() {
       <SelectTrigger className="w-full sm:w-[220px]">
         <SelectValue placeholder="All games">
           {(v: string | null) =>
-            GAMES.find((g) => g.slug === v)?.title ?? "All games"
+            GAME_SLUG_LABELS.find((g) => g.slug === v)?.title ?? "All games"
           }
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All games</SelectItem>
-        {GAMES.map((g) => (
+        {GAME_SLUG_LABELS.map((g) => (
           <SelectItem key={g.slug} value={g.slug}>
             {g.title}
           </SelectItem>
