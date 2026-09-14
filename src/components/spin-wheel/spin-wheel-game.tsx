@@ -22,13 +22,16 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // that round — see `prizes` below.
 //
 // Win odds are deliberately real, if vanishingly tiny: landing on the
-// player's own number, and landing on each individual bonus-prize section,
-// are all independent 0.0000000001% (1-in-1,000,000,000,000) draws — set
-// exactly, not simulated to look small while secretly being zero. The
-// remaining ~100% is spread evenly across the other nine number sections
-// (whichever the player didn't pick), which are always losing outcomes for
-// that spin. There is no real prize behind any of these sections — same
-// "just for fun" flavor for the Cash Prize and the Super Champs items alike.
+// player's own number is an independent 0.0000000001% (1-in-1,000,000,000,000)
+// draw, same for each audience-specific prize (Cash Prize or the Super
+// Champs items) — set exactly, not simulated to look small while secretly
+// being zero. The Surprise Gift section (present for every audience) is
+// the one exception, at a real 0.05% (5-in-10,000) — still a long shot,
+// just a deliberately more reachable one than the others. The remaining
+// ~100% is spread evenly across the other nine number sections (whichever
+// the player didn't pick), which are always losing outcomes for that spin.
+// There is no real prize behind any of these sections — same "just for
+// fun" flavor throughout.
 //
 // Same lessons as the sibling games (see mystery-box-game.tsx):
 //  - All spin timing is setTimeout, never requestAnimationFrame — rAF is
@@ -56,6 +59,9 @@ interface PrizeSection {
   wheelLines: string[];
   // Full name, used in result-screen prose and the recorded play detail.
   name: string;
+  // This section's own independent landing probability — see the header
+  // comment above for why Surprise Gift's is set apart from the rest.
+  winChance: number;
 }
 
 const CASH_PRIZE: PrizeSection = {
@@ -63,21 +69,36 @@ const CASH_PRIZE: PrizeSection = {
   emoji: "💰",
   wheelLines: ["₹25,000/-", "CASH PRIZE"],
   name: "₹25,000/- Cash Prize",
+  winChance: 0.000000000001, // 0.0000000001%
 };
 
 const SUPERCHAMPS_PRIZES: PrizeSection[] = [
-  { id: "sneakers", emoji: "👟", wheelLines: ["SNEAKERS"], name: "Nike Sneakers" },
-  { id: "ps5", emoji: "🎮", wheelLines: ["PS5"], name: "PS5" },
-  { id: "cycle", emoji: "🚲", wheelLines: ["CYCLE"], name: "Gear Cycle" },
+  { id: "sneakers", emoji: "👟", wheelLines: ["SNEAKERS"], name: "Nike Sneakers", winChance: 0.000000000001 },
+  { id: "ps5", emoji: "🎮", wheelLines: ["PS5"], name: "PS5", winChance: 0.000000000001 },
+  { id: "cycle", emoji: "🚲", wheelLines: ["CYCLE"], name: "Gear Cycle", winChance: 0.000000000001 },
 ];
 
-// Box Cricket teams and YCC Partners see the single Cash Prize section;
-// Super Champs entrants see three real-item prizes instead. Falls back to
-// Cash Prize before a code is entered (source is still unknown) — the
-// common case, so the start screen isn't stuck showing placeholder copy
-// for most players.
+// Present on every audience's wheel, in addition to their own prize(s)
+// above — a real, deliberately more reachable long shot at 5 in 10,000
+// (0.05%), same reasoning as the other win chances: set exactly, not
+// simulated to look small while secretly being zero.
+const SURPRISE_GIFT: PrizeSection = {
+  id: "surprise",
+  emoji: "🎁",
+  wheelLines: ["SURPRISE", "GIFT"],
+  name: "Surprise Gift",
+  winChance: 0.0005, // 5 in 10,000 = 0.05%
+};
+
+// Box Cricket teams and YCC Partners see the Cash Prize section; Super
+// Champs entrants see three real-item prizes instead — either way, the
+// Surprise Gift section is always on the wheel too. Falls back to Cash
+// Prize before a code is entered (source is still unknown) — the common
+// case, so the start screen isn't stuck showing placeholder copy for most
+// players.
 function prizesFor(source: GameTeamSelection["source"] | undefined): PrizeSection[] {
-  return source === "school" ? SUPERCHAMPS_PRIZES : [CASH_PRIZE];
+  const audiencePrizes = source === "school" ? SUPERCHAMPS_PRIZES : [CASH_PRIZE];
+  return [...audiencePrizes, SURPRISE_GIFT];
 }
 
 // Degrees the bonus-prize sections share, split evenly regardless of how
@@ -89,7 +110,6 @@ const SPECIAL_TOTAL_DEG = 120;
 const NUM_SLICE_DEG = (360 - SPECIAL_TOTAL_DEG) / NUM_COUNT;
 
 const PICKED_WIN_CHANCE = 0.000000000001; // 0.0000000001% — lands on the player's own number
-const PRIZE_WIN_CHANCE = 0.000000000001; // 0.0000000001% — lands on any one bonus-prize section
 
 const SPIN_MS = 4500; // must match the transition duration set on the wheel
 const PRESPIN_MS = 300; // short beat between the click and the wheel moving
@@ -191,16 +211,16 @@ function rotationFor(section: WheelSection, spins: number): number {
 // into the `sections` array built by buildSections — 0..NUM_COUNT-1 are
 // numbers, the rest are prizes, in prize order). `picked` is the player's
 // chosen number (1-10). Every win path — the picked number, and each
-// individual prize — is an explicit, independent draw at PICKED_WIN_CHANCE
-// / PRIZE_WIN_CHANCE; everything else falls back to a uniform pick among
-// the other nine (losing) number sections.
-function drawSection(picked: number, prizeCount: number): number {
+// individual prize at its own winChance — is an explicit, independent
+// draw; everything else falls back to a uniform pick among the other nine
+// (losing) number sections.
+function drawSection(picked: number, prizes: PrizeSection[]): number {
   const pickedIndex = picked - 1;
   const r = Math.random();
   if (r < PICKED_WIN_CHANCE) return pickedIndex;
   let acc = PICKED_WIN_CHANCE;
-  for (let i = 0; i < prizeCount; i++) {
-    acc += PRIZE_WIN_CHANCE;
+  for (let i = 0; i < prizes.length; i++) {
+    acc += prizes[i].winChance;
     if (r < acc) return NUM_COUNT + i;
   }
   const losingIndexes = Array.from({ length: NUM_COUNT }, (_, i) => i).filter(
@@ -241,7 +261,7 @@ function reducer(state: GameState, action: Action): GameState {
     case "OPEN": {
       if (state.phase !== "pick" || state.picked === null) return state;
       const sections = buildSections(action.prizes);
-      const landedIndex = drawSection(state.picked, action.prizes.length);
+      const landedIndex = drawSection(state.picked, action.prizes);
       return { ...state, phase: "spinning", sections, landedIndex };
     }
     case "SETTLE": {
