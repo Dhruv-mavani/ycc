@@ -162,6 +162,22 @@ export function LevelUpGame() {
         </ol>
       </div>
 
+      {/* Recorded gameplay demo — plain <img>, not next/image, so the GIF
+          actually animates (Next's image optimizer doesn't preserve GIF
+          animation frames without `unoptimized`, and a static loader isn't
+          worth the extra config for one small asset). */}
+      <div className="mt-6 w-full max-w-md">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-white/50">
+          See what a win looks like
+        </p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/level-up/win-demo.gif"
+          alt="Gameplay demo of winning a round in Level Up"
+          className="w-full rounded-2xl border border-white/10 shadow-xl"
+        />
+      </div>
+
       <TeamPlayerGate onSelectionChange={setSelection} />
 
       <button
