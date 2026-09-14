@@ -4,7 +4,7 @@ import { GameBackLink } from "@/components/site/game-back-link";
 export const metadata: Metadata = {
   title: "Spin the Wheel | YCC",
   description:
-    "Pick a number from 1 to 10 and spin an 11-section wheel — land on it, or land on Goa Trip with Gang (free to all), to win.",
+    "Pick a number from 1 to 10 and spin an 11-section wheel — land on it, or land on the ₹25,000/- Cash Prize, to win.",
 };
 
 // Deliberately outside the (public) route group — no site header/footer,

@@ -14,13 +14,12 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // remaining SPECIAL_TOTAL_DEG of the circle. Two ways to win: the wheel
 // lands on the player's own number, or it lands on any bonus-prize section.
 //
-// Which prizes are on offer is audience-dependent (see PRIZES_BY_SOURCE
-// below) — a Box Cricket team or YCC Partner sees the single Goa Trip
-// prize (matching this game's original spirit), while a Super Champs
-// entrant sees three real-item prizes instead. The audience is only known
-// once TeamPlayerGate resolves a code, so `prizes` is computed from
-// `selection?.source` and stays fixed for the rest of that round — see
-// `prizes` below.
+// Which prizes are on offer is audience-dependent (see prizesFor below) —
+// a Box Cricket team or YCC Partner sees the single Cash Prize section,
+// while a Super Champs entrant sees three real-item prizes instead. The
+// audience is only known once TeamPlayerGate resolves a code, so `prizes`
+// is computed from `selection?.source` and stays fixed for the rest of
+// that round — see `prizes` below.
 //
 // Win odds are deliberately real, if vanishingly tiny: landing on the
 // player's own number, and landing on each individual bonus-prize section,
@@ -29,7 +28,7 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // remaining ~100% is spread evenly across the other nine number sections
 // (whichever the player didn't pick), which are always losing outcomes for
 // that spin. There is no real prize behind any of these sections — same
-// "just for fun" flavor for Goa Trip and the Super Champs items alike.
+// "just for fun" flavor for the Cash Prize and the Super Champs items alike.
 //
 // Same lessons as the sibling games (see mystery-box-game.tsx):
 //  - All spin timing is setTimeout, never requestAnimationFrame — rAF is
@@ -59,11 +58,11 @@ interface PrizeSection {
   name: string;
 }
 
-const GOA_TRIP: PrizeSection = {
-  id: "goa",
-  emoji: "🏖️",
-  wheelLines: ["GOA TRIP", "WITH GANG", "(FREE TO ALL)"],
-  name: "Goa Trip with Gang (free to all)",
+const CASH_PRIZE: PrizeSection = {
+  id: "cash",
+  emoji: "💰",
+  wheelLines: ["₹25,000/-", "CASH PRIZE"],
+  name: "₹25,000/- Cash Prize",
 };
 
 const SUPERCHAMPS_PRIZES: PrizeSection[] = [
@@ -72,13 +71,13 @@ const SUPERCHAMPS_PRIZES: PrizeSection[] = [
   { id: "cycle", emoji: "🚲", wheelLines: ["CYCLE"], name: "Gear Cycle" },
 ];
 
-// Box Cricket teams and YCC Partners see the original single Goa Trip
-// prize; Super Champs entrants see three real-item prizes instead. Falls
-// back to Goa Trip before a code is entered (source is still unknown) —
-// the common case, so the start screen isn't stuck showing placeholder
-// copy for most players.
+// Box Cricket teams and YCC Partners see the single Cash Prize section;
+// Super Champs entrants see three real-item prizes instead. Falls back to
+// Cash Prize before a code is entered (source is still unknown) — the
+// common case, so the start screen isn't stuck showing placeholder copy
+// for most players.
 function prizesFor(source: GameTeamSelection["source"] | undefined): PrizeSection[] {
-  return source === "school" ? SUPERCHAMPS_PRIZES : [GOA_TRIP];
+  return source === "school" ? SUPERCHAMPS_PRIZES : [CASH_PRIZE];
 }
 
 // Degrees the bonus-prize sections share, split evenly regardless of how
