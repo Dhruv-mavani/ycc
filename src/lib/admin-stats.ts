@@ -683,23 +683,52 @@ export interface GameInsightsSummary {
   losses: number;
 }
 
+type GameSource = "registration" | "partner" | "school" | "individual_free";
+
 export interface GamePlayRow {
+  kind: "single";
   id: string;
   gameSlug: string;
   playerName: string;
   teamLabel: string;
-  source: "registration" | "partner" | "school" | "individual_free";
+  source: GameSource;
   isCaptain: boolean;
   result: "won" | "lost";
   createdAt: string;
 }
 
+/** One row per Level Up run (see level-up-game.tsx) — Level 1 (Spin the
+ * Wheel) and Level 2 (Roll a Dice) are always played together, sharing a
+ * levelUpSessionId stashed in each row's `detail` JSON, and are always
+ * presented here as the one combined box a run actually is. Either level
+ * can be null if a run was abandoned before finishing it. */
+export interface LevelUpRunRow {
+  kind: "level-up";
+  sessionId: string;
+  playerName: string;
+  teamLabel: string;
+  source: GameSource;
+  isCaptain: boolean;
+  level1: { result: "won" | "lost" } | null;
+  level2: { result: "won" | "lost" } | null;
+  createdAt: string;
+}
+
+export type RecentPlayRow = GamePlayRow | LevelUpRunRow;
+
+// The two real recorded game_slug values a Level Up run produces — "level-up"
+// itself is never written to game_plays, it's a pseudo-slug this file
+// resolves wherever a caller filters or groups by it.
+const LEVEL_UP_SLUGS = ["spin-wheel", "roll-a-dice"];
+
 /**
- * Spin the Wheel / Mystery Box insights for the admin games page. Summary
- * counts scan every matching row (no limit — plain text columns, cheap) so
- * totals stay accurate regardless of volume; recentPlays is capped for the
- * table, but the cap applies to the filtered set — a search stays useful
- * even once total plays run well past 200.
+ * Spin the Wheel / Mystery Box / Roll a Dice insights for the admin games
+ * page. Summary counts scan every matching row (no limit — plain text
+ * columns, cheap) so totals stay accurate regardless of volume; recentPlays
+ * is capped for the table. Level Up's two constituent games are merged
+ * throughout: one summary bucket ("level-up"), and one recentPlays row per
+ * run (pairing Level 1 + Level 2 by their shared levelUpSessionId) instead
+ * of two separate rows.
  */
 export async function getGameInsights(
   gameSlug?: string,
@@ -707,31 +736,33 @@ export async function getGameInsights(
   result?: "won" | "lost",
 ): Promise<{
   summary: GameInsightsSummary[];
-  recentPlays: GamePlayRow[];
+  recentPlays: RecentPlayRow[];
 }> {
   const admin = createAdminClient();
-  const trimmedSearch = search?.trim();
+  const trimmedSearch = search?.trim().toLowerCase();
+  const dbSlugs = gameSlug === "level-up" ? LEVEL_UP_SLUGS : gameSlug ? [gameSlug] : null;
 
-  // Summary totals stay scoped to gameSlug only (not `result`) — they're
-  // meant to show overall wins/losses regardless of which one the "Recent
-  // plays" table below is currently filtered to.
+  // Summary totals stay scoped to gameSlug only (not `result`/`search`) —
+  // they're meant to show overall wins/losses regardless of how the
+  // "Recent plays" table below is currently filtered.
   let summaryQuery = admin.from("game_plays").select("game_slug, result");
-  if (gameSlug) summaryQuery = summaryQuery.eq("game_slug", gameSlug);
+  if (dbSlugs) summaryQuery = summaryQuery.in("game_slug", dbSlugs);
 
+  // `result` and `search` are applied in JS below, after spin-wheel/
+  // roll-a-dice rows are paired into whole Level Up runs — filtering at
+  // the SQL level first could split a pair apart (e.g. "Won only" matching
+  // Level 1 but excluding Level 2's own, genuinely separate result before
+  // pairing ever sees it). Fetches a wider 400-row window (not 200) since
+  // pairing roughly halves the Level Up row count, keeping ~200 final rows
+  // reachable after grouping.
   let recentQuery = admin
     .from("game_plays")
     .select(
-      "id, game_slug, player_name, team_label, source, is_captain, result, created_at",
+      "id, game_slug, player_name, team_label, source, is_captain, result, detail, created_at",
     )
     .order("created_at", { ascending: false })
-    .limit(200);
-  if (gameSlug) recentQuery = recentQuery.eq("game_slug", gameSlug);
-  if (result) recentQuery = recentQuery.eq("result", result);
-  if (trimmedSearch) {
-    recentQuery = recentQuery.or(
-      `player_name.ilike.%${trimmedSearch}%,team_label.ilike.%${trimmedSearch}%`,
-    );
-  }
+    .limit(400);
+  if (dbSlugs) recentQuery = recentQuery.in("game_slug", dbSlugs);
 
   const [{ data: allRows }, { data: recentRows }] = await Promise.all([
     summaryQuery,
@@ -740,8 +771,9 @@ export async function getGameInsights(
 
   const bySlug = new Map<string, GameInsightsSummary>();
   for (const r of allRows ?? []) {
-    const entry = bySlug.get(r.game_slug) ?? {
-      gameSlug: r.game_slug,
+    const bucketSlug = LEVEL_UP_SLUGS.includes(r.game_slug) ? "level-up" : r.game_slug;
+    const entry = bySlug.get(bucketSlug) ?? {
+      gameSlug: bucketSlug,
       plays: 0,
       wins: 0,
       losses: 0,
@@ -749,20 +781,75 @@ export async function getGameInsights(
     entry.plays += 1;
     if (r.result === "won") entry.wins += 1;
     else entry.losses += 1;
-    bySlug.set(r.game_slug, entry);
+    bySlug.set(bucketSlug, entry);
   }
+
+  const runsById = new Map<string, LevelUpRunRow>();
+  const singles: GamePlayRow[] = [];
+  for (const r of recentRows ?? []) {
+    if (!LEVEL_UP_SLUGS.includes(r.game_slug)) {
+      singles.push({
+        kind: "single",
+        id: r.id,
+        gameSlug: r.game_slug,
+        playerName: r.player_name,
+        teamLabel: r.team_label,
+        source: r.source as GameSource,
+        isCaptain: r.is_captain,
+        result: r.result as "won" | "lost",
+        createdAt: r.created_at,
+      });
+      continue;
+    }
+
+    // Falls back to the row's own id when levelUpSessionId is somehow
+    // missing (shouldn't happen for any run started after this shipped)
+    // so a stray row still shows as its own box rather than silently
+    // vanishing or colliding with an unrelated run.
+    const sessionId =
+      (r.detail as { levelUpSessionId?: string } | null)?.levelUpSessionId ?? r.id;
+    const levelResult = { result: r.result as "won" | "lost" };
+    const existing = runsById.get(sessionId);
+    if (!existing) {
+      runsById.set(sessionId, {
+        kind: "level-up",
+        sessionId,
+        playerName: r.player_name,
+        teamLabel: r.team_label,
+        source: r.source as GameSource,
+        isCaptain: r.is_captain,
+        level1: r.game_slug === "spin-wheel" ? levelResult : null,
+        level2: r.game_slug === "roll-a-dice" ? levelResult : null,
+        createdAt: r.created_at,
+      });
+    } else {
+      if (r.game_slug === "spin-wheel") existing.level1 = levelResult;
+      else existing.level2 = levelResult;
+      // Rows arrive newest-first; keep the run's createdAt at whichever of
+      // its two rows is most recent, so it sorts by its latest activity.
+      if (r.created_at > existing.createdAt) existing.createdAt = r.created_at;
+    }
+  }
+
+  let combined: RecentPlayRow[] = [...singles, ...runsById.values()];
+
+  if (trimmedSearch) {
+    combined = combined.filter((row) =>
+      `${row.playerName} ${row.teamLabel}`.toLowerCase().includes(trimmedSearch),
+    );
+  }
+  if (result) {
+    combined = combined.filter((row) =>
+      row.kind === "single"
+        ? row.result === result
+        : row.level1?.result === result || row.level2?.result === result,
+    );
+  }
+
+  combined.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
 
   return {
     summary: Array.from(bySlug.values()),
-    recentPlays: (recentRows ?? []).map((r) => ({
-      id: r.id,
-      gameSlug: r.game_slug,
-      playerName: r.player_name,
-      teamLabel: r.team_label,
-      source: r.source as "registration" | "partner" | "school" | "individual_free",
-      isCaptain: r.is_captain,
-      result: r.result as "won" | "lost",
-      createdAt: r.created_at,
-    })),
+    recentPlays: combined.slice(0, 200),
   };
 }

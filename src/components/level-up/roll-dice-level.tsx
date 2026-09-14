@@ -136,11 +136,16 @@ export function RollDiceLevel({
   selection,
   muted,
   onToggleMute,
+  levelUpSessionId,
   onDone,
 }: {
   selection: GameTeamSelection;
   muted: boolean;
   onToggleMute: () => void;
+  /** Shared with Level 1's own recorded play — see the header comment on
+   * level-up-game.tsx — so the admin Games insights page can pair this
+   * run's two game_plays rows back into one combined box. */
+  levelUpSessionId: string;
   onDone: (result: "won" | "lost") => void;
 }) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
@@ -191,10 +196,15 @@ export function RollDiceLevel({
         teamRefId: selection.teamRefId,
         playerRefId: selection.playerRefId,
         result: state.phase,
-        detail: { picked: state.picked, drawnSum: state.drawnSum, dieFaces: state.dieFaces },
+        detail: {
+          picked: state.picked,
+          drawnSum: state.drawnSum,
+          dieFaces: state.dieFaces,
+          levelUpSessionId,
+        },
       }),
     }).catch(() => {});
-  }, [state.phase, state.picked, state.drawnSum, state.dieFaces, selection]);
+  }, [state.phase, state.picked, state.drawnSum, state.dieFaces, selection, levelUpSessionId]);
 
   const muteButton = (
     <button

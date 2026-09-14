@@ -41,12 +41,13 @@ export const GAMES: GameLink[] = [
   },
 ];
 
-// Friendly titles for every game_plays.game_slug value actually recorded —
-// used by the admin Games insights page and its game filter. Kept separate
-// from the hub tiles above: Level Up is one hub tile but plays (and
-// records) two of these independently, back to back.
+// Selectable games for the admin Games insights page and its game filter.
+// "level-up" here is a pseudo-slug, never itself written to game_plays —
+// getGameInsights (admin-stats.ts) resolves it to the two real recorded
+// slugs (spin-wheel, roll-a-dice) and presents their rows merged into one
+// game throughout insights, matching how Level Up is actually played (one
+// run, two levels, never independently).
 export const GAME_SLUG_LABELS: { slug: string; title: string }[] = [
   { slug: "mystry-box", title: "Mystery Box" },
-  { slug: "spin-wheel", title: "Spin the Wheel (Level Up — Level 1)" },
-  { slug: "roll-a-dice", title: "Roll a Dice (Level Up — Level 2)" },
+  { slug: "level-up", title: "Level Up" },
 ];

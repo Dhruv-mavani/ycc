@@ -18,10 +18,13 @@ import { RollDiceLevel } from "./roll-dice-level";
 // gate or mute state).
 //
 // Level 1's result doesn't gate Level 2 — win or lose, `onDone` always
-// advances the stage. Both levels are recorded independently in game_plays
-// (gameSlug "spin-wheel" / "roll-a-dice", same as before), so admin
-// insights need no changes: a Level Up run just always produces one play of
-// each, back to back.
+// advances the stage. Both levels are still recorded independently in
+// game_plays (gameSlug "spin-wheel" / "roll-a-dice", same as before), but
+// each recording now carries a shared `levelUpSessionId` (a fresh UUID
+// minted here every time Level 1 starts — including on "Play again") in
+// its `detail` JSON, so the admin Games insights page can pair a run's two
+// rows back into the one combined box it presents them as. See
+// getGameInsights in admin-stats.ts for that grouping.
 // ---------------------------------------------------------------------------
 
 type Stage = "gate" | "level1" | "level2" | "summary";
@@ -33,14 +36,21 @@ export function LevelUpGame() {
   const [muted, setMuted] = useState(false);
   const [level1Result, setLevel1Result] = useState<LevelResult>(null);
   const [level2Result, setLevel2Result] = useState<LevelResult>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   function toggleMute() {
     setMuted((m) => !m);
   }
 
+  function startRun() {
+    setSessionId(crypto.randomUUID());
+    setStage("level1");
+  }
+
   function restart() {
     setLevel1Result(null);
     setLevel2Result(null);
+    setSessionId(crypto.randomUUID());
     setStage("level1");
   }
 
@@ -59,13 +69,14 @@ export function LevelUpGame() {
     </button>
   );
 
-  if (stage === "level1" && selection) {
+  if (stage === "level1" && selection && sessionId) {
     return (
       <SpinWheelLevel
         key="level1"
         selection={selection}
         muted={muted}
         onToggleMute={toggleMute}
+        levelUpSessionId={sessionId}
         onDone={(result) => {
           setLevel1Result(result);
           setStage("level2");
@@ -74,13 +85,14 @@ export function LevelUpGame() {
     );
   }
 
-  if (stage === "level2" && selection) {
+  if (stage === "level2" && selection && sessionId) {
     return (
       <RollDiceLevel
         key="level2"
         selection={selection}
         muted={muted}
         onToggleMute={toggleMute}
+        levelUpSessionId={sessionId}
         onDone={(result) => {
           setLevel2Result(result);
           setStage("summary");
@@ -155,7 +167,7 @@ export function LevelUpGame() {
       <button
         type="button"
         disabled={!selection}
-        onClick={() => setStage("level1")}
+        onClick={startRun}
         className={cn(
           "mt-8 rounded-xl px-8 py-2.5 text-lg font-bold shadow-xl transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
           selection

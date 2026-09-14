@@ -200,7 +200,10 @@ async function GamesData({
             </TableHeader>
             <TableBody>
               {recentPlays.map((p) => (
-                <TableRow key={p.id} className="hover:bg-primary/5 transition-colors">
+                <TableRow
+                  key={p.kind === "single" ? p.id : p.sessionId}
+                  className="hover:bg-primary/5 transition-colors"
+                >
                   <TableCell className="pl-6 font-medium">
                     <span className="inline-flex items-center gap-1.5">
                       {p.isCaptain ? (
@@ -224,19 +227,35 @@ async function GamesData({
                     </span>
                   </TableCell>
                   {gameSlug ? null : (
-                    <TableCell>{GAME_TITLE_BY_SLUG.get(p.gameSlug) ?? p.gameSlug}</TableCell>
+                    <TableCell>
+                      {p.kind === "single"
+                        ? (GAME_TITLE_BY_SLUG.get(p.gameSlug) ?? p.gameSlug)
+                        : "Level Up"}
+                    </TableCell>
                   )}
                   <TableCell>
-                    <Badge
-                      variant="secondary"
-                      className={cn(
-                        p.result === "won"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                          : "bg-rose-50 text-rose-700 border-rose-200",
-                      )}
-                    >
-                      {p.result === "won" ? "Won" : "Lost"}
-                    </Badge>
+                    {p.kind === "single" ? (
+                      <ResultBadge result={p.result} />
+                    ) : (
+                      <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <span className="text-muted-foreground">L1</span>
+                          {p.level1 ? (
+                            <ResultBadge result={p.level1.result} />
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </span>
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <span className="text-muted-foreground">L2</span>
+                          {p.level2 ? (
+                            <ResultBadge result={p.level2.result} />
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="pr-6 text-muted-foreground whitespace-nowrap">
                     {formatDate(p.createdAt)}
@@ -255,5 +274,20 @@ async function GamesData({
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function ResultBadge({ result }: { result: "won" | "lost" }) {
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(
+        result === "won"
+          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+          : "bg-rose-50 text-rose-700 border-rose-200",
+      )}
+    >
+      {result === "won" ? "Won" : "Lost"}
+    </Badge>
   );
 }

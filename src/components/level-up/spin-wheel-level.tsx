@@ -202,11 +202,16 @@ export function SpinWheelLevel({
   selection,
   muted,
   onToggleMute,
+  levelUpSessionId,
   onDone,
 }: {
   selection: GameTeamSelection;
   muted: boolean;
   onToggleMute: () => void;
+  /** Shared with Level 2's own recorded play — see the header comment on
+   * level-up-game.tsx — so the admin Games insights page can pair this
+   * run's two game_plays rows back into one combined box. */
+  levelUpSessionId: string;
   onDone: (result: "won" | "lost") => void;
 }) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
@@ -263,10 +268,11 @@ export function SpinWheelLevel({
           picked: state.picked,
           landedIndex: state.landedIndex,
           prizeId: landed?.kind === "prize" ? landed.prize.id : null,
+          levelUpSessionId,
         },
       }),
     }).catch(() => {});
-  }, [state.phase, state.picked, state.landedIndex, state.sections, selection]);
+  }, [state.phase, state.picked, state.landedIndex, state.sections, selection, levelUpSessionId]);
 
   const prizes = prizesFor(selection.source);
 
