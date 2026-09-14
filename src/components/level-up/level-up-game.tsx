@@ -162,18 +162,23 @@ export function LevelUpGame() {
         </ol>
       </div>
 
-      {/* Recorded gameplay demo — plain <img>, not next/image, so the GIF
-          actually animates (Next's image optimizer doesn't preserve GIF
-          animation frames without `unoptimized`, and a static loader isn't
-          worth the extra config for one small asset). */}
-      <div className="mt-6 w-full max-w-md">
+      {/* Recorded gameplay demo — an actual video (h264 mp4, ~264KB),
+          recorded at a real phone viewport width so it shows the same
+          mobile-first layout most players actually see, not the desktop
+          one. autoPlay+loop+muted+playsInline makes it behave like the GIF
+          it replaces (starts and loops on its own, no controls, no sound,
+          no iOS fullscreen takeover on tap). */}
+      <div className="mt-6 w-full max-w-xs">
         <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-white/50">
           See what a win looks like
         </p>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/level-up/win-demo.gif"
-          alt="Gameplay demo of winning a round in Level Up"
+        <video
+          src="/level-up/win-demo.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-label="Gameplay demo of winning a round in Level Up"
           className="w-full rounded-2xl border border-white/10 shadow-xl"
         />
       </div>
