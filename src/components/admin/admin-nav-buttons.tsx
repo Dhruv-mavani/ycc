@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Download, HeartHandshake, ShieldAlert, GraduationCap, Gamepad2, Wallet, UserRoundCheck } from "lucide-react";
+import { Download, HeartHandshake, ShieldAlert, GraduationCap, Gamepad2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
@@ -90,9 +90,9 @@ export function AdminNavButtons({
         className="hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-colors"
         nativeButton={false}
         render={
-          <Link href="/admin/school-registrations">
+          <Link href="/admin/free-registrations">
             <GraduationCap className="size-4" />
-            School Registrations
+            Free Registrations
           </Link>
         }
       />
@@ -115,17 +115,6 @@ export function AdminNavButtons({
           <Link href="/admin/cash-collection">
             <Wallet className="size-4" />
             Cash collection
-          </Link>
-        }
-      />
-      <Button
-        variant="outline"
-        className="hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
-        nativeButton={false}
-        render={
-          <Link href="/admin/individual-registrations">
-            <UserRoundCheck className="size-4" />
-            Individual Registrations
           </Link>
         }
       />

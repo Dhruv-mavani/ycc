@@ -56,7 +56,7 @@ export default async function AdminDashboardPage({
         // payment-centric registrations/participants tables this
         // dashboard reports on, so picking one here would just show
         // zeros everywhere — they're covered by their own
-        // /admin/school-registrations page instead.
+        // /admin/free-registrations page instead.
         .neq("type", "school")
         .order("created_at"),
       createAdminClient()
