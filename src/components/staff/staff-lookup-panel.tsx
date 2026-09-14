@@ -59,6 +59,16 @@ interface LookupClassPartner {
   members: LookupTeamMember[];
 }
 
+interface LookupIndividualFreeRegistration {
+  registrationId: string;
+  name: string;
+  whatsapp: string;
+  code: string;
+  eventName: string;
+  collegeName: string | null;
+  attendanceStatus: "present" | "absent";
+}
+
 export function StaffLookupPanel({
   colleges = [],
 }: {
@@ -68,6 +78,9 @@ export function StaffLookupPanel({
   const [collegeId, setCollegeId] = useState<string>("all");
   const [results, setResults] = useState<LookupRegistration[]>([]);
   const [partnerResults, setPartnerResults] = useState<LookupClassPartner[]>([]);
+  const [individualFreeResults, setIndividualFreeResults] = useState<
+    LookupIndividualFreeRegistration[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -88,8 +101,13 @@ export function StaffLookupPanel({
       const data = await res.json();
       setResults(data.results);
       setPartnerResults(data.partnerResults ?? []);
+      setIndividualFreeResults(data.individualFreeResults ?? []);
       setSearched(true);
-      if (data.results.length === 0 && (data.partnerResults ?? []).length === 0) {
+      if (
+        data.results.length === 0 &&
+        (data.partnerResults ?? []).length === 0 &&
+        (data.individualFreeResults ?? []).length === 0
+      ) {
         toast.error("No matching registration found");
       }
     } catch {
@@ -180,6 +198,33 @@ export function StaffLookupPanel({
     }
   }
 
+  async function toggleIndividualFreeAttendance(registrationId: string, next: boolean) {
+    const status = next ? "present" : "absent";
+
+    setIndividualFreeResults((prev) =>
+      prev.map((r) =>
+        r.registrationId === registrationId ? { ...r, attendanceStatus: status } : r,
+      ),
+    );
+
+    const res = await fetch("/api/individual-free-registrations/attendance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ registrationId, status }),
+    });
+
+    if (!res.ok) {
+      toast.error("Could not update attendance — reverting");
+      setIndividualFreeResults((prev) =>
+        prev.map((r) =>
+          r.registrationId === registrationId
+            ? { ...r, attendanceStatus: next ? "absent" : "present" }
+            : r,
+        ),
+      );
+    }
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       {scannerOpen ? (
@@ -244,7 +289,11 @@ export function StaffLookupPanel({
         </div>
       )}
 
-      {searched && results.length === 0 && partnerResults.length === 0 && !loading ? (
+      {searched &&
+      results.length === 0 &&
+      partnerResults.length === 0 &&
+      individualFreeResults.length === 0 &&
+      !loading ? (
         <p className="text-muted-foreground text-center text-sm">
           No matching registration found.
         </p>
@@ -382,6 +431,71 @@ export function StaffLookupPanel({
                   </div>
                 </div>
               ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="space-y-4">
+        {individualFreeResults.map((r) => (
+          <Card key={r.registrationId} className="overflow-hidden border-border/60 shadow-md p-0 gap-0">
+            <CardContent className="p-0">
+              <div
+                className={cn(
+                  "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 transition-colors",
+                  r.attendanceStatus === "present"
+                    ? "bg-emerald-50/50 dark:bg-emerald-950/10"
+                    : "hover:bg-muted/30",
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={cn(
+                      "p-2 rounded-full mt-1",
+                      r.attendanceStatus === "present"
+                        ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {r.attendanceStatus === "present" ? (
+                      <UserCheck className="size-5" />
+                    ) : (
+                      <UserX className="size-5" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-base font-semibold text-foreground break-words max-w-full">
+                        {r.name}
+                      </p>
+                      <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 whitespace-nowrap">
+                        {r.eventName}
+                      </Badge>
+                    </div>
+                    <p className="text-muted-foreground font-mono text-sm mt-0.5">
+                      {r.code} · {r.whatsapp}
+                      {r.collegeName ? ` · ${r.collegeName}` : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 self-end sm:self-auto shrink-0 bg-background rounded-lg border p-2 sm:p-0 sm:border-0 sm:bg-transparent">
+                  <span
+                    className={cn(
+                      "text-sm font-semibold uppercase tracking-wider",
+                      r.attendanceStatus === "present" ? "text-emerald-600" : "text-muted-foreground",
+                    )}
+                  >
+                    {r.attendanceStatus === "present" ? "Present" : "Absent"}
+                  </span>
+                  <Switch
+                    checked={r.attendanceStatus === "present"}
+                    onCheckedChange={(checked) =>
+                      toggleIndividualFreeAttendance(r.registrationId, checked)
+                    }
+                    className={r.attendanceStatus === "present" ? "data-[state=checked]:bg-emerald-500" : ""}
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}

@@ -81,6 +81,22 @@ export const schoolCertificateLookupSchema = z.object({
   query: z.string().trim().min(1, "Enter your WhatsApp number or code"),
 });
 
+// Free, no-payment, individual (no team) registration for events of type
+// "individual_free" (e.g. YCC Money Heist) — a college dropdown instead of
+// school's, and email is required (not optional like school's) per spec.
+export const individualFreeRegistrationSchema = z.object({
+  eventId: z.string().uuid(),
+  name: z.string().trim().min(2, "Name is too short").max(100),
+  whatsapp: phoneSchema,
+  email: emailSchema,
+  collegeId: z.string().uuid().optional().or(z.literal("")),
+});
+
+// Same "WhatsApp or code" pattern as schoolCertificateLookupSchema.
+export const individualFreeCertificateLookupSchema = z.object({
+  query: z.string().trim().min(1, "Enter your WhatsApp number or code"),
+});
+
 export type PlayerInput = z.infer<typeof playerSchema>;
 export type TeamRegistrationInput = z.infer<typeof teamRegistrationSchema>;
 export type IndividualRegistrationInput = z.infer<
@@ -92,4 +108,10 @@ export type RegistrationRequestInput = z.infer<
 export type SchoolRegistrationInput = z.infer<typeof schoolRegistrationSchema>;
 export type SchoolCertificateLookupInput = z.infer<
   typeof schoolCertificateLookupSchema
+>;
+export type IndividualFreeRegistrationInput = z.infer<
+  typeof individualFreeRegistrationSchema
+>;
+export type IndividualFreeCertificateLookupInput = z.infer<
+  typeof individualFreeCertificateLookupSchema
 >;

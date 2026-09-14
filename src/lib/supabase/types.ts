@@ -2,7 +2,7 @@
 // Once the project is linked to a live Supabase instance, regenerate with:
 //   npx supabase gen types typescript --project-id <id> > src/lib/supabase/types.ts
 
-export type EventType = "cricket" | "quiz" | "school";
+export type EventType = "cricket" | "quiz" | "school" | "individual_free";
 export type RegistrationType = "team" | "individual";
 export type RegistrationStatus =
   | "pending_payment"
@@ -84,6 +84,38 @@ export interface Database {
         };
         Update: Partial<
           Database["public"]["Tables"]["school_tournament_registrations"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      individual_free_registrations: {
+        Row: {
+          id: string;
+          event_id: string;
+          college_id: string | null;
+          name: string;
+          whatsapp: string;
+          email: string;
+          code: string;
+          attendance_status: AttendanceStatus;
+          attendance_marked_by: string | null;
+          attendance_marked_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          college_id?: string | null;
+          name: string;
+          whatsapp: string;
+          email: string;
+          code: string;
+          attendance_status?: AttendanceStatus;
+          attendance_marked_by?: string | null;
+          attendance_marked_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["individual_free_registrations"]["Insert"]
         >;
         Relationships: [];
       };

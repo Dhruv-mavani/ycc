@@ -5,6 +5,7 @@ import { TeamRegistrationForm } from "@/components/registration/team-registratio
 import { SelfTeamRegistrationForm } from "@/components/registration/self-team-registration-form";
 import { IndividualRegistrationForm } from "@/components/registration/individual-registration-form";
 import { SchoolRegistrationForm } from "@/components/registration/school-registration-form";
+import { IndividualFreeRegistrationForm } from "@/components/registration/individual-free-registration-form";
 import { BackButton } from "@/components/site/back-button";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Download } from "lucide-react";
@@ -72,6 +73,15 @@ export default async function RegisterPage({
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight relative z-10 break-words">
                 YCC Super Champs Program
               </h1>
+            ) : event.type === "individual_free" ? (
+              <>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight relative z-10 break-words">
+                  Register — {event.name}
+                </h1>
+                <p className="text-slate-500 text-base sm:text-lg max-w-xl relative z-10">
+                  Fill in your details to register — free entry, no payment required.
+                </p>
+              </>
             ) : (
               <>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight relative z-10 break-words">
@@ -98,6 +108,19 @@ export default async function RegisterPage({
                   </Link>
                 }
               />
+            ) : event.type === "individual_free" ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 rounded-full border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold relative z-10"
+                nativeButton={false}
+                render={
+                  <Link href="/money-heist/certificate" className="flex items-center gap-2">
+                    <Download className="size-4 text-blue-600" />
+                    Download your certificate
+                  </Link>
+                }
+              />
             ) : null}
           </div>
 
@@ -107,6 +130,12 @@ export default async function RegisterPage({
                 eventId={event.id}
                 eventName={event.name}
                 schools={schools ?? []}
+              />
+            ) : event.type === "individual_free" ? (
+              <IndividualFreeRegistrationForm
+                eventId={event.id}
+                eventName={event.name}
+                colleges={colleges ?? []}
               />
             ) : event.type === "cricket" ? (
               event.requires_referral ? (

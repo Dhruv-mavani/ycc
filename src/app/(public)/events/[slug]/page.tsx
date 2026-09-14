@@ -87,7 +87,7 @@ export default async function EventDetailPage({
           </div>
 
           {/* Event Details */}
-          {event.type === "school" ? (
+          {event.type === "school" || event.type === "individual_free" ? (
             // Single, centered column — this free/solo event has no team
             // requirements or tournament rules to justify the two-column
             // layout the paid cricket events use, so the fee card and CTA
@@ -116,7 +116,14 @@ export default async function EventDetailPage({
                   className="w-full rounded-full h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
                   nativeButton={false}
                   render={
-                    <Link href="/super-champs/certificate" className="flex items-center justify-center gap-2">
+                    <Link
+                      href={
+                        event.type === "school"
+                          ? "/super-champs/certificate"
+                          : "/money-heist/certificate"
+                      }
+                      className="flex items-center justify-center gap-2"
+                    >
                       <Download className="size-4 text-blue-600" />
                       Download your certificate
                     </Link>
