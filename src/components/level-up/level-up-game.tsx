@@ -169,9 +169,6 @@ export function LevelUpGame() {
           it replaces (starts and loops on its own, no controls, no sound,
           no iOS fullscreen takeover on tap). */}
       <div className="mt-6 w-full max-w-xs">
-        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-white/50">
-          See what a win looks like
-        </p>
         <video
           src="/level-up/win-demo.mp4"
           autoPlay
