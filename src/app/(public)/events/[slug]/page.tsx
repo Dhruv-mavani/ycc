@@ -132,7 +132,10 @@ export default async function EventDetailPage({
 
                 <EventRegisterCta
                   eventSlug={event.slug}
-                  requireCommunityGate={false}
+                  // Super Champs (school) skips the join-to-unlock gate;
+                  // Money Heist (individual_free) requires it, same as the
+                  // paid Box Cricket flow below, despite being free entry.
+                  requireCommunityGate={event.type === "individual_free"}
                   label="Register for free"
                 />
               </div>
