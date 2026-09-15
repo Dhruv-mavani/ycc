@@ -11,6 +11,9 @@ export default async function StaffPaymentsPage() {
     .select("id, name")
     .eq("pay_at_venue", true)
     .eq("is_active", true)
+    // A free (fee_paise 0) pay_at_venue event has no cash to collect — see
+    // the same guard in getCashCollectionOverview (admin-stats.ts).
+    .gt("fee_paise", 0)
     .order("name");
 
   return (

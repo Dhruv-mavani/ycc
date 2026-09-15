@@ -88,9 +88,11 @@ export default async function RegisterPage({
                   Register — {event.name}
                 </h1>
                 <p className="text-slate-500 text-base sm:text-lg max-w-xl relative z-10">
-                  {event.pay_at_venue
-                    ? "Fill in your details to register — entry fee is payable in cash at the venue."
-                    : "Fill in your details, then complete payment to confirm your spot."}
+                  {event.fee_paise === 0
+                    ? "Fill in your details to register — free entry, no payment required."
+                    : event.pay_at_venue
+                      ? "Fill in your details to register — entry fee is payable in cash at the venue."
+                      : "Fill in your details, then complete payment to confirm your spot."}
                 </p>
               </>
             )}

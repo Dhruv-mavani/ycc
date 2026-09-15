@@ -171,7 +171,12 @@ export async function getCashCollectionOverview(): Promise<
     .from("events")
     .select("id, name")
     .eq("pay_at_venue", true)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    // A pay_at_venue event with a real fee still owes cash at check-in; one
+    // with fee_paise 0 (a free event that just uses pay_at_venue to skip
+    // Cashfree — see confirmPayAtVenueRegistration) owes nothing, so it
+    // doesn't belong on a "cash to collect" page.
+    .gt("fee_paise", 0);
 
   if (!events || events.length === 0) return [];
 
@@ -259,7 +264,10 @@ export async function getCashCollectionDetail(
     .from("events")
     .select("id, name")
     .eq("pay_at_venue", true)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    // See getCashCollectionOverview — a free (fee_paise 0) pay_at_venue
+    // event owes no cash, so it's excluded here too.
+    .gt("fee_paise", 0);
   if (!events || events.length === 0) return [];
 
   const eventIds = events.map((e) => e.id);
