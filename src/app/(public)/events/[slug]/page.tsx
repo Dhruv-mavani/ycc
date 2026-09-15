@@ -203,22 +203,80 @@ export default async function EventDetailPage({
 
             {/* Left Column: Cost & Squad */}
             <div className="space-y-8">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
-                </h3>
-                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm">
-                  <div className="flex flex-wrap items-end gap-2 mb-2">
-                    <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
-                    <span className="text-slate-500 mb-0.5 text-sm sm:text-base">{event.type === "cricket" ? "per team" : "per person"}</span>
+              {event.slug === "ycc-go-goa-gone" ? (
+                // Same treatment as Money Heist: a ₹0 GST breakdown is dead
+                // weight for a free event, so the poster + actual steps to
+                // register replace it here instead.
+                <div>
+                  <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                    <Image
+                      src="/go-goa-gone/poster.png"
+                      alt={`${event.name} poster`}
+                      width={1024}
+                      height={1536}
+                      className="w-full h-auto"
+                    />
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
-
-                  <div className="pt-5 sm:pt-6 border-t border-slate-100">
-                    <GstBreakdown basePaise={event.fee_paise} />
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                      <ScrollText className="w-5 h-5 text-indigo-600" /> How to Register
+                    </h3>
+                    <ol className="space-y-3">
+                      <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                          1
+                        </span>
+                        <p className="text-sm text-slate-600">
+                          <span className="font-semibold text-slate-900">
+                            Follow our WhatsApp channel & Instagram.
+                          </span>{" "}
+                          Join both using the buttons below to unlock registration.
+                        </p>
+                      </li>
+                      <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                          2
+                        </span>
+                        <p className="text-sm text-slate-600">
+                          <span className="font-semibold text-slate-900">
+                            Fill the team form correctly.
+                          </span>{" "}
+                          Captain details, plus your 5 squad members&apos; names.
+                        </p>
+                      </li>
+                      <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                          3
+                        </span>
+                        <p className="text-sm text-slate-600">
+                          <span className="font-semibold text-slate-900">
+                            Get instant confirmation.
+                          </span>{" "}
+                          No payment needed — your squad&apos;s entry is confirmed the
+                          moment you submit.
+                        </p>
+                      </li>
+                    </ol>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
+                  </h3>
+                  <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm">
+                    <div className="flex flex-wrap items-end gap-2 mb-2">
+                      <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
+                      <span className="text-slate-500 mb-0.5 text-sm sm:text-base">{event.type === "cricket" ? "per team" : "per person"}</span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
+
+                    <div className="pt-5 sm:pt-6 border-t border-slate-100">
+                      <GstBreakdown basePaise={event.fee_paise} />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {event.type === "cricket" &&
               event.min_team_size &&
