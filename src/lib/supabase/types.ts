@@ -95,6 +95,8 @@ export interface Database {
           name: string;
           whatsapp: string;
           email: string;
+          age: number | null;
+          gender: "male" | "female" | "other" | null;
           code: string;
           attendance_status: AttendanceStatus;
           attendance_marked_by: string | null;
@@ -108,6 +110,8 @@ export interface Database {
           name: string;
           whatsapp: string;
           email: string;
+          age?: number | null;
+          gender?: "male" | "female" | "other" | null;
           code: string;
           attendance_status?: AttendanceStatus;
           attendance_marked_by?: string | null;

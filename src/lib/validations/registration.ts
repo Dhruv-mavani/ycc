@@ -89,6 +89,8 @@ export const individualFreeRegistrationSchema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(100),
   whatsapp: phoneSchema,
   email: emailSchema,
+  age: ageSchema,
+  gender: genderSchema,
   collegeId: z.string().uuid().optional().or(z.literal("")),
 });
 

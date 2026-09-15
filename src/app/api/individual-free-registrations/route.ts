@@ -55,6 +55,8 @@ export async function POST(request: Request) {
       name: input.name,
       whatsapp: input.whatsapp,
       email: input.email,
+      age: input.age,
+      gender: input.gender,
       code,
     })
     .select("id")

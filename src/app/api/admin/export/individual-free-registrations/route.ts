@@ -12,6 +12,8 @@ const CSV_HEADER = [
   "code",
   "whatsapp",
   "email",
+  "age",
+  "gender",
   "college",
   "event",
   "attendance_status",
@@ -28,7 +30,7 @@ export async function GET() {
   const { data: registrations } = await admin
     .from("individual_free_registrations")
     .select(
-      "name, code, whatsapp, email, college_id, event_id, attendance_status, created_at",
+      "name, code, whatsapp, email, age, gender, college_id, event_id, attendance_status, created_at",
     )
     .order("created_at");
 
@@ -55,6 +57,8 @@ export async function GET() {
       r.code,
       r.whatsapp,
       r.email,
+      r.age ?? "",
+      r.gender ?? "",
       r.college_id ? (collegeNameById.get(r.college_id) ?? "") : "",
       eventNameById.get(r.event_id) ?? "",
       r.attendance_status,
