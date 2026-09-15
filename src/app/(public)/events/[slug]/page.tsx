@@ -220,7 +220,10 @@ export default async function EventDetailPage({
                 </div>
               </div>
 
-              {event.type === "cricket" && event.min_team_size && event.max_team_size ? (
+              {event.type === "cricket" &&
+              event.min_team_size &&
+              event.max_team_size &&
+              event.slug !== "ycc-go-goa-gone" ? (
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                     <Users className="w-5 h-5 text-emerald-600" /> Team Requirements
@@ -242,7 +245,7 @@ export default async function EventDetailPage({
 
             {/* Right Column: Rules & CTA */}
             <div className="space-y-8 flex flex-col justify-between">
-              {event.rules ? (
+              {event.rules && event.slug !== "ycc-go-goa-gone" ? (
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                     <ScrollText className="w-5 h-5 text-amber-600" /> Tournament Rules
@@ -277,7 +280,12 @@ export default async function EventDetailPage({
                 ) : (
                   <EventRegisterCta
                     eventSlug={event.slug}
-                    requireCommunityGate={event.fee_paise > 0}
+                    // Go Goa Gone is free entry but still requires joining
+                    // both communities first, same as the paid cricket
+                    // events — the ₹0 fee alone shouldn't skip the gate.
+                    requireCommunityGate={
+                      event.fee_paise > 0 || event.slug === "ycc-go-goa-gone"
+                    }
                     label={event.fee_paise === 0 ? "Register for free" : "Register Now & Pay"}
                   />
                 )}
