@@ -94,22 +94,80 @@ export default async function EventDetailPage({
             // just stack, centered, one below the other.
             <div className="flex justify-center p-6 sm:p-12 bg-slate-50">
               <div className="w-full max-w-md space-y-8 text-center">
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
-                    <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
-                  </h3>
-                  <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
-                    <div className="flex flex-wrap items-end justify-center gap-2 mb-2">
-                      <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
-                      <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per person</span>
+                {event.type === "individual_free" ? (
+                  // A ₹0-per-person fee breakdown is dead weight here — the
+                  // event's own poster plus the actual steps to register
+                  // are far more useful than an all-zero GST table.
+                  <div>
+                    <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                      <Image
+                        src="/money-heist/poster.png"
+                        alt={`${event.name} poster`}
+                        width={1024}
+                        height={1536}
+                        className="w-full h-auto"
+                      />
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6 text-center">+ 18% GST applicable</p>
-
-                    <div className="pt-5 sm:pt-6 border-t border-slate-100">
-                      <GstBreakdown basePaise={event.fee_paise} />
+                    <div className="mt-6 text-left">
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                        <ScrollText className="w-5 h-5 text-indigo-600" /> How to Register
+                      </h3>
+                      <ol className="space-y-3">
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            1
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Follow our WhatsApp channel & Instagram.
+                            </span>{" "}
+                            Join both using the buttons below to unlock registration.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            2
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Fill the form correctly.
+                            </span>{" "}
+                            Tap &ldquo;Register for free&rdquo; and enter your real name, WhatsApp
+                            number, email, age and gender.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            3
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Get your personal code instantly.
+                            </span>{" "}
+                            Your certificate downloads automatically the moment you submit.
+                          </p>
+                        </li>
+                      </ol>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                      <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
+                    </h3>
+                    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
+                      <div className="flex flex-wrap items-end justify-center gap-2 mb-2">
+                        <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
+                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per person</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6 text-center">+ 18% GST applicable</p>
+
+                      <div className="pt-5 sm:pt-6 border-t border-slate-100">
+                        <GstBreakdown basePaise={event.fee_paise} />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <Button
                   variant="outline"
