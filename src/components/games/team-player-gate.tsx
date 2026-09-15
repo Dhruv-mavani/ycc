@@ -23,6 +23,8 @@ export interface GameTeamSelection {
   teamLabel: string;
   playerRefId: string;
   playerName: string;
+  /** Only set for "registration" source — see GameTeamLookup.eventSlug. */
+  eventSlug?: string;
 }
 
 interface RosterPlayer {
@@ -36,6 +38,7 @@ interface Roster {
   teamRefId: string;
   teamLabel: string;
   players: RosterPlayer[];
+  eventSlug?: string;
 }
 
 type Status = "idle" | "loading" | "found" | "error";
@@ -92,6 +95,7 @@ export function TeamPlayerGate({
           teamLabel: team.teamLabel,
           playerRefId: only.id,
           playerName: only.name,
+          eventSlug: team.eventSlug,
         });
       }
     } catch {
@@ -110,6 +114,7 @@ export function TeamPlayerGate({
         teamLabel: roster.teamLabel,
         playerRefId: player.id,
         playerName: player.name,
+        eventSlug: roster.eventSlug,
       });
     }
   }

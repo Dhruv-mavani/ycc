@@ -39,6 +39,18 @@ const CASH_PRIZE: PrizeSection = {
   winChance: 0.000000000001, // 0.0000000001%
 };
 
+// The original Spin the Wheel prize, before it became the Cash Prize above
+// for every non-school audience (see git history, "Change Spin the Wheel's
+// Goa Trip prize to a ₹25,000/- Cash Prize") — brought back specifically
+// for YCC Go Goa Gone, whose own poster promises this exact trip.
+const GOA_TRIP: PrizeSection = {
+  id: "goa",
+  emoji: "🏖️",
+  wheelLines: ["GOA TRIP", "WITH GANG", "(FREE TO ALL)"],
+  name: "Goa Trip with Gang (free to all)",
+  winChance: 0.000000000001,
+};
+
 const SUPERCHAMPS_PRIZES: PrizeSection[] = [
   { id: "sneakers", emoji: "👟", wheelLines: ["SNEAKERS"], name: "Nike Sneakers", winChance: 0.000000000001 },
   { id: "ps5", emoji: "🎮", wheelLines: ["PS5"], name: "PS5", winChance: 0.000000000001 },
@@ -53,8 +65,22 @@ const SURPRISE_GIFT: PrizeSection = {
   winChance: 0.0005, // 5 in 10,000 = 0.05%
 };
 
-function prizesFor(source: GameTeamSelection["source"] | undefined): PrizeSection[] {
-  const audiencePrizes = source === "school" ? SUPERCHAMPS_PRIZES : [CASH_PRIZE];
+// Audience is source-driven (school -> Super Champs' three real items,
+// everyone else -> the single Cash Prize slice) except Go Goa Gone, which
+// needs event-level granularity since it shares "registration" source with
+// every other team event (Box Cricket, Plastic Ball, Tennis Ball, Partners
+// Box Cricket) — those keep the Cash Prize, only Go Goa Gone gets its own
+// Goa Trip slice back. See GameTeamSelection.eventSlug.
+function prizesFor(
+  source: GameTeamSelection["source"] | undefined,
+  eventSlug: string | undefined,
+): PrizeSection[] {
+  const audiencePrizes =
+    eventSlug === "ycc-go-goa-gone"
+      ? [GOA_TRIP]
+      : source === "school"
+        ? SUPERCHAMPS_PRIZES
+        : [CASH_PRIZE];
   return [...audiencePrizes, SURPRISE_GIFT];
 }
 
@@ -274,7 +300,7 @@ export function SpinWheelLevel({
     }).catch(() => {});
   }, [state.phase, state.picked, state.landedIndex, state.sections, selection, levelUpSessionId]);
 
-  const prizes = prizesFor(selection.source);
+  const prizes = prizesFor(selection.source, selection.eventSlug);
 
   const muteButton = (
     <button
