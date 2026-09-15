@@ -206,9 +206,15 @@ export function SelfTeamRegistrationForm({
         <CardHeader>
           <CardTitle>Team details</CardTitle>
           <CardDescription>
-            Entry fee: ₹{(feePaise / 100).toLocaleString("en-IN")} per team
-            {gstExempt ? "" : " + 18% GST"}
-            {payAtVenue ? " — payable in cash at the venue" : ""}
+            {feePaise === 0 ? (
+              "Free entry — no payment required"
+            ) : (
+              <>
+                Entry fee: ₹{(feePaise / 100).toLocaleString("en-IN")} per team
+                {gstExempt ? "" : " + 18% GST"}
+                {payAtVenue ? " — payable in cash at the venue" : ""}
+              </>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
