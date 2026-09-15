@@ -181,7 +181,7 @@ async function IndividualRegistrationsTable() {
   const { data: registrations } = await admin
     .from("individual_free_registrations")
     .select(
-      "id, name, email, whatsapp, code, created_at, college_id, event_id, attendance_status",
+      "id, name, email, whatsapp, age, gender, code, created_at, college_id, event_id, attendance_status",
     )
     .order("created_at", { ascending: false });
 
@@ -219,6 +219,8 @@ async function IndividualRegistrationsTable() {
               <TableHead className="font-semibold text-foreground/80">Code</TableHead>
               <TableHead className="font-semibold text-foreground/80">WhatsApp</TableHead>
               <TableHead className="font-semibold text-foreground/80">Email</TableHead>
+              <TableHead className="font-semibold text-foreground/80">Age</TableHead>
+              <TableHead className="font-semibold text-foreground/80">Gender</TableHead>
               <TableHead className="font-semibold text-foreground/80">College</TableHead>
               <TableHead className="font-semibold text-foreground/80">Event</TableHead>
               <TableHead className="font-semibold text-foreground/80">Attendance</TableHead>
@@ -234,6 +236,8 @@ async function IndividualRegistrationsTable() {
                 </TableCell>
                 <TableCell>{r.whatsapp}</TableCell>
                 <TableCell className="text-muted-foreground">{r.email}</TableCell>
+                <TableCell>{r.age ?? "—"}</TableCell>
+                <TableCell className="capitalize">{r.gender ?? "—"}</TableCell>
                 <TableCell>{r.collegeName ?? "—"}</TableCell>
                 <TableCell>{r.eventName ?? "—"}</TableCell>
                 <TableCell>
@@ -255,7 +259,7 @@ async function IndividualRegistrationsTable() {
             ))}
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-muted-foreground text-center py-12">
+                <TableCell colSpan={10} className="text-muted-foreground text-center py-12">
                   No registrations yet.
                 </TableCell>
               </TableRow>

@@ -8,6 +8,13 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Card,
@@ -59,6 +66,8 @@ export function IndividualFreeRegistrationForm({
       name: "",
       whatsapp: "",
       email: "",
+      age: undefined,
+      gender: undefined,
       collegeId: "",
     },
   });
@@ -184,6 +193,38 @@ export function IndividualFreeRegistrationForm({
           <Field label="Email" error={errors.email?.message}>
             <Input {...register("email")} type="email" placeholder="you@example.com" />
           </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Age" error={errors.age?.message}>
+              <Input
+                {...register("age", { valueAsNumber: true })}
+                type="number"
+                inputMode="numeric"
+              />
+            </Field>
+            <Field label="Gender" error={errors.gender?.message}>
+              <Controller
+                control={control}
+                name="gender"
+                render={({ field }) => (
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select">
+                        {(value: string | null) =>
+                          value ? value[0].toUpperCase() + value.slice(1) : "Select"
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </Field>
+          </div>
         </CardContent>
       </Card>
 
