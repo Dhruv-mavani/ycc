@@ -29,6 +29,10 @@ export default async function EventDetailPage({
   if (!event) notFound();
 
   const isQuiz = event.type === "quiz" || event.slug.includes("quiz");
+  // Go Goa Gone is a "cricket" event (team registration), but it's free and
+  // wants the same centered, poster-led treatment as the individual_free
+  // events below rather than the two-column paid-tournament layout.
+  const isGoGoaGone = event.slug === "ycc-go-goa-gone";
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden pb-24">
@@ -87,21 +91,22 @@ export default async function EventDetailPage({
           </div>
 
           {/* Event Details */}
-          {event.type === "school" || event.type === "individual_free" ? (
+          {event.type === "school" || event.type === "individual_free" || isGoGoaGone ? (
             // Single, centered column — this free/solo event has no team
             // requirements or tournament rules to justify the two-column
             // layout the paid cricket events use, so the fee card and CTA
-            // just stack, centered, one below the other.
+            // just stack, centered, one below the other. Go Goa Gone opts
+            // into this same centered layout despite being a team event.
             <div className="flex justify-center p-6 sm:p-12 bg-slate-50">
               <div className="w-full max-w-md space-y-8 text-center">
-                {event.type === "individual_free" ? (
-                  // A ₹0-per-person fee breakdown is dead weight here — the
-                  // event's own poster plus the actual steps to register
-                  // are far more useful than an all-zero GST table.
+                {event.type === "individual_free" || isGoGoaGone ? (
+                  // A ₹0 fee breakdown is dead weight here — the event's own
+                  // poster plus the actual steps to register are far more
+                  // useful than an all-zero GST table.
                   <div>
                     <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                       <Image
-                        src="/money-heist/poster.png"
+                        src={isGoGoaGone ? "/go-goa-gone/poster.png" : "/money-heist/poster.png"}
                         alt={`${event.name} poster`}
                         width={1024}
                         height={1536}
@@ -112,42 +117,81 @@ export default async function EventDetailPage({
                       <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
                         <ScrollText className="w-5 h-5 text-indigo-600" /> How to Register
                       </h3>
-                      <ol className="space-y-3">
-                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                            1
-                          </span>
-                          <p className="text-sm text-slate-600">
-                            <span className="font-semibold text-slate-900">
-                              Follow our WhatsApp channel & Instagram.
-                            </span>{" "}
-                            Join both using the buttons below to unlock registration.
-                          </p>
-                        </li>
-                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                            2
-                          </span>
-                          <p className="text-sm text-slate-600">
-                            <span className="font-semibold text-slate-900">
-                              Fill the form correctly.
-                            </span>{" "}
-                            Tap &ldquo;Register for free&rdquo; and enter your real name, WhatsApp
-                            number, email, age and gender.
-                          </p>
-                        </li>
-                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                            3
-                          </span>
-                          <p className="text-sm text-slate-600">
-                            <span className="font-semibold text-slate-900">
-                              Get your personal code instantly.
-                            </span>{" "}
-                            Your certificate downloads automatically the moment you submit.
-                          </p>
-                        </li>
-                      </ol>
+                      {isGoGoaGone ? (
+                        <ol className="space-y-3">
+                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                              1
+                            </span>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Follow our WhatsApp channel & Instagram.
+                              </span>{" "}
+                              Join both using the buttons below to unlock registration.
+                            </p>
+                          </li>
+                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                              2
+                            </span>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Fill the team form correctly.
+                              </span>{" "}
+                              Captain details, plus your 5 squad members&apos; names.
+                            </p>
+                          </li>
+                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                              3
+                            </span>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Get instant confirmation.
+                              </span>{" "}
+                              No payment needed — your squad&apos;s entry is confirmed the
+                              moment you submit.
+                            </p>
+                          </li>
+                        </ol>
+                      ) : (
+                        <ol className="space-y-3">
+                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                              1
+                            </span>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Follow our WhatsApp channel & Instagram.
+                              </span>{" "}
+                              Join both using the buttons below to unlock registration.
+                            </p>
+                          </li>
+                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                              2
+                            </span>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Fill the form correctly.
+                              </span>{" "}
+                              Tap &ldquo;Register for free&rdquo; and enter your real name, WhatsApp
+                              number, email, age and gender.
+                            </p>
+                          </li>
+                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                              3
+                            </span>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Get your personal code instantly.
+                              </span>{" "}
+                              Your certificate downloads automatically the moment you submit.
+                            </p>
+                          </li>
+                        </ol>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -169,31 +213,37 @@ export default async function EventDetailPage({
                   </div>
                 )}
 
-                <Button
-                  variant="outline"
-                  className="w-full rounded-full h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
-                  nativeButton={false}
-                  render={
-                    <Link
-                      href={
-                        event.type === "school"
-                          ? "/super-champs/certificate"
-                          : "/money-heist/certificate"
-                      }
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <Download className="size-4 text-blue-600" />
-                      Download your certificate
-                    </Link>
-                  }
-                />
+                {isGoGoaGone ? null : (
+                  // Go Goa Gone is a team registration — there's no
+                  // personal-code certificate to look up, unlike the
+                  // individual (school/individual_free) flows.
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
+                    nativeButton={false}
+                    render={
+                      <Link
+                        href={
+                          event.type === "school"
+                            ? "/super-champs/certificate"
+                            : "/money-heist/certificate"
+                        }
+                        className="flex items-center justify-center gap-2"
+                      >
+                        <Download className="size-4 text-blue-600" />
+                        Download your certificate
+                      </Link>
+                    }
+                  />
+                )}
 
                 <EventRegisterCta
                   eventSlug={event.slug}
                   // Super Champs (school) skips the join-to-unlock gate;
-                  // Money Heist (individual_free) requires it, same as the
-                  // paid Box Cricket flow below, despite being free entry.
-                  requireCommunityGate={event.type === "individual_free"}
+                  // Money Heist (individual_free) and Go Goa Gone require
+                  // it, same as the paid Box Cricket flow, despite being
+                  // free entry.
+                  requireCommunityGate={event.type === "individual_free" || isGoGoaGone}
                   label="Register for free"
                 />
               </div>
@@ -203,85 +253,24 @@ export default async function EventDetailPage({
 
             {/* Left Column: Cost & Squad */}
             <div className="space-y-8">
-              {event.slug === "ycc-go-goa-gone" ? (
-                // Same treatment as Money Heist: a ₹0 GST breakdown is dead
-                // weight for a free event, so the poster + actual steps to
-                // register replace it here instead.
-                <div>
-                  <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
-                    <Image
-                      src="/go-goa-gone/poster.png"
-                      alt={`${event.name} poster`}
-                      width={1024}
-                      height={1536}
-                      className="w-full h-auto"
-                    />
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
+                </h3>
+                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm">
+                  <div className="flex flex-wrap items-end gap-2 mb-2">
+                    <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
+                    <span className="text-slate-500 mb-0.5 text-sm sm:text-base">{event.type === "cricket" ? "per team" : "per person"}</span>
                   </div>
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                      <ScrollText className="w-5 h-5 text-indigo-600" /> How to Register
-                    </h3>
-                    <ol className="space-y-3">
-                      <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                          1
-                        </span>
-                        <p className="text-sm text-slate-600">
-                          <span className="font-semibold text-slate-900">
-                            Follow our WhatsApp channel & Instagram.
-                          </span>{" "}
-                          Join both using the buttons below to unlock registration.
-                        </p>
-                      </li>
-                      <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                          2
-                        </span>
-                        <p className="text-sm text-slate-600">
-                          <span className="font-semibold text-slate-900">
-                            Fill the team form correctly.
-                          </span>{" "}
-                          Captain details, plus your 5 squad members&apos; names.
-                        </p>
-                      </li>
-                      <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                          3
-                        </span>
-                        <p className="text-sm text-slate-600">
-                          <span className="font-semibold text-slate-900">
-                            Get instant confirmation.
-                          </span>{" "}
-                          No payment needed — your squad&apos;s entry is confirmed the
-                          moment you submit.
-                        </p>
-                      </li>
-                    </ol>
+                  <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
+
+                  <div className="pt-5 sm:pt-6 border-t border-slate-100">
+                    <GstBreakdown basePaise={event.fee_paise} />
                   </div>
                 </div>
-              ) : (
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                    <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
-                  </h3>
-                  <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm">
-                    <div className="flex flex-wrap items-end gap-2 mb-2">
-                      <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
-                      <span className="text-slate-500 mb-0.5 text-sm sm:text-base">{event.type === "cricket" ? "per team" : "per person"}</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
+              </div>
 
-                    <div className="pt-5 sm:pt-6 border-t border-slate-100">
-                      <GstBreakdown basePaise={event.fee_paise} />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {event.type === "cricket" &&
-              event.min_team_size &&
-              event.max_team_size &&
-              event.slug !== "ycc-go-goa-gone" ? (
+              {event.type === "cricket" && event.min_team_size && event.max_team_size ? (
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                     <Users className="w-5 h-5 text-emerald-600" /> Team Requirements
@@ -303,7 +292,7 @@ export default async function EventDetailPage({
 
             {/* Right Column: Rules & CTA */}
             <div className="space-y-8 flex flex-col justify-between">
-              {event.rules && event.slug !== "ycc-go-goa-gone" ? (
+              {event.rules ? (
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                     <ScrollText className="w-5 h-5 text-amber-600" /> Tournament Rules
@@ -338,12 +327,7 @@ export default async function EventDetailPage({
                 ) : (
                   <EventRegisterCta
                     eventSlug={event.slug}
-                    // Go Goa Gone is free entry but still requires joining
-                    // both communities first, same as the paid cricket
-                    // events — the ₹0 fee alone shouldn't skip the gate.
-                    requireCommunityGate={
-                      event.fee_paise > 0 || event.slug === "ycc-go-goa-gone"
-                    }
+                    requireCommunityGate={event.fee_paise > 0}
                     label={event.fee_paise === 0 ? "Register for free" : "Register Now & Pay"}
                   />
                 )}
