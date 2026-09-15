@@ -17,6 +17,12 @@ export interface GameTeamLookup {
   teamRefId: string;
   teamLabel: string;
   players: GamePlayer[];
+  /** Only set for "registration" source — which event's team this is (e.g.
+   * "ycc-go-goa-gone"), so a game can offer event-specific prizes/copy
+   * beyond what the coarser `source` alone distinguishes. Every other
+   * source maps to exactly one event already (school -> Super Champs,
+   * individual_free -> Money Heist), so it isn't needed there. */
+  eventSlug?: string;
 }
 
 /**
@@ -30,18 +36,21 @@ async function registrationRoster(
   const admin = createAdminClient();
   const { data: registration } = await admin
     .from("registrations")
-    .select("id, team_name")
+    .select("id, team_name, event_id")
     .eq("id", registrationId)
     .eq("status", "confirmed")
     .maybeSingle();
   if (!registration) return null;
 
-  const { data: participants } = await admin
-    .from("participants")
-    .select("id, name, is_captain")
-    .eq("registration_id", registrationId)
-    .order("is_captain", { ascending: false })
-    .order("created_at");
+  const [{ data: participants }, { data: event }] = await Promise.all([
+    admin
+      .from("participants")
+      .select("id, name, is_captain")
+      .eq("registration_id", registrationId)
+      .order("is_captain", { ascending: false })
+      .order("created_at"),
+    admin.from("events").select("slug").eq("id", registration.event_id).maybeSingle(),
+  ]);
   if (!participants || participants.length === 0) return null;
 
   return {
@@ -51,6 +60,7 @@ async function registrationRoster(
       registration.team_name ??
       participants.find((p) => p.is_captain)?.name ??
       participants[0].name,
+    eventSlug: event?.slug,
     players: participants.map((p) => ({
       id: p.id,
       name: p.name,
