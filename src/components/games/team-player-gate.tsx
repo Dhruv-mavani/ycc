@@ -6,10 +6,10 @@ import { Crown, Loader2, Search } from "lucide-react";
 // Sits above the Play button on every self-serve game's start screen.
 // Resolves a code — any team member's Unique ID, a YCC Partner /
 // Co-Partner's team code / Unique ID, a Super Champs personalized code, or
-// a free-individual code (e.g. YCC Money Heist) — into a roster via
+// a free-individual code (e.g. YCC Jackpot Heist) — into a roster via
 // /api/games/team-lookup, then lets the player pick who's actually
 // playing. A single-player roster (an individual registration, a Partner
-// with no Squad attached, any Super Champs entry, or any Money Heist
+// with no Squad attached, any Super Champs entry, or any Jackpot Heist
 // entry) skips the dropdown and just shows that one name. The resolved
 // selection is handed to the parent game via onSelectionChange so it can
 // gate its own Play button, pick audience-specific copy/prizes, and report

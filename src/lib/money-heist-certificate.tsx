@@ -12,9 +12,9 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 
-// Placeholder design for YCC Money Heist — reuses the Super Champs
+// Placeholder design for YCC Jackpot Heist — reuses the Super Champs
 // certificate's generic blue top/bottom bars (superchamps_certificate2.png)
-// and logo crop, just retitled, until real Money Heist art is provided
+// and logo crop, just retitled, until real Jackpot Heist art is provided
 // (drop it in /assets and swap bgDataUri below, same as was done for the
 // Box Cricket invitation letter).
 const alexBrushFontPath = path.join(
@@ -183,7 +183,7 @@ function MoneyHeistCertificatePage({ data }: { data: MoneyHeistCertificateData }
         has successfully registered for
       </Text>
 
-      <Text style={[styles.program, { top: sy(700) }]}>YCC Money Heist</Text>
+      <Text style={[styles.program, { top: sy(700) }]}>YCC Jackpot Heist</Text>
 
       <View style={[styles.noticeBox, { top: sy(830) }]}>
         <Text style={styles.noticeTitle}>Personalized Code</Text>

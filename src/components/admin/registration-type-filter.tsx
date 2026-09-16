@@ -12,7 +12,7 @@ import {
 
 const LABEL_BY_TYPE: Record<string, string> = {
   school: "Super Champs (School)",
-  individual: "Money Heist (Individual)",
+  individual: "Jackpot Heist (Individual)",
 };
 
 export function RegistrationTypeFilter() {
@@ -50,7 +50,7 @@ export function RegistrationTypeFilter() {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="school">Super Champs (School)</SelectItem>
-        <SelectItem value="individual">Money Heist (Individual)</SelectItem>
+        <SelectItem value="individual">Jackpot Heist (Individual)</SelectItem>
       </SelectContent>
     </Select>
   );

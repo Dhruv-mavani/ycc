@@ -207,7 +207,7 @@ async function IndividualRegistrationsTable() {
           <Badge variant="secondary">{rows.length}</Badge>
         </CardTitle>
         <CardDescription>
-          Free, individual (no team) registrations — e.g. YCC Money Heist.
+          Free, individual (no team) registrations — e.g. YCC Jackpot Heist.
           No payment, personalized code + certificate, staff QR check-in.
         </CardDescription>
       </CardHeader>

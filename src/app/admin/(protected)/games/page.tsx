@@ -222,7 +222,7 @@ async function GamesData({
                         : p.source === "school"
                           ? "Super Champs"
                           : p.source === "individual_free"
-                            ? "Money Heist"
+                            ? "Jackpot Heist"
                             : "Team"}
                       )
                     </span>

@@ -117,7 +117,7 @@ export default async function RegisterPage({
                 className="mt-4 rounded-full border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold relative z-10"
                 nativeButton={false}
                 render={
-                  <Link href="/money-heist/certificate" className="flex items-center gap-2">
+                  <Link href="/jackpot-heist/certificate" className="flex items-center gap-2">
                     <Download className="size-4 text-blue-600" />
                     Download your certificate
                   </Link>
