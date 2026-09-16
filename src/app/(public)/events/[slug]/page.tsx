@@ -127,7 +127,7 @@ export default async function EventDetailPage({
                               <span className="font-semibold text-slate-900">
                                 Follow our WhatsApp channel & Instagram.
                               </span>{" "}
-                              Join both using the buttons below to unlock registration.
+                              You&apos;ll confirm both when you tap Register.
                             </p>
                           </li>
                           <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -164,7 +164,7 @@ export default async function EventDetailPage({
                               <span className="font-semibold text-slate-900">
                                 Follow our WhatsApp channel & Instagram.
                               </span>{" "}
-                              Join both using the buttons below to unlock registration.
+                              You&apos;ll confirm both when you tap Register.
                             </p>
                           </li>
                           <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
