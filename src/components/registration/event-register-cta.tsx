@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
 import { cn } from "@/lib/utils";
 
-const INSTAGRAM_URL = "https://instagram.com/ycct10";
+export const INSTAGRAM_URL = "https://instagram.com/ycct10";
 
-function InstagramIcon({ className }: { className?: string }) {
+export function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
