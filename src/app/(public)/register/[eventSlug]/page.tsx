@@ -6,6 +6,7 @@ import { SelfTeamRegistrationForm } from "@/components/registration/self-team-re
 import { IndividualRegistrationForm } from "@/components/registration/individual-registration-form";
 import { SchoolRegistrationForm } from "@/components/registration/school-registration-form";
 import { IndividualFreeRegistrationForm } from "@/components/registration/individual-free-registration-form";
+import { RegistrationSteps } from "@/components/registration/registration-steps";
 import { BackButton } from "@/components/site/back-button";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Download } from "lucide-react";
@@ -49,6 +50,12 @@ export default async function RegisterPage({
     ]);
 
   if (!event) notFound();
+
+  // These two are the only registrations that require joining WhatsApp +
+  // Instagram first (see RegistrationSteps) — every other event's form
+  // renders straight away, same as before.
+  const requiresCommunityGate =
+    event.type === "individual_free" || event.slug === "ycc-go-goa-gone";
 
   const partnerOptions = [
     ...(campusPartners ?? []).map((p) => ({ ...p, type: "campus" as const })),
@@ -127,48 +134,57 @@ export default async function RegisterPage({
           </div>
 
           <div className="p-6 sm:p-12">
-            {event.type === "school" ? (
-              <SchoolRegistrationForm
-                eventId={event.id}
-                eventName={event.name}
-                schools={schools ?? []}
-              />
-            ) : event.type === "individual_free" ? (
-              <IndividualFreeRegistrationForm
-                eventId={event.id}
-                eventName={event.name}
-                colleges={colleges ?? []}
-              />
-            ) : event.type === "cricket" ? (
-              event.requires_referral ? (
-                <TeamRegistrationForm
-                  eventId={event.id}
-                  eventName={event.name}
-                  maxTeamSize={event.max_team_size ?? 6}
-                  feePaise={event.fee_paise}
-                  campusPartners={campusPartners ?? []}
-                  classPartners={classPartners ?? []}
-                />
+            {(() => {
+              const form =
+                event.type === "school" ? (
+                  <SchoolRegistrationForm
+                    eventId={event.id}
+                    eventName={event.name}
+                    schools={schools ?? []}
+                  />
+                ) : event.type === "individual_free" ? (
+                  <IndividualFreeRegistrationForm
+                    eventId={event.id}
+                    eventName={event.name}
+                    colleges={colleges ?? []}
+                  />
+                ) : event.type === "cricket" ? (
+                  event.requires_referral ? (
+                    <TeamRegistrationForm
+                      eventId={event.id}
+                      eventName={event.name}
+                      maxTeamSize={event.max_team_size ?? 6}
+                      feePaise={event.fee_paise}
+                      campusPartners={campusPartners ?? []}
+                      classPartners={classPartners ?? []}
+                    />
+                  ) : (
+                    <SelfTeamRegistrationForm
+                      eventId={event.id}
+                      eventName={event.name}
+                      maxTeamSize={event.max_team_size ?? 6}
+                      feePaise={event.fee_paise}
+                      payAtVenue={event.pay_at_venue}
+                      gstExempt={event.gst_exempt}
+                      colleges={colleges ?? []}
+                    />
+                  )
+                ) : (
+                  <IndividualRegistrationForm
+                    eventId={event.id}
+                    eventName={event.name}
+                    feePaise={event.fee_paise}
+                    colleges={colleges ?? []}
+                    partnerOptions={partnerOptions}
+                  />
+                );
+
+              return requiresCommunityGate ? (
+                <RegistrationSteps>{form}</RegistrationSteps>
               ) : (
-                <SelfTeamRegistrationForm
-                  eventId={event.id}
-                  eventName={event.name}
-                  maxTeamSize={event.max_team_size ?? 6}
-                  feePaise={event.fee_paise}
-                  payAtVenue={event.pay_at_venue}
-                  gstExempt={event.gst_exempt}
-                  colleges={colleges ?? []}
-                />
-              )
-            ) : (
-              <IndividualRegistrationForm
-                eventId={event.id}
-                eventName={event.name}
-                feePaise={event.fee_paise}
-                colleges={colleges ?? []}
-                partnerOptions={partnerOptions}
-              />
-            )}
+                form
+              );
+            })()}
           </div>
         </div>
       </div>
