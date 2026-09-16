@@ -239,11 +239,16 @@ export default async function EventDetailPage({
 
                 <EventRegisterCta
                   eventSlug={event.slug}
-                  // Super Champs (school) skips the join-to-unlock gate;
-                  // Jackpot Heist (individual_free) and Go Goa Gone require
-                  // it, same as the paid Box Cricket flow, despite being
-                  // free entry.
-                  requireCommunityGate={event.type === "individual_free" || isGoGoaGone}
+                  // The join-to-unlock gate used to live here too, alongside
+                  // the "How to Register" list above — meaning Jackpot Heist
+                  // / Go Goa Gone visitors joined WhatsApp+Instagram on this
+                  // page, then had to do it again as Step 1 of
+                  // RegistrationSteps on /register/[eventSlug]. That page is
+                  // now the one real gate (reachable directly too, unlike
+                  // this marketing page), so this CTA just links straight
+                  // through for every event in this branch (school and the
+                  // two free events alike).
+                  requireCommunityGate={false}
                   label="Register for free"
                 />
               </div>
