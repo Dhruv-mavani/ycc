@@ -72,7 +72,7 @@ export default function MoneyHeistCertificateLookupPage() {
           <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-6 px-6 sm:px-10 pt-8">
             <CardTitle className="text-2xl font-bold text-slate-800">Re-download your certificate</CardTitle>
             <CardDescription className="text-base mt-2 text-slate-600">
-              For YCC Money Heist registrants. Enter the WhatsApp number you
+              For YCC Jackpot Heist registrants. Enter the WhatsApp number you
               registered with, or your personalized code.
             </CardDescription>
           </CardHeader>

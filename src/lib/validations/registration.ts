@@ -82,7 +82,7 @@ export const schoolCertificateLookupSchema = z.object({
 });
 
 // Free, no-payment, individual (no team) registration for events of type
-// "individual_free" (e.g. YCC Money Heist) — a college dropdown instead of
+// "individual_free" (e.g. YCC Jackpot Heist) — a college dropdown instead of
 // school's, and email is required (not optional like school's) per spec.
 export const individualFreeRegistrationSchema = z.object({
   eventId: z.string().uuid(),

@@ -21,7 +21,7 @@ export interface GameTeamLookup {
    * "ycc-go-goa-gone"), so a game can offer event-specific prizes/copy
    * beyond what the coarser `source` alone distinguishes. Every other
    * source maps to exactly one event already (school -> Super Champs,
-   * individual_free -> Money Heist), so it isn't needed there. */
+   * individual_free -> Jackpot Heist), so it isn't needed there. */
   eventSlug?: string;
 }
 
@@ -135,7 +135,7 @@ async function schoolRoster(
 }
 
 /**
- * Roster for a free individual registration like YCC Money Heist, keyed by
+ * Roster for a free individual registration like YCC Jackpot Heist, keyed by
  * individual_free_registrations.id — same shape as schoolRoster: a single
  * "player" resolving to their own name, no team/squad concept.
  */
@@ -161,7 +161,7 @@ async function individualFreeRoster(
 /**
  * Resolves any team member's Unique ID, a Partner/Co-Partner's team code or
  * Unique ID, a Super Champs personalized code, or a free-individual code
- * (e.g. YCC Money Heist) into a roster. Registrations are tried first
+ * (e.g. YCC Jackpot Heist) into a roster. Registrations are tried first
  * (exact participant match), then the partner-program hierarchy, then
  * Super Champs, then free-individual registrations — the four id spaces
  * never collide since they're separate tables/uuids.

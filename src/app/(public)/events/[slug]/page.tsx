@@ -106,7 +106,7 @@ export default async function EventDetailPage({
                   <div>
                     <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                       <Image
-                        src={isGoGoaGone ? "/go-goa-gone/poster.png" : "/money-heist/poster.png"}
+                        src={isGoGoaGone ? "/go-goa-gone/poster.png" : "/jackpot-heist/poster.png"}
                         alt={`${event.name} poster`}
                         width={1024}
                         height={1536}
@@ -226,7 +226,7 @@ export default async function EventDetailPage({
                         href={
                           event.type === "school"
                             ? "/super-champs/certificate"
-                            : "/money-heist/certificate"
+                            : "/jackpot-heist/certificate"
                         }
                         className="flex items-center justify-center gap-2"
                       >
@@ -240,7 +240,7 @@ export default async function EventDetailPage({
                 <EventRegisterCta
                   eventSlug={event.slug}
                   // Super Champs (school) skips the join-to-unlock gate;
-                  // Money Heist (individual_free) and Go Goa Gone require
+                  // Jackpot Heist (individual_free) and Go Goa Gone require
                   // it, same as the paid Box Cricket flow, despite being
                   // free entry.
                   requireCommunityGate={event.type === "individual_free" || isGoGoaGone}
