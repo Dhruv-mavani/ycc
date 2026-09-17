@@ -51,11 +51,13 @@ export default async function RegisterPage({
 
   if (!event) notFound();
 
-  // These two are the only registrations that require joining WhatsApp +
+  // These are the only registrations that require joining WhatsApp +
   // Instagram first (see RegistrationSteps) — every other event's form
   // renders straight away, same as before.
   const requiresCommunityGate =
-    event.type === "individual_free" || event.slug === "ycc-go-goa-gone";
+    event.type === "individual_free" ||
+    event.slug === "ycc-go-goa-gone" ||
+    event.slug === "cricket-championship-2026";
 
   const partnerOptions = [
     ...(campusPartners ?? []).map((p) => ({ ...p, type: "campus" as const })),
