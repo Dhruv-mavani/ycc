@@ -174,9 +174,9 @@ export function LevelUpGame() {
               <Image
                 src="/box-cricket/qr.png"
                 alt="QR code to register for YCC Box Cricket Tournament"
-                width={56}
-                height={56}
-                className="size-14 shrink-0 rounded-md bg-white p-1"
+                width={96}
+                height={96}
+                className="size-20 shrink-0 rounded-md bg-white p-1.5 sm:size-24"
               />
               <p className="text-left text-xs text-white/70 sm:text-sm">
                 <span className="font-bold text-white">Scan to register</span>{" "}
