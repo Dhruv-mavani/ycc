@@ -69,13 +69,24 @@ export function SelfTeamRegistrationForm({
   const [whatsapp, setWhatsapp] = useState("");
   const [extraPlayers, setExtraPlayers] = useState<string[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
+  // Captain name/WhatsApp/teammate names all live in plain useState and get
+  // synced into RHF's single "players" field together (see syncPlayers) —
+  // so every keystroke in any one of them revalidates all of them. Without
+  // this, e.g. the WhatsApp error would flash on screen the moment you
+  // start typing your name, before you've even reached that field. Only
+  // show a field's error once the visitor has actually left it (blur) or
+  // tried to submit — same "don't yell before they're done typing" rule
+  // register()'d fields get for free from RHF's own touched tracking.
+  const [captainNameTouched, setCaptainNameTouched] = useState(false);
+  const [whatsappTouched, setWhatsappTouched] = useState(false);
+  const [extraTouched, setExtraTouched] = useState<boolean[]>([]);
 
   const {
     control,
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isSubmitted },
   } = useForm<TeamRegistrationInput>({
     resolver: zodResolver(teamRegistrationSchema),
     defaultValues: {
@@ -115,6 +126,7 @@ export function SelfTeamRegistrationForm({
     if (extraPlayers.length >= seatsAvailable) return;
     const next = [...extraPlayers, ""];
     setExtraPlayers(next);
+    setExtraTouched([...extraTouched, false]);
     syncPlayers(captainName, whatsapp, next);
   }
 
@@ -127,16 +139,21 @@ export function SelfTeamRegistrationForm({
   function removePlayerSlot(index: number) {
     const next = extraPlayers.filter((_, i) => i !== index);
     setExtraPlayers(next);
+    setExtraTouched(extraTouched.filter((_, i) => i !== index));
     syncPlayers(captainName, whatsapp, next);
+  }
+
+  function touchExtraSlot(index: number) {
+    setExtraTouched(extraTouched.map((t, i) => (i === index ? true : t)));
   }
 
   async function onSubmit(values: TeamRegistrationInput) {
     setFormError(null);
     const filledExtras = extraPlayers.filter((n) => n.trim().length > 0);
     if (filledExtras.length !== seatsAvailable) {
-      setFormError(
-        `Add ${seatsAvailable - filledExtras.length} more player${seatsAvailable - filledExtras.length === 1 ? "" : "s"} to complete your squad of ${maxTeamSize}.`,
-      );
+      const message = `Add ${seatsAvailable - filledExtras.length} more player${seatsAvailable - filledExtras.length === 1 ? "" : "s"} to complete your squad of ${maxTeamSize}.`;
+      setFormError(message);
+      toast.error(message);
       return;
     }
 
@@ -177,6 +194,14 @@ export function SelfTeamRegistrationForm({
     }
   }
 
+  // Fires when zod blocks the submit (e.g. an invalid WhatsApp number, a
+  // too-short name) — the inline red text under each field explains which
+  // one, but a field can easily be scrolled out of view, so this toast is
+  // the always-visible signal that something needs fixing.
+  function onInvalid() {
+    toast.error("Please fix the highlighted fields before submitting");
+  }
+
   if (submitted) {
     return (
       <Card>
@@ -201,7 +226,7 @@ export function SelfTeamRegistrationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Team details</CardTitle>
@@ -234,10 +259,18 @@ export function SelfTeamRegistrationForm({
             />
           </Field>
 
-          <Field label="Captain name">
+          <Field
+            label="Captain name"
+            error={
+              (captainNameTouched || isSubmitted)
+                ? errors.players?.[0]?.name?.message
+                : undefined
+            }
+          >
             <Input
               value={captainName}
               onChange={(e) => updateCaptainName(e.target.value)}
+              onBlur={() => setCaptainNameTouched(true)}
               placeholder="Your full name"
             />
           </Field>
@@ -246,10 +279,18 @@ export function SelfTeamRegistrationForm({
             <Input {...register("captainEmail")} type="email" placeholder="you@example.com" />
           </Field>
 
-          <Field label="WhatsApp number">
+          <Field
+            label="WhatsApp number"
+            error={
+              (whatsappTouched || isSubmitted)
+                ? errors.players?.[0]?.phone?.message
+                : undefined
+            }
+          >
             <Input
               value={whatsapp}
               onChange={(e) => updateWhatsapp(e.target.value)}
+              onBlur={() => setWhatsappTouched(true)}
               inputMode="numeric"
               placeholder="10-digit mobile"
             />
@@ -272,22 +313,31 @@ export function SelfTeamRegistrationForm({
         </CardHeader>
         <CardContent className="space-y-3">
           {extraPlayers.map((name, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <Input
-                value={name}
-                onChange={(e) => updatePlayerSlot(index, e.target.value)}
-                placeholder={`Player ${index + 2} name`}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                aria-label="Remove player"
-                onClick={() => removePlayerSlot(index)}
-              >
-                <X className="size-4" />
-              </Button>
+            <div key={index} className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={name}
+                  onChange={(e) => updatePlayerSlot(index, e.target.value)}
+                  onBlur={() => touchExtraSlot(index)}
+                  placeholder={`Player ${index + 2} name`}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  aria-label="Remove player"
+                  onClick={() => removePlayerSlot(index)}
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+              {(extraTouched[index] || isSubmitted) &&
+              errors.players?.[index + 1]?.name?.message ? (
+                <p className="text-destructive text-xs">
+                  {errors.players[index + 1]?.name?.message}
+                </p>
+              ) : null}
             </div>
           ))}
           {extraPlayers.length < seatsAvailable ? (

@@ -34,7 +34,12 @@ export const teamRegistrationSchema = z.object({
   eventId: z.string().uuid(),
   collegeId: z.string().uuid({ message: "Select your college" }),
   teamName: z.string().trim().min(2, "Team name is too short").max(100),
-  captainEmail: emailSchema.optional(),
+  // .or(z.literal("")) matches schoolRegistrationSchema's email below — an
+  // optional field's default form value is "" (RHF, not undefined), and
+  // without this, zod runs the email regex against that empty string and
+  // rejects it, showing a false "Enter a valid email address" error on a
+  // field the visitor never touched.
+  captainEmail: emailSchema.optional().or(z.literal("")),
   players: z
     .array(playerSchema)
     .min(1, "Add at least one player")

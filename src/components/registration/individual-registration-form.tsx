@@ -102,6 +102,13 @@ export function IndividualRegistrationForm({
     }
   }
 
+  // Fires when zod blocks the submit — the inline red text under a field
+  // explains which one, but it can easily be scrolled out of view, so this
+  // toast is the always-visible signal that something needs fixing.
+  function onInvalid() {
+    toast.error("Please fix the highlighted fields before submitting");
+  }
+
   if (submitted) {
     return (
       <Card>
@@ -124,7 +131,7 @@ export function IndividualRegistrationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Your details</CardTitle>
