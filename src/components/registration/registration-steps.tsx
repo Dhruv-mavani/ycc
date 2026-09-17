@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
+import { WHATSAPP_CHANNEL_URL_OFFICIAL } from "@/lib/partner-whatsapp";
 import { INSTAGRAM_URL, InstagramIcon } from "@/components/registration/event-register-cta";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +44,7 @@ export function RegistrationSteps({ children }: { children: React.ReactNode }) {
               )}
               nativeButton={false}
               render={
-                <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                <a href={WHATSAPP_CHANNEL_URL_OFFICIAL} target="_blank" rel="noopener noreferrer">
                   {whatsappJoined ? (
                     <CheckCircle2 className="size-4 shrink-0" />
                   ) : (

@@ -143,7 +143,7 @@ export function LevelUpGame() {
       <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-violet-400/30 blur-3xl sm:size-72" />
       <span className="text-5xl sm:text-6xl">🏆</span>
       <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
-        Level Up
+        Kismat Ke Khiladi <span className="text-violet-300">ft. Go Goa Gone</span>
       </h1>
       <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
         <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
@@ -174,7 +174,7 @@ export function LevelUpGame() {
           loop
           muted
           playsInline
-          aria-label="Gameplay demo of winning a round in Level Up"
+          aria-label="Gameplay demo of winning a round in Kismat Ke Khiladi ft. Go Goa Gone"
           className="w-full rounded-2xl border border-white/10 shadow-xl"
         />
       </div>

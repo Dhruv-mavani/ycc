@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { MessageCircle, Sparkles, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
+import { WHATSAPP_CHANNEL_URL, WHATSAPP_CHANNEL_URL_OFFICIAL } from "@/lib/partner-whatsapp";
 import { cn } from "@/lib/utils";
 
 export const INSTAGRAM_URL = "https://instagram.com/ycct10";
@@ -42,6 +42,13 @@ export function EventRegisterCta({
   const [whatsappJoined, setWhatsappJoined] = useState(false);
   const [instagramJoined, setInstagramJoined] = useState(false);
   const bothJoined = !requireCommunityGate || (whatsappJoined && instagramJoined);
+  // Every event's WhatsApp gate points at YCC's official channel — YCC
+  // Partners Box Cricket is the one deliberate exception, keeping the
+  // Partners channel since that event is run through the Partner Program.
+  const whatsappUrl =
+    eventSlug === "ycc-partners-box-cricket-championship-2026"
+      ? WHATSAPP_CHANNEL_URL
+      : WHATSAPP_CHANNEL_URL_OFFICIAL;
 
   return (
     <div className="space-y-3">
@@ -63,7 +70,7 @@ export function EventRegisterCta({
               )}
               nativeButton={false}
               render={
-                <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                   {whatsappJoined ? (
                     <CheckCircle2 className="size-4 shrink-0" />
                   ) : (
