@@ -41,6 +41,9 @@ export const metadata: Metadata = {
     description: "Join the ultimate youth-first cricket platform. Register your team today!",
     images: ["/brand/ycc-logo-bgless.png"],
   },
+  verification: {
+    google: "3b6XEEOLm7wKfTTiKtG-ROKFnmLbVRZSr6B0qo-4uVk",
+  },
 };
 
 export default function RootLayout({
