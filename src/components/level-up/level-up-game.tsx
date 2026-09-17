@@ -217,19 +217,31 @@ export function LevelUpGame() {
       </h1>
       <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
         <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
-          How to Play
+          How to Play &amp; Rules
         </p>
         <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-violet-300">
           <li>
-            <span className="font-bold text-white">Level 1 — Spin the Wheel.</span>{" "}
-            Pick a number and spin.
+            <span className="font-bold text-white">Level 1 — Spin the Wheel:</span>{" "}
+            Pick a number. If the wheel lands on your number, you win!
           </li>
           <li>
-            <span className="font-bold text-white">Level 2 — Roll a Dice.</span> Win
-            or lose Level 1, you move on automatically.
+            <span className="font-bold text-white">Level 2 — Roll the Dice:</span>{" "}
+            Roll the dice. If you roll the winning number, you win!
           </li>
-          <li>After Level 2, see your full results.</li>
+          <li>
+            <span className="font-bold text-white">Level 3 — Box Cricket:</span> If
+            you participate in the Box Cricket Tournament, you will get a
+            special Goa travel coupon starting at ₹2,499.
+          </li>
+          <li>You must participate in all 3 games to complete the challenge.</li>
+          <li>
+            You can play only one time. If you play more than once, we can
+            disqualify you. We can track your games and number of plays.
+          </li>
         </ol>
+        <p className="mt-4 border-l-2 border-violet-300/60 pl-3 italic text-white/80">
+          &quot;Please play fair. Thank you!&quot;
+        </p>
       </div>
 
       <div className="mt-6 w-full max-w-xs sm:max-w-sm">
@@ -250,18 +262,6 @@ export function LevelUpGame() {
       </div>
 
       <TeamPlayerGate onSelectionChange={setSelection} />
-
-      <div className="mt-4 w-full max-w-sm rounded-lg border border-blue-400/30 bg-blue-500/10 px-4 py-3 text-left text-xs leading-relaxed text-blue-100 sm:text-sm">
-        <p className="mb-1.5 font-bold uppercase tracking-wide text-blue-200">
-          Rules
-        </p>
-        <ul className="list-disc space-y-1 pl-4 marker:text-blue-300">
-          <li>Please play only once.</li>
-          <li>We can see every game played on our end.</li>
-          <li>Repeat gameplay may cause disqualification.</li>
-          <li>Thanks for keeping it fair!</li>
-        </ul>
-      </div>
 
       <button
         type="button"
