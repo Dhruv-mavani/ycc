@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GameBackLink } from "@/components/site/game-back-link";
 
 export const metadata: Metadata = {
-  title: "Level Up | YCC",
+  title: "Kismat Ke Khiladi ft. Go Goa Gone | YCC",
   description:
     "Two levels, one code: Spin the Wheel, then Roll a Dice. Win or lose, you always move on to the next level.",
 };
