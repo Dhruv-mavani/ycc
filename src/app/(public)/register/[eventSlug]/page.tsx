@@ -163,6 +163,7 @@ export default async function RegisterPage({
                   ) : (
                     <SelfTeamRegistrationForm
                       eventId={event.id}
+                      eventSlug={event.slug}
                       eventName={event.name}
                       maxTeamSize={event.max_team_size ?? 6}
                       feePaise={event.fee_paise}

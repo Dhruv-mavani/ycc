@@ -9,6 +9,7 @@ import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Card,
@@ -18,11 +19,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   teamRegistrationSchema,
   type TeamRegistrationInput,
 } from "@/lib/validations/registration";
 import { CashfreeCheckoutButton } from "@/components/registration/cashfree-checkout-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
+import { GoGoaGoneTermsContent } from "@/components/registration/go-goa-gone-terms-content";
 
 interface CollegeOption {
   id: string;
@@ -38,6 +46,7 @@ interface CollegeOption {
  */
 export function SelfTeamRegistrationForm({
   eventId,
+  eventSlug,
   eventName,
   maxTeamSize,
   feePaise,
@@ -46,6 +55,9 @@ export function SelfTeamRegistrationForm({
   colleges,
 }: {
   eventId: string;
+  /** Only used to scope event-specific one-off UI, e.g. the Go Goa Gone
+   * T&C checkbox below — not sent to the API. */
+  eventSlug?: string;
   eventName: string;
   maxTeamSize: number;
   feePaise: number;
@@ -59,6 +71,9 @@ export function SelfTeamRegistrationForm({
 }) {
   const router = useRouter();
   const [redirecting, setRedirecting] = useState(false);
+  const isGoGoaGone = eventSlug === "ycc-go-goa-gone";
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const [submitted, setSubmitted] = useState<{
     registrationId: string;
     amountPaise: number;
@@ -354,13 +369,52 @@ export function SelfTeamRegistrationForm({
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting || redirecting}>
+      {isGoGoaGone ? (
+        <div className="flex items-start gap-2.5">
+          <Checkbox
+            id="agreedToTerms"
+            checked={agreedToTerms}
+            onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+            className="mt-0.5"
+          />
+          <Label htmlFor="agreedToTerms" className="font-normal">
+            I agree to the{" "}
+            <button
+              type="button"
+              onClick={() => setTermsOpen(true)}
+              className="font-medium text-primary underline underline-offset-2"
+            >
+              T&amp;C
+            </button>
+            <span className="text-destructive"> *</span>
+          </Label>
+        </div>
+      ) : null}
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={
+          isSubmitting || redirecting || (isGoGoaGone && !agreedToTerms)
+        }
+      >
         {isSubmitting || redirecting
           ? "Submitting..."
           : payAtVenue
             ? "Register"
             : "Continue to payment"}
       </Button>
+
+      {isGoGoaGone ? (
+        <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Kismat Ke Khiladi — Terms &amp; Conditions</DialogTitle>
+            </DialogHeader>
+            <GoGoaGoneTermsContent />
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </form>
   );
 }

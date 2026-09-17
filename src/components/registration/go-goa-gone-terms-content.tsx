@@ -1,0 +1,551 @@
+// Official Terms & Conditions for YCC Kismat Ke Khiladi ft. Go, Goa, Gone
+// With Your Squad, as provided by the organizer (September 2026). Rendering
+// shape (title + p/ul blocks) matches partner-tournament-terms-content.tsx.
+
+type Block =
+  | { type: "p"; text: string }
+  | { type: "ul"; items: string[] };
+
+interface TermsSection {
+  title: string;
+  blocks: Block[];
+}
+
+const SECTIONS: TermsSection[] = [
+  {
+    title: "1. Event Structure",
+    blocks: [
+      {
+        type: "p",
+        text: "The Event consists of the following activities:",
+      },
+      {
+        type: "ul",
+        items: ["YCC Spin the Wheel", "YCC Cube Challenge", "YCC Box Cricket League"],
+      },
+      {
+        type: "p",
+        text: "The two challenges are intended to be completed by eligible participants along with participation in the YCC Box Cricket League, subject to the applicable eligibility requirements.",
+      },
+    ],
+  },
+  {
+    title: "2. Eligibility for Event Benefits",
+    blocks: [
+      {
+        type: "p",
+        text: "To become eligible for the applicable benefits, prizes, promotional rewards or other opportunities offered under YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, a Participant must:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Actively participate in both YCC challenges;",
+          "Participate in the YCC Box Cricket League through their registered squad/team;",
+          "Follow all applicable rules and instructions issued by YCC;",
+          "Complete the activities through the authorised YCC process;",
+          "Provide accurate participant and team information wherever required; and",
+          "Successfully pass YCC's verification process.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Participation in only one or two activities does not automatically establish eligibility for the benefits associated with completion of all three activities.",
+      },
+      {
+        type: "p",
+        text: "Participation in the Box Cricket League may require payment of the applicable tournament entry fee. The promotional challenges themselves may be offered free of participation charges unless otherwise communicated by YCC.",
+      },
+    ],
+  },
+  {
+    title: "3. One-Attempt / One-Chance Policy",
+    blocks: [
+      {
+        type: "p",
+        text: "Each Participant is entitled to one official attempt only for each applicable challenge.",
+      },
+      {
+        type: "p",
+        text: "Once the Participant has completed an official attempt, the result recorded by YCC will be treated as the Participant's official result.",
+      },
+      {
+        type: "p",
+        text: "A Participant cannot:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Demand an additional attempt;",
+          "Replay a challenge because they did not obtain the desired result;",
+          "Request a result change after completion;",
+          "Repeat a challenge through another person, device, account or method; or",
+          "Claim that they should receive another opportunity because of an unfavourable result.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Any additional attempt may only be permitted by YCC in exceptional circumstances determined by the Organiser, including a verified technical or operational issue.",
+      },
+    ],
+  },
+  {
+    title: "4. Role of YCC Campus Partners",
+    blocks: [
+      {
+        type: "p",
+        text: "YCC may conduct the challenges through its authorised YCC Campus Partners at participating colleges, campuses or classes.",
+      },
+      {
+        type: "p",
+        text: "The YCC Campus Partner is authorised to conduct the challenge according to the official instructions and process provided by YCC.",
+      },
+      {
+        type: "p",
+        text: "Participants must cooperate with the Campus Partner and must not:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Force or pressure a Campus Partner to provide another attempt;",
+          "Demand repeated gameplay;",
+          "Interfere with the official process;",
+          "Attempt to manipulate the result; or",
+          "Claim an unofficial attempt as an official attempt.",
+        ],
+      },
+      {
+        type: "p",
+        text: "YCC reserves the right to review and verify the activities conducted by its Campus Partners.",
+      },
+    ],
+  },
+  {
+    title: "5. Finality of the Official Game Result",
+    blocks: [
+      {
+        type: "p",
+        text: "The YCC Kismat Ke Khiladi challenge is intended to be a one-time participation opportunity for each eligible Participant.",
+      },
+      {
+        type: "p",
+        text: "Where the challenge is conducted by an authorised YCC Campus Partner in a Participant's class, campus or designated location, that officially recorded attempt will constitute the Participant's final official attempt for the Event.",
+      },
+      {
+        type: "p",
+        text: "If the Participant wins the challenge according to the applicable rules, the result will be recorded as a win. If the Participant does not win, the result will be recorded accordingly.",
+      },
+      {
+        type: "p",
+        text: "A Participant cannot demand a replay solely because they are dissatisfied with the outcome.",
+      },
+    ],
+  },
+  {
+    title: "6. Game Rules",
+    blocks: [
+      { type: "p", text: "A. YCC Spin the Wheel" },
+      {
+        type: "ul",
+        items: [
+          "The Participant must select one number between 1 and 10.",
+          "The Participant will receive one official opportunity to spin the wheel.",
+          "The Participant wins the challenge only if the wheel lands on the number selected by the Participant, subject to verification by YCC.",
+          "The official result recorded by YCC will be treated as the final result for that attempt.",
+        ],
+      },
+      { type: "p", text: "B. YCC Cube Challenge" },
+      {
+        type: "ul",
+        items: [
+          "The Participant must select one number between 2 and 12.",
+          "Two dice/cubes will be rolled as part of the challenge.",
+          "The numbers appearing on both dice will be added together.",
+          "The Participant wins the challenge only if the total of the two dice matches the number selected by the Participant.",
+          "Only the officially recorded roll will be considered valid.",
+          "The Participant will not be entitled to another attempt because the result was not in their favour.",
+        ],
+      },
+    ],
+  },
+  {
+    title: "7. YCC Box Cricket League",
+    blocks: [
+      {
+        type: "p",
+        text: "Participation in the YCC Box Cricket League is a separate sporting activity and is subject to its own tournament rules, registration requirements and applicable entry fees.",
+      },
+      {
+        type: "p",
+        text: "To qualify for benefits associated with YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, the Participant must participate through an eligible registered team/squad in the applicable YCC Box Cricket League.",
+      },
+      { type: "p", text: "Important:" },
+      {
+        type: "ul",
+        items: [
+          "YCC Box Cricket League participation is not necessarily free.",
+          "The applicable tournament entry fee must be paid by the participating team/players in accordance with the tournament registration terms communicated by YCC.",
+          "Payment of the Box Cricket entry fee does not by itself guarantee any prize, travel benefit, free trip, cash reward or other promotional benefit.",
+        ],
+      },
+    ],
+  },
+  {
+    title: "8. Promotional Benefits & Travel Coupons",
+    blocks: [
+      {
+        type: "p",
+        text: "Participants who successfully complete the required activities may become eligible for certain promotional benefits announced by YCC. Such benefits may include, subject to the specific promotion:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Special travel coupons;",
+          "Promotional travel offers;",
+          "Discounted trip opportunities;",
+          "Event-related rewards;",
+          "Special squad benefits; or",
+          "Other benefits communicated by YCC.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Where a travel coupon or promotional travel offer is provided, the applicable terms, validity, availability, inclusions, exclusions, booking conditions and participant contribution will apply separately.",
+      },
+      {
+        type: "p",
+        text: "A promotional travel coupon should not be interpreted as an unconditional promise of a completely free trip unless YCC expressly states so in the applicable official promotion.",
+      },
+    ],
+  },
+  {
+    title: "9. Winner Determination",
+    blocks: [
+      {
+        type: "p",
+        text: "Where the Event provides for a particular winner or winning squad, only the Participant or Squad that satisfies all applicable eligibility requirements and official game conditions will qualify.",
+      },
+      {
+        type: "p",
+        text: "If more than one Participant or Squad achieves an identical winning result where only one winner can be selected, YCC may conduct a random draw/lottery-style selection among the verified eligible winners, subject to applicable law and the specific promotion rules.",
+      },
+      {
+        type: "p",
+        text: "The selected winner from that process will be treated as the winner for that particular promotional benefit. YCC's records and verification process will be used to establish eligibility.",
+      },
+    ],
+  },
+  {
+    title: "10. Verification of Participation and Results",
+    blocks: [
+      {
+        type: "p",
+        text: "YCC may maintain records relating to participation in the Event, including, where applicable:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Participant details;",
+          "Team/squad details;",
+          "Team code;",
+          "Challenge participation;",
+          "Number of attempts;",
+          "Game results;",
+          "Match participation;",
+          "Official score or match records;",
+          "Registration information;",
+          "Digital records;",
+          "Photographs/videos or other event records; and",
+          "Other information reasonably required for verification.",
+        ],
+      },
+      {
+        type: "p",
+        text: "These records may be used to verify whether a Participant genuinely participated and whether the Participant is eligible for a particular benefit or prize. Where appropriate, YCC may request additional information or documents for verification.",
+      },
+    ],
+  },
+  {
+    title: "11. False Claims, Fake Screenshots & Fraudulent Representation",
+    blocks: [
+      {
+        type: "p",
+        text: "Participants must not submit or circulate false evidence of participation or winning. This includes, without limitation:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Fake screenshots;",
+          "Edited screenshots;",
+          "AI-generated images presented as genuine evidence;",
+          "Manipulated videos;",
+          "Fake certificates;",
+          "False registration information;",
+          "False match records;",
+          "Impersonation of another Participant; or",
+          "Any other misleading representation intended to obtain a prize, benefit or recognition.",
+        ],
+      },
+      {
+        type: "p",
+        text: "YCC's official participation records and other available evidence may be used to verify such claims. If YCC determines that a claim is fraudulent, manipulated or materially misleading, YCC may:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Reject the claim;",
+          "Disqualify the Participant or Squad;",
+          "Cancel any benefit or prize associated with the fraudulent claim;",
+          "Restrict the Participant from participating in future YCC activities; and/or",
+          "Take appropriate legal or other action available under applicable law.",
+        ],
+      },
+    ],
+  },
+  {
+    title: "12. No Manipulation of the Game",
+    blocks: [
+      {
+        type: "p",
+        text: "Participants must not attempt to manipulate, interfere with or compromise the fairness of any challenge or tournament activity. Any attempt to:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Obtain additional attempts;",
+          "Manipulate equipment;",
+          "Interfere with dice, wheel or other game mechanisms;",
+          "Tamper with digital records;",
+          "Use another person's identity;",
+          "Manipulate match participation records; or",
+          "Otherwise obtain an unfair advantage",
+        ],
+      },
+      {
+        type: "p",
+        text: "may result in immediate disqualification.",
+      },
+    ],
+  },
+  {
+    title: "13. Team & Player Verification",
+    blocks: [
+      {
+        type: "p",
+        text: "For team-based activities, each player must participate using their genuine identity and registered team information. YCC may verify:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Player identity;",
+          "Team membership;",
+          "Team code;",
+          "Registration details;",
+          "Match participation; and",
+          "Other relevant records.",
+        ],
+      },
+      {
+        type: "p",
+        text: "A player may not participate multiple times for the purpose of obtaining multiple promotional opportunities where the Event rules provide for one participation opportunity per player.",
+      },
+    ],
+  },
+  {
+    title: "14. No Guarantee of Prize or Travel Benefit",
+    blocks: [
+      {
+        type: "p",
+        text: "Participation in the Event does not automatically guarantee a prize, free trip, cash reward, travel coupon or other benefit. Benefits are subject to:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Successful completion of the applicable activities;",
+          "Eligibility;",
+          "Verification;",
+          "Availability;",
+          "Applicable promotional conditions; and",
+          "Compliance with these Terms & Conditions.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Where a benefit is subject to limited availability, YCC may specify the number of eligible winners or recipients in the applicable promotional announcement.",
+      },
+    ],
+  },
+  {
+    title: "15. Changes, Suspension or Cancellation",
+    blocks: [
+      {
+        type: "p",
+        text: "YCC reserves the right, where reasonably necessary, to modify, suspend, postpone or cancel any part of the Event due to circumstances including:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Technical problems;",
+          "Operational difficulties;",
+          "Venue or scheduling issues;",
+          "Force majeure events;",
+          "Safety concerns;",
+          "Fraud or attempted manipulation;",
+          "Regulatory or legal requirements; or",
+          "Other circumstances beyond the reasonable control of YCC.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Where material changes are made, YCC may communicate the applicable changes through its official communication channels.",
+      },
+    ],
+  },
+  {
+    title: "16. Technical & Operational Issues",
+    blocks: [
+      {
+        type: "p",
+        text: "YCC will make reasonable efforts to conduct the challenges fairly and according to the announced rules.",
+      },
+      {
+        type: "p",
+        text: "However, YCC will not be responsible for failure or interruption caused by circumstances beyond its reasonable control, including internet connectivity, device malfunction, network problems, power failure, third-party technical services or other technical issues.",
+      },
+      {
+        type: "p",
+        text: "Where YCC determines that a genuine technical or operational error materially affected an official attempt, YCC may take appropriate corrective action, including permitting a fresh attempt where reasonably necessary.",
+      },
+    ],
+  },
+  {
+    title: "17. Participant Responsibility",
+    blocks: [
+      { type: "p", text: "Participants are responsible for:" },
+      {
+        type: "ul",
+        items: [
+          "Providing accurate information;",
+          "Following the instructions of authorised YCC representatives;",
+          "Maintaining their registration information;",
+          "Participating personally;",
+          "Following the applicable game and tournament rules; and",
+          "Keeping any registration confirmation or other relevant information provided to them.",
+        ],
+      },
+    ],
+  },
+  {
+    title: "18. Acceptance of Terms",
+    blocks: [
+      {
+        type: "p",
+        text: "By participating in YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, the Participant confirms that they have read and understood these Terms & Conditions and agree to comply with them.",
+      },
+      {
+        type: "p",
+        text: "Participation in the Event constitutes acceptance of these Terms & Conditions and the applicable rules communicated by YCC.",
+      },
+    ],
+  },
+  {
+    title: "19. Governing Law",
+    blocks: [
+      {
+        type: "p",
+        text: "These Terms & Conditions shall be governed by and interpreted in accordance with the applicable laws of India.",
+      },
+      {
+        type: "p",
+        text: "Any dispute arising in connection with the Event shall be subject to the jurisdiction of the courts having appropriate jurisdiction over the Organiser's place of business, subject to applicable law.",
+      },
+    ],
+  },
+  {
+    title: "20. Official Communication",
+    blocks: [
+      {
+        type: "p",
+        text: "Participants should rely only on information communicated through YCC's authorised and official communication channels.",
+      },
+      {
+        type: "p",
+        text: "YCC shall not be responsible for commitments, promises or representations made by unauthorised individuals.",
+      },
+      {
+        type: "p",
+        text: "For clarification regarding the Event, participants should contact YCC through its official communication channels.",
+      },
+    ],
+  },
+  {
+    title: "Important Participant Notice",
+    blocks: [
+      {
+        type: "ul",
+        items: [
+          "1 Player = 1 Official Attempt",
+          "2 Challenges + YCC Box Cricket League = Eligibility for Applicable Event Benefits",
+          "No Fake Screenshots • No Manipulation • No Extra Attempts",
+          "Official YCC Records Will Be Used for Verification",
+          "Box Cricket League Entry Fees Apply Separately",
+          "All Benefits Are Subject to Eligibility, Verification & Applicable Promotional Terms",
+        ],
+      },
+    ],
+  },
+];
+
+function BlockContent({ block }: { block: Block }) {
+  if (block.type === "ul") {
+    return (
+      <ul className="list-disc space-y-1 pl-5">
+        {block.items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    );
+  }
+  return <p>{block.text}</p>;
+}
+
+export function GoGoaGoneTermsContent() {
+  return (
+    <div className="space-y-5 text-sm text-muted-foreground">
+      <div className="space-y-1">
+        <p className="text-xs font-semibold tracking-wide uppercase text-foreground">
+          YCC Kismat Ke Khiladi Ft. Go, Goa, Gone With Your Squad
+        </p>
+        <p className="font-medium text-foreground">Terms &amp; Conditions</p>
+        <p>
+          These Terms &amp; Conditions ("Terms") govern participation in YCC
+          Kismat Ke Khiladi Ft. Go, Goa, Gone With Your Squad ("Event"),
+          organised and managed by YCC ("YCC", "Organiser", "we", "us" or
+          "our"). By participating in any challenge or activity associated
+          with this Event, the participant ("Participant", "you" or "your")
+          acknowledges that they have read, understood and agreed to these
+          Terms &amp; Conditions.
+        </p>
+      </div>
+
+      {SECTIONS.map((section) => (
+        <div key={section.title} className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">
+            {section.title}
+          </h3>
+          <div className="space-y-2">
+            {section.blocks.map((block, i) => (
+              <BlockContent key={i} block={block} />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div className="space-y-0.5 border-t border-border pt-4 text-xs">
+        <p>Organiser: YCC</p>
+        <p>Event: YCC Kismat Ke Khiladi Ft. Go, Goa, Gone With Your Squad</p>
+        <p>Nature of Activity: Sports Tournament, Games &amp; Promotional Contest</p>
+        <p>Last Updated: September 2026</p>
+      </div>
+    </div>
+  );
+}

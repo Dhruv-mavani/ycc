@@ -95,6 +95,13 @@ export default async function EventDetailPage({
             <p className="text-slate-600 text-base sm:text-lg md:text-xl leading-relaxed max-w-2xl relative z-10">
               {event.description}
             </p>
+            {isGoGoaGone && (
+              <div className="mt-4 max-w-2xl rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700 relative z-10 sm:text-base">
+                Please play only once — we can see every game played on our
+                end, and repeat gameplay may cost you your chance at the Goa
+                trip. Thanks for keeping it fair!
+              </div>
+            )}
           </div>
 
           {/* Event Details */}
