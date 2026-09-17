@@ -124,15 +124,15 @@ const teamStyles = StyleSheet.create({
   logo: {
     width: ts(TEAM_LOGO_W),
     height: tsy(TEAM_LOGO_H),
-    marginBottom: tsy(48),
+    marginBottom: tsy(70),
   },
   passTitle: {
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    fontSize: ts(24),
-    letterSpacing: ts(2.5),
+    fontSize: ts(32),
+    letterSpacing: ts(3),
     color: TEAM_NAVY,
-    marginBottom: tsy(12),
+    marginBottom: tsy(40),
   },
   // Alex Brush's space glyph renders at near-zero width in react-pdf/pdfkit
   // — a multi-word team name like "SCET Titans" collapses into
@@ -159,8 +159,8 @@ const teamStyles = StyleSheet.create({
     color: TEAM_NAVY,
   },
   underline: {
-    marginTop: tsy(6),
-    marginBottom: tsy(10),
+    marginTop: tsy(12),
+    marginBottom: tsy(32),
   },
   paragraph: {
     width: ts(TEAM_SAFE_W - 160),
@@ -169,7 +169,7 @@ const teamStyles = StyleSheet.create({
     fontSize: ts(21),
     lineHeight: 1.28,
     color: TEAM_TEXT_DARK,
-    marginBottom: tsy(10),
+    marginBottom: tsy(36),
   },
   // Captain/player names inline within the paragraph prose — same script
   // family as "Dear," and the team name, scaled up from the surrounding
@@ -186,8 +186,8 @@ const teamStyles = StyleSheet.create({
     fontSize: ts(16),
     letterSpacing: ts(1.5),
     color: TEAM_NAVY,
-    marginTop: tsy(2),
-    marginBottom: tsy(4),
+    marginTop: tsy(8),
+    marginBottom: tsy(14),
   },
   rosterLine: {
     width: ts(TEAM_SAFE_W - 160),
@@ -204,7 +204,7 @@ const teamStyles = StyleSheet.create({
   },
   box: {
     width: ts(760),
-    marginTop: tsy(14),
+    marginTop: tsy(50),
     border: `${ts(1.5)} solid ${TEAM_NAVY}`,
     borderRadius: ts(6),
     paddingVertical: ts(10),
@@ -230,7 +230,7 @@ const teamStyles = StyleSheet.create({
     fontSize: ts(18),
     color: TEAM_TEXT_DARK,
     textAlign: "center",
-    marginBottom: tsy(4),
+    marginBottom: tsy(14),
   },
   detailLabel: {
     fontFamily: "Helvetica-Bold",
@@ -241,14 +241,14 @@ const teamStyles = StyleSheet.create({
     fontSize: ts(28),
     letterSpacing: ts(3),
     color: TEAM_LOGO_BLUE,
-    marginTop: tsy(10),
+    marginTop: tsy(40),
   },
   tandc: {
     textAlign: "center",
     fontFamily: "Helvetica",
     fontSize: ts(9),
     color: "#8a8580",
-    marginTop: tsy(8),
+    marginTop: tsy(28),
   },
 });
 
@@ -479,7 +479,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
 
           <Text style={teamStyles.passTitle}>OFFICIAL TEAM INVITATION PASS</Text>
 
-          <Text style={teamStyles.dearLine}>Dear,</Text>
+          <Text style={teamStyles.dearLine}>Dear Team,</Text>
           <Text style={teamStyles.nameLine}>Team {data.teamName}</Text>
           <Svg
             style={[{ alignSelf: "center" }, teamStyles.underline]}
@@ -503,6 +503,21 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             players={data.players}
             nameStyle={teamStyles.inlineName}
           />
+          <Svg
+            style={[{ alignSelf: "center" }, teamStyles.underline]}
+            width={ts(underlineNativeW)}
+            height={tsy(6)}
+          >
+            <Line
+              x1={0}
+              y1={tsy(3)}
+              x2={ts(underlineNativeW)}
+              y2={tsy(3)}
+              stroke={TEAM_LOGO_BLUE}
+              strokeWidth={ts(2.5)}
+              strokeLinecap="round"
+            />
+          </Svg>
 
           <Text style={teamStyles.paragraph}>
             Congratulations! Your team has been officially invited and
@@ -512,7 +527,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             memorable, and full of masti and fun.
           </Text>
 
-          <Text style={[teamStyles.detailLine, { marginTop: tsy(20) }]}>
+          <Text style={[teamStyles.detailLine, { marginTop: tsy(14) }]}>
             <Text style={teamStyles.detailLabel}>College: </Text>
             {data.collegeName}
           </Text>
@@ -530,7 +545,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             </Text>
           </View>
 
-          <Text style={[teamStyles.paragraph, { marginTop: tsy(12), marginBottom: 0 }]}>
+          <Text style={[teamStyles.paragraph, { marginTop: tsy(50), marginBottom: 0 }]}>
             For all schedules, venue details, match updates, and
             announcements, stay connected with our official social media
             channels.
