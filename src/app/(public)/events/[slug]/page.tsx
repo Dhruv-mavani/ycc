@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,53 @@ import { EventRegisterCta } from "@/components/registration/event-register-cta";
 
 function formatRupees(paise: number) {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
+}
+
+// Poster used per event for social share previews — falls back to the site's
+// default OG image (see root layout) when an event has none of its own.
+function posterFor(slug: string): string | undefined {
+  if (slug === "ycc-go-goa-gone") return "/go-goa-gone/poster.png";
+  if (slug === "cricket-championship-2026") return "/box-cricket/poster.png";
+  if (slug === "ycc-jackpot-heist") return "/jackpot-heist/poster.png";
+  return undefined;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const [{ slug }, supabase] = await Promise.all([params, createClient()]);
+  const { data: event } = await supabase
+    .from("events")
+    .select("name, description")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!event) return {};
+
+  const title = `${event.name} | YCC`;
+  const description = event.description ?? undefined;
+  const poster = posterFor(slug);
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/events/${slug}` },
+    openGraph: {
+      title,
+      description,
+      url: `/events/${slug}`,
+      images: poster ? [{ url: poster }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: poster ? [poster] : undefined,
+    },
+  };
 }
 
 export default async function EventDetailPage({
