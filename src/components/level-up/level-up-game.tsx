@@ -213,11 +213,14 @@ export function LevelUpGame() {
       <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-violet-400/30 blur-3xl sm:size-72" />
       <span className="text-5xl sm:text-6xl">🏆</span>
       <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
-        Kismat Ke Khiladi <span className="text-violet-300">ft. Go Goa Gone</span>
+        Kismat Ke Khiladi
+        <span className="block text-2xl text-violet-300 sm:text-3xl md:text-5xl">
+          ft. Go Goa Gone
+        </span>
       </h1>
       <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
         <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
-          How to Play &amp; Rules
+          Game &amp; Rules
         </p>
         <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-violet-300">
           <li>
