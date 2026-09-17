@@ -252,9 +252,15 @@ export function LevelUpGame() {
       <TeamPlayerGate onSelectionChange={setSelection} />
 
       <div className="mt-4 w-full max-w-sm rounded-lg border border-blue-400/30 bg-blue-500/10 px-4 py-3 text-left text-xs leading-relaxed text-blue-100 sm:text-sm">
-        Please play only once — we can see every game played on our end, and
-        repeat gameplay may cost you your chance at the Goa trip. Thanks for
-        keeping it fair!
+        <p className="mb-1.5 font-bold uppercase tracking-wide text-blue-200">
+          Rules
+        </p>
+        <ul className="list-disc space-y-1 pl-4 marker:text-blue-300">
+          <li>Please play only once.</li>
+          <li>We can see every game played on our end.</li>
+          <li>Repeat gameplay may cause disqualification.</li>
+          <li>Thanks for keeping it fair!</li>
+        </ul>
       </div>
 
       <button
