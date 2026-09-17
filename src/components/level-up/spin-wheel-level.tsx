@@ -93,6 +93,10 @@ const SPIN_MS = 4500;
 const PRESPIN_MS = 300;
 const READ_MS = 700;
 const EXTRA_SPINS = 6;
+// How long the result screen (picked vs. landed, won/lost) sits on screen
+// before auto-advancing to Level 2 — no button, just a pause long enough to
+// actually read the outcome.
+const RESULT_HOLD_MS = 4000;
 
 const NUMBER_COLORS = ["#fb923c", "#0e7490"] as const;
 const PRIZE_COLORS = ["#facc15", "#f59e0b", "#eab308"] as const;
@@ -197,8 +201,12 @@ type Action =
   | { type: "OPEN"; prizes: PrizeSection[] }
   | { type: "SETTLE" };
 
-function initialState(): GameState {
-  return { phase: "pick", picked: null, sections: [], landedIndex: null };
+function initialState(prizes: PrizeSection[]): GameState {
+  // The wheel is visible (idle) from the very start, alongside the number
+  // picker — not just once spinning begins — so its sections are built up
+  // front from the (fixed, per-selection) prize list rather than lazily in
+  // OPEN below.
+  return { phase: "pick", picked: null, sections: buildSections(prizes), landedIndex: null };
 }
 
 function reducer(state: GameState, action: Action): GameState {
@@ -207,9 +215,8 @@ function reducer(state: GameState, action: Action): GameState {
       return state.phase === "pick" ? { ...state, picked: action.n } : state;
     case "OPEN": {
       if (state.phase !== "pick" || state.picked === null) return state;
-      const sections = buildSections(action.prizes);
       const landedIndex = drawSection(state.picked, action.prizes);
-      return { ...state, phase: "spinning", sections, landedIndex };
+      return { ...state, phase: "spinning", landedIndex };
     }
     case "SETTLE": {
       if (state.phase !== "spinning" || state.landedIndex === null || state.picked === null)
@@ -222,6 +229,13 @@ function reducer(state: GameState, action: Action): GameState {
     default:
       return state;
   }
+}
+
+export interface SpinWheelResultDetail {
+  picked: number;
+  /** What the wheel actually landed on — a number, or a prize name. */
+  landedLabel: string;
+  wonPrizeName: string | null;
 }
 
 export function SpinWheelLevel({
@@ -238,9 +252,10 @@ export function SpinWheelLevel({
    * level-up-game.tsx — so the admin Games insights page can pair this
    * run's two game_plays rows back into one combined box. */
   levelUpSessionId: string;
-  onDone: (result: "won" | "lost") => void;
+  onDone: (result: "won" | "lost", detail: SpinWheelResultDetail) => void;
 }) {
-  const [state, dispatch] = useReducer(reducer, undefined, initialState);
+  const prizes = prizesFor(selection.source, selection.eventSlug);
+  const [state, dispatch] = useReducer(reducer, prizes, initialState);
   const mutedRef = useRef(muted);
   useEffect(() => {
     mutedRef.current = muted;
@@ -300,7 +315,36 @@ export function SpinWheelLevel({
     }).catch(() => {});
   }, [state.phase, state.picked, state.landedIndex, state.sections, selection, levelUpSessionId]);
 
-  const prizes = prizesFor(selection.source, selection.eventSlug);
+  const landedSection =
+    state.landedIndex !== null ? state.sections[state.landedIndex] : null;
+  const wonPrize =
+    state.phase === "won" && landedSection?.kind === "prize" ? landedSection.prize : null;
+  const landedLabel =
+    landedSection?.kind === "prize" ? landedSection.prize.name : String(landedSection?.value ?? "");
+
+  // Auto-advances to Level 2 once the result has sat on screen long enough
+  // to read (RESULT_HOLD_MS) — no button, matching Level 2's own
+  // auto-advance to the final summary. Guarded by a ref so StrictMode's
+  // double-invoke can't fire onDone twice.
+  const doneRef = useRef(false);
+  /* eslint-disable react-hooks/exhaustive-deps -- onDone is a fresh closure
+     from the parent every render; only the phase actually arming this timer
+     should re-trigger it. picked/landedLabel/wonPrize are already frozen
+     (derived from state) by the time phase settles. */
+  useEffect(() => {
+    if (state.phase !== "won" && state.phase !== "lost") return;
+    if (doneRef.current) return;
+    doneRef.current = true;
+    const timer = window.setTimeout(() => {
+      onDone(state.phase as "won" | "lost", {
+        picked: state.picked as number,
+        landedLabel,
+        wonPrizeName: wonPrize?.name ?? null,
+      });
+    }, RESULT_HOLD_MS);
+    return () => window.clearTimeout(timer);
+  }, [state.phase]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const muteButton = (
     <button
@@ -317,33 +361,54 @@ export function SpinWheelLevel({
     </button>
   );
 
-  if (state.phase === "pick") {
+  if (state.phase === "pick" || state.phase === "spinning") {
+    const spinning = state.phase === "spinning";
     return (
-      <div className="relative flex min-h-screen flex-col items-center px-4 py-14">
+      <div className="relative flex min-h-screen flex-col items-center px-4 py-10 sm:py-14">
         {muteButton}
         <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-amber-300 sm:mt-0">
           Level 1 of 2
         </p>
-        <h1 className="mt-2 text-center text-xl font-black sm:text-2xl md:text-4xl">
+
+        {/* The wheel sits up top from the very start (idle, unspun) so
+            picking a number and spinning it happen on one screen — Spin
+            the Wheel just sets it in motion in place instead of navigating
+            to a separate view. */}
+        <div className="mt-6">
+          <WheelDisplay
+            sections={state.sections}
+            shouldSpin={spinning}
+            landedIndex={state.landedIndex}
+            play={play}
+            stopSfx={stopSfx}
+            onSettle={() => dispatch({ type: "SETTLE" })}
+          />
+        </div>
+
+        <h1 className="mt-8 text-center text-xl font-black sm:text-2xl md:text-4xl">
           Pick your number
         </h1>
         <p className="mt-2 text-center text-xs text-white/70 sm:text-sm md:text-base">
-          {state.picked === null
-            ? `Choose any number from 1 to ${NUM_COUNT}.`
-            : `You picked ${state.picked}. Spin when you're ready.`}
+          {spinning
+            ? `Spinning… your number: ${state.picked}`
+            : state.picked === null
+              ? `Choose any number from 1 to ${NUM_COUNT}.`
+              : `You picked ${state.picked}. Spin when you're ready.`}
         </p>
 
-        <div className="mt-8 grid w-full max-w-sm grid-cols-5 gap-2">
+        <div className="mt-6 grid w-full max-w-sm grid-cols-5 gap-2">
           {Array.from({ length: NUM_COUNT }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
               type="button"
+              disabled={spinning}
               onClick={() => dispatch({ type: "PICK", n })}
               className={cn(
                 "flex aspect-square items-center justify-center rounded-lg border text-base font-bold transition-all duration-300 sm:text-lg",
                 state.picked === n
                   ? "scale-110 border-amber-300 bg-gradient-to-br from-amber-300 to-amber-500 text-black shadow-[0_0_20px_rgba(251,191,36,0.55)] z-10"
                   : "border-white/10 bg-white/5 text-white backdrop-blur-sm hover:scale-110 hover:border-white/30 hover:bg-white/20 hover:shadow-lg z-0",
+                spinning && "opacity-50",
               )}
             >
               {n}
@@ -353,48 +418,22 @@ export function SpinWheelLevel({
 
         <button
           type="button"
-          disabled={state.picked === null}
+          disabled={state.picked === null || spinning}
           onClick={() => dispatch({ type: "OPEN", prizes })}
           className={cn(
             "mt-10 rounded-xl px-6 py-2.5 text-base font-bold shadow-lg transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
-            state.picked === null
+            state.picked === null || spinning
               ? "cursor-not-allowed bg-white/5 border border-white/10 text-white/40"
               : "bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-xl shadow-amber-500/20 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 border border-transparent",
           )}
         >
-          Spin the Wheel
+          {spinning ? "Spinning…" : "Spin the Wheel"}
         </button>
       </div>
     );
   }
 
-  if (state.phase === "spinning") {
-    return (
-      <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
-        {muteButton}
-        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-amber-300">
-          Your number: {state.picked}
-        </p>
-        <p className="mb-10 text-lg font-medium text-white/80 md:text-xl">
-          Spinning…
-        </p>
-        <SpinningWheel
-          sections={state.sections}
-          landedIndex={state.landedIndex ?? 0}
-          play={play}
-          stopSfx={stopSfx}
-          onSettle={() => dispatch({ type: "SETTLE" })}
-        />
-      </div>
-    );
-  }
-
   const won = state.phase === "won";
-  const landedSection =
-    state.landedIndex !== null ? state.sections[state.landedIndex] : null;
-  const wonPrize = won && landedSection?.kind === "prize" ? landedSection.prize : null;
-  const landedLabel =
-    landedSection?.kind === "prize" ? landedSection.prize.name : String(landedSection?.value ?? "");
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
@@ -433,32 +472,34 @@ export function SpinWheelLevel({
         )}
       </p>
 
-      <button
-        type="button"
-        onClick={() => onDone(state.phase as "won" | "lost")}
-        className="mt-10 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-amber-500/20 transition-all duration-300 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 sm:px-8 sm:py-3 sm:text-xl"
-      >
-        Continue to Level 2
-        <ArrowRight className="size-5" />
-      </button>
+      {/* No button — RESULT_HOLD_MS above auto-advances to Level 2 once
+          there's been time to actually read this. */}
+      <p className="mt-10 flex items-center gap-2 text-sm font-semibold text-white/50">
+        Moving to Level 2 <ArrowRight className="size-4" />
+      </p>
     </div>
   );
 }
 
-function SpinningWheel({
+// Rendered continuously through both "pick" (idle, unspun) and "spinning" —
+// it's the same wheel, never remounted between the two, so the spin plays
+// out in place on one screen instead of cutting to a separate view.
+function WheelDisplay({
   sections,
+  shouldSpin,
   landedIndex,
   play,
   stopSfx,
   onSettle,
 }: {
   sections: WheelSection[];
-  landedIndex: number;
+  shouldSpin: boolean;
+  landedIndex: number | null;
   play: (kind: keyof typeof WHEEL_SFX) => void;
   stopSfx: () => void;
   onSettle: () => void;
 }) {
-  const [spinning, setSpinning] = useState(false);
+  const [animating, setAnimating] = useState(false);
   const onSettleRef = useRef(onSettle);
   const playRef = useRef(play);
   const stopSfxRef = useRef(stopSfx);
@@ -469,9 +510,10 @@ function SpinningWheel({
   });
 
   useEffect(() => {
+    if (!shouldSpin) return;
     let settleTimer = 0;
     const startTimer = window.setTimeout(() => {
-      setSpinning(true);
+      setAnimating(true);
       playRef.current("spin");
       settleTimer = window.setTimeout(() => onSettleRef.current(), SPIN_MS + READ_MS);
     }, PRESPIN_MS);
@@ -480,14 +522,21 @@ function SpinningWheel({
       window.clearTimeout(settleTimer);
       stopSfxRef.current();
     };
-  }, []);
+  }, [shouldSpin]);
 
   const wheelBackground = buildConicGradient(sections);
-  const rotationDeg = spinning ? rotationFor(sections[landedIndex], EXTRA_SPINS) : 0;
+  const rotationDeg =
+    animating && landedIndex !== null ? rotationFor(sections[landedIndex], EXTRA_SPINS) : 0;
 
   return (
     <div className="relative flex flex-col items-center">
-      <div className="animate-mystery-box-glow absolute inset-0 -z-10 rounded-full bg-amber-400/40 blur-2xl" />
+      {/* Only while actually spinning — shown continuously through the
+          idle "pick" screen too (not just briefly mid-roll like before the
+          wheel became always-visible), the pulsing blur read as a stray
+          flicker rather than a spin effect. */}
+      {shouldSpin ? (
+        <div className="animate-mystery-box-glow absolute inset-0 -z-10 rounded-full bg-amber-400/40 blur-2xl" />
+      ) : null}
 
       <div
         className="z-30 h-4 w-5 bg-white shadow-md sm:h-5 sm:w-6"

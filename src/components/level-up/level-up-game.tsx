@@ -5,8 +5,8 @@ import Confetti from "react-confetti";
 import { RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
-import { SpinWheelLevel } from "./spin-wheel-level";
-import { RollDiceLevel } from "./roll-dice-level";
+import { SpinWheelLevel, type SpinWheelResultDetail } from "./spin-wheel-level";
+import { RollDiceLevel, type RollDiceResultDetail } from "./roll-dice-level";
 
 // ---------------------------------------------------------------------------
 // Level Up (/level-up) — a two-level run through Spin the Wheel (Level 1)
@@ -35,7 +35,9 @@ export function LevelUpGame() {
   const [selection, setSelection] = useState<GameTeamSelection | null>(null);
   const [muted, setMuted] = useState(false);
   const [level1Result, setLevel1Result] = useState<LevelResult>(null);
+  const [level1Detail, setLevel1Detail] = useState<SpinWheelResultDetail | null>(null);
   const [level2Result, setLevel2Result] = useState<LevelResult>(null);
+  const [level2Detail, setLevel2Detail] = useState<RollDiceResultDetail | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   function toggleMute() {
@@ -49,7 +51,9 @@ export function LevelUpGame() {
 
   function restart() {
     setLevel1Result(null);
+    setLevel1Detail(null);
     setLevel2Result(null);
+    setLevel2Detail(null);
     setSessionId(crypto.randomUUID());
     setStage("level1");
   }
@@ -77,8 +81,9 @@ export function LevelUpGame() {
         muted={muted}
         onToggleMute={toggleMute}
         levelUpSessionId={sessionId}
-        onDone={(result) => {
+        onDone={(result, detail) => {
           setLevel1Result(result);
+          setLevel1Detail(detail);
           setStage("level2");
         }}
       />
@@ -93,8 +98,9 @@ export function LevelUpGame() {
         muted={muted}
         onToggleMute={toggleMute}
         levelUpSessionId={sessionId}
-        onDone={(result) => {
+        onDone={(result, detail) => {
           setLevel2Result(result);
+          setLevel2Detail(detail);
           setStage("summary");
         }}
       />
@@ -119,8 +125,26 @@ export function LevelUpGame() {
         </p>
 
         <div className="mt-8 w-full max-w-sm space-y-3">
-          <LevelRow n={1} label="Spin the Wheel" result={level1Result} />
-          <LevelRow n={2} label="Roll a Dice" result={level2Result} />
+          <LevelRow
+            n={1}
+            label="Spin the Wheel"
+            result={level1Result}
+            detail={
+              level1Detail
+                ? `You picked ${level1Detail.picked} — wheel landed on ${level1Detail.landedLabel}`
+                : null
+            }
+          />
+          <LevelRow
+            n={2}
+            label="Roll a Dice"
+            result={level2Result}
+            detail={
+              level2Detail
+                ? `You picked ${level2Detail.picked} — dice rolled ${level2Detail.die1} + ${level2Detail.die2} = ${level2Detail.drawnSum}`
+                : null
+            }
+          />
         </div>
 
         <button
@@ -202,29 +226,34 @@ function LevelRow({
   n,
   label,
   result,
+  detail,
 }: {
   n: number;
   label: string;
   result: LevelResult;
+  detail: string | null;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-      <div className="text-left">
-        <p className="text-xs font-semibold uppercase tracking-widest text-white/50">
-          Level {n}
-        </p>
-        <p className="font-bold text-white">{label}</p>
+    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="text-left">
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/50">
+            Level {n}
+          </p>
+          <p className="font-bold text-white">{label}</p>
+        </div>
+        <span
+          className={cn(
+            "rounded-full px-3 py-1 text-sm font-bold",
+            result === "won"
+              ? "bg-emerald-500/20 text-emerald-300"
+              : "bg-white/10 text-white/60",
+          )}
+        >
+          {result === "won" ? "Won 🎉" : "Lost"}
+        </span>
       </div>
-      <span
-        className={cn(
-          "rounded-full px-3 py-1 text-sm font-bold",
-          result === "won"
-            ? "bg-emerald-500/20 text-emerald-300"
-            : "bg-white/10 text-white/60",
-        )}
-      >
-        {result === "won" ? "Won 🎉" : "Lost"}
-      </span>
+      {detail ? <p className="mt-2 text-left text-xs text-white/60">{detail}</p> : null}
     </div>
   );
 }
