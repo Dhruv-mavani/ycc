@@ -213,29 +213,31 @@ export default async function EventDetailPage({
                   </div>
                 )}
 
-                {isGoGoaGone ? null : (
-                  // Go Goa Gone is a team registration — there's no
-                  // personal-code certificate to look up, unlike the
-                  // individual (school/individual_free) flows.
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-full h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
-                    nativeButton={false}
-                    render={
-                      <Link
-                        href={
-                          event.type === "school"
-                            ? "/super-champs/certificate"
+                {/* Go Goa Gone is a team registration, not a personal-code
+                    flow — it re-downloads via the generic unique-ID/mobile
+                    lookup at /receipt (same PDF, captain-first roster, that
+                    the team already got on successful registration), rather
+                    than the school/individual_free single-field lookups. */}
+                <Button
+                  variant="outline"
+                  className="w-full rounded-full h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
+                  nativeButton={false}
+                  render={
+                    <Link
+                      href={
+                        event.type === "school"
+                          ? "/super-champs/certificate"
+                          : isGoGoaGone
+                            ? "/receipt"
                             : "/jackpot-heist/certificate"
-                        }
-                        className="flex items-center justify-center gap-2"
-                      >
-                        <Download className="size-4 text-blue-600" />
-                        Download your certificate
-                      </Link>
-                    }
-                  />
-                )}
+                      }
+                      className="flex items-center justify-center gap-2"
+                    >
+                      <Download className="size-4 text-blue-600" />
+                      Download your certificate
+                    </Link>
+                  }
+                />
 
                 <EventRegisterCta
                   eventSlug={event.slug}
