@@ -215,7 +215,9 @@ export function LevelUpGame() {
       <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
         Kismat Ke Khiladi
         <span className="block text-2xl text-violet-300 sm:text-3xl md:text-5xl">
-          ft. Go Goa Gone
+          ft.
+          <br />
+          <span className="text-white">Go Goa Gone</span>
         </span>
       </h1>
       <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
