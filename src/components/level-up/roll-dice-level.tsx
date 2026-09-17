@@ -42,6 +42,11 @@ const HALF = DIE_SIZE / 2;
 const SHUFFLE_MS = 640; // hand+dice shake together before the throw — must match the dice-shuffle keyframe's total duration (globals.css)
 const SPIN_MS = 2600; // dice tumble duration, after the throw releases them
 const READ_MS = 700; // pause on the landed faces before the result screen
+// How long the result screen (picked vs. rolled, won/lost) sits on screen
+// before auto-advancing to the final summary — no button, just a pause long
+// enough to actually read the outcome. See spin-wheel-level.tsx's identical
+// RESULT_HOLD_MS for Level 1.
+const RESULT_HOLD_MS = 4000;
 
 const DIE_EXTRA_TURNS = [
   { x: 3, y: 5 },
@@ -132,6 +137,13 @@ function reducer(state: GameState, action: Action): GameState {
   }
 }
 
+export interface RollDiceResultDetail {
+  picked: number;
+  die1: number;
+  die2: number;
+  drawnSum: number;
+}
+
 export function RollDiceLevel({
   selection,
   muted,
@@ -146,7 +158,7 @@ export function RollDiceLevel({
    * level-up-game.tsx — so the admin Games insights page can pair this
    * run's two game_plays rows back into one combined box. */
   levelUpSessionId: string;
-  onDone: (result: "won" | "lost") => void;
+  onDone: (result: "won" | "lost", detail: RollDiceResultDetail) => void;
 }) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
   const mutedRef = useRef(muted);
@@ -206,6 +218,31 @@ export function RollDiceLevel({
     }).catch(() => {});
   }, [state.phase, state.picked, state.drawnSum, state.dieFaces, selection, levelUpSessionId]);
 
+  // Auto-advances to the final summary once the result has sat on screen
+  // long enough to read (RESULT_HOLD_MS) — no button. Guarded by a ref so
+  // StrictMode's double-invoke can't fire onDone twice.
+  const doneRef = useRef(false);
+  /* eslint-disable react-hooks/exhaustive-deps -- onDone is a fresh closure
+     from the parent every render; only the phase actually arming this timer
+     should re-trigger it. picked/drawnSum/dieFaces are already frozen
+     (derived from state) by the time phase settles. */
+  useEffect(() => {
+    if (state.phase !== "won" && state.phase !== "lost") return;
+    if (doneRef.current) return;
+    doneRef.current = true;
+    const [die1, die2] = state.dieFaces ?? [1, 1];
+    const timer = window.setTimeout(() => {
+      onDone(state.phase as "won" | "lost", {
+        picked: state.picked as number,
+        die1,
+        die2,
+        drawnSum: state.drawnSum as number,
+      });
+    }, RESULT_HOLD_MS);
+    return () => window.clearTimeout(timer);
+  }, [state.phase]);
+  /* eslint-enable react-hooks/exhaustive-deps */
+
   const muteButton = (
     <button
       type="button"
@@ -221,33 +258,53 @@ export function RollDiceLevel({
     </button>
   );
 
-  if (state.phase === "pick") {
+  if (state.phase === "pick" || state.phase === "rolling") {
+    const rolling = state.phase === "rolling";
     return (
-      <div className="relative flex min-h-screen flex-col items-center px-4 py-14">
+      <div className="relative flex min-h-screen flex-col items-center px-4 py-10 sm:py-14">
         {muteButton}
         <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-emerald-300 sm:mt-0">
           Level 2 of 2
         </p>
-        <h1 className="mt-2 text-center text-xl font-black sm:text-2xl md:text-4xl">
+
+        {/* The dice sit up top from the very start (idle, unrolled) so
+            picking a total and rolling happen on one screen — Roll the
+            Dice just sets them in motion in place instead of navigating to
+            a separate view. */}
+        <div className="mt-6">
+          <DiceDisplay
+            dieFaces={state.dieFaces ?? [1, 1]}
+            rolling={rolling}
+            play={play}
+            stopSfx={stopSfx}
+            onSettle={() => dispatch({ type: "SETTLE" })}
+          />
+        </div>
+
+        <h1 className="mt-8 text-center text-xl font-black sm:text-2xl md:text-4xl">
           Pick your total
         </h1>
         <p className="mt-2 text-center text-xs text-white/70 sm:text-sm md:text-base">
-          {state.picked === null
-            ? `Choose any total from ${MIN_SUM} to ${MAX_SUM}.`
-            : `You picked ${state.picked}. Roll when you're ready.`}
+          {rolling
+            ? `Rolling… your total: ${state.picked}`
+            : state.picked === null
+              ? `Choose any total from ${MIN_SUM} to ${MAX_SUM}.`
+              : `You picked ${state.picked}. Roll when you're ready.`}
         </p>
 
-        <div className="mt-8 grid w-full max-w-md grid-cols-4 gap-2 sm:grid-cols-6">
+        <div className="mt-6 grid w-full max-w-md grid-cols-4 gap-2 sm:grid-cols-6">
           {Array.from({ length: SUM_COUNT }, (_, i) => MIN_SUM + i).map((n) => (
             <button
               key={n}
               type="button"
+              disabled={rolling}
               onClick={() => dispatch({ type: "PICK", n })}
               className={cn(
                 "flex aspect-square items-center justify-center rounded-lg border text-base font-bold transition-all duration-300 sm:text-lg",
                 state.picked === n
                   ? "scale-110 border-emerald-300 bg-gradient-to-br from-emerald-300 to-emerald-500 text-black shadow-[0_0_20px_rgba(52,211,153,0.55)] z-10"
                   : "border-white/10 bg-white/5 text-white backdrop-blur-sm hover:scale-110 hover:border-white/30 hover:bg-white/20 hover:shadow-lg z-0",
+                rolling && "opacity-50",
               )}
             >
               {n}
@@ -257,37 +314,17 @@ export function RollDiceLevel({
 
         <button
           type="button"
-          disabled={state.picked === null}
+          disabled={state.picked === null || rolling}
           onClick={() => dispatch({ type: "ROLL" })}
           className={cn(
             "mt-10 rounded-xl px-6 py-2.5 text-base font-bold shadow-lg transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
-            state.picked === null
+            state.picked === null || rolling
               ? "cursor-not-allowed bg-white/5 border border-white/10 text-white/40"
               : "bg-gradient-to-r from-emerald-400 to-emerald-500 text-black shadow-xl shadow-emerald-500/20 hover:scale-105 hover:from-emerald-300 hover:to-emerald-400 hover:shadow-emerald-500/40 border border-transparent",
           )}
         >
-          Roll the Dice
+          {rolling ? "Rolling…" : "Roll the Dice"}
         </button>
-      </div>
-    );
-  }
-
-  if (state.phase === "rolling") {
-    return (
-      <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
-        {muteButton}
-        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-emerald-300">
-          Your total: {state.picked}
-        </p>
-        <p className="mb-10 text-lg font-medium text-white/80 md:text-xl">
-          Rolling…
-        </p>
-        <RollingDice
-          dieFaces={state.dieFaces ?? [1, 1]}
-          play={play}
-          stopSfx={stopSfx}
-          onSettle={() => dispatch({ type: "SETTLE" })}
-        />
       </div>
     );
   }
@@ -330,14 +367,11 @@ export function RollDiceLevel({
         )}
       </p>
 
-      <button
-        type="button"
-        onClick={() => onDone(state.phase as "won" | "lost")}
-        className="mt-10 flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-emerald-500/20 transition-all duration-300 hover:scale-105 hover:from-emerald-300 hover:to-emerald-400 hover:shadow-emerald-500/40 sm:px-8 sm:py-3 sm:text-xl"
-      >
-        <Trophy className="size-5" />
-        See Results
-      </button>
+      {/* No button — RESULT_HOLD_MS above auto-advances to the final
+          summary once there's been time to actually read this. */}
+      <p className="mt-10 flex items-center gap-2 text-sm font-semibold text-white/50">
+        <Trophy className="size-4" /> Seeing your results
+      </p>
     </div>
   );
 }
@@ -403,23 +437,30 @@ function DieFace({ value, transform }: { value: number; transform: string }) {
 //  3. (inner) the actual 3D cube — rotateX/rotateY tumble, unchanged.
 function DieCube({
   value,
-  spinning,
+  tumbling,
+  held,
   shuffling,
   extra,
   handOffset,
 }: {
   value: number;
-  spinning: boolean;
+  /** True only during the "throw" stage — drives the rotateX/rotateY
+   * tumble toward `value`'s landing rotation. False (rotation 0, showing
+   * face 1) both before rolling starts and while held/shuffling. */
+  tumbling: boolean;
+  /** True only during "shuffle" — the die sits small, tilted, and offset
+   * near the hand instead of at its normal resting spot. */
+  held: boolean;
   shuffling: boolean;
   extra: { x: number; y: number };
   handOffset: { x: number; y: number; rotate: number };
 }) {
   const landing = LANDING_ROTATION[value];
-  const rotateX = spinning ? extra.x * 360 + landing.x : 0;
-  const rotateY = spinning ? extra.y * 360 + landing.y : 0;
-  const positionTransform = spinning
-    ? "translate(0px, 0px) rotate(0deg) scale(1)"
-    : `translate(${handOffset.x}px, ${handOffset.y}px) rotate(${handOffset.rotate}deg) scale(0.55)`;
+  const rotateX = tumbling ? extra.x * 360 + landing.x : 0;
+  const rotateY = tumbling ? extra.y * 360 + landing.y : 0;
+  const positionTransform = held
+    ? `translate(${handOffset.x}px, ${handOffset.y}px) rotate(${handOffset.rotate}deg) scale(0.55)`
+    : "translate(0px, 0px) rotate(0deg) scale(1)";
 
   return (
     <div
@@ -453,20 +494,27 @@ function DieCube({
   );
 }
 
-type RollStage = "shuffle" | "throw";
-
-function RollingDice({
+// Rendered continuously through both "pick" (idle, unrolled — resting size,
+// showing face 1, no hand, no shake) and "rolling" — the same dice, never
+// remounted between the two, so picking a total and rolling it happen on
+// one screen instead of cutting to a separate view. `thrown` only ever
+// flips inside the timeout callback below (never synchronously in the
+// effect body), so idle/shuffling/tumbling are plain derivations of props
+// + that one flag rather than a separate stage machine.
+function DiceDisplay({
   dieFaces,
+  rolling,
   play,
   stopSfx,
   onSettle,
 }: {
   dieFaces: [number, number];
+  rolling: boolean;
   play: (kind: keyof typeof DICE_SFX) => void;
   stopSfx: () => void;
   onSettle: () => void;
 }) {
-  const [stage, setStage] = useState<RollStage>("shuffle");
+  const [thrown, setThrown] = useState(false);
   const onSettleRef = useRef(onSettle);
   const playRef = useRef(play);
   const stopSfxRef = useRef(stopSfx);
@@ -477,13 +525,14 @@ function RollingDice({
   });
 
   useEffect(() => {
+    if (!rolling) return;
     // Roll rattle starts immediately — the click train's own deceleration
     // (see DICE_SFX.roll) carries naturally across the shuffle and into
     // the tumble, so one sound covers "hand shaking dice" through "dice
     // hit the table".
     playRef.current("roll");
     const throwTimer = window.setTimeout(() => {
-      setStage("throw");
+      setThrown(true);
     }, SHUFFLE_MS);
     const settleTimer = window.setTimeout(
       () => onSettleRef.current(),
@@ -496,39 +545,50 @@ function RollingDice({
       // back link). On a normal settle the parent then plays win/lose.
       stopSfxRef.current();
     };
-  }, []);
+  }, [rolling]);
 
-  const spinning = stage === "throw";
-  const shuffling = stage === "shuffle";
+  const idle = !rolling;
+  const shuffling = rolling && !thrown;
+  const tumbling = rolling && thrown;
 
   return (
     <div className="relative flex flex-col items-center">
-      <div className="animate-mystery-box-glow absolute inset-0 -z-10 rounded-full bg-emerald-400/40 blur-2xl" />
+      {/* Only while actually rolling — shown continuously through the idle
+          "pick" screen too (not just briefly mid-roll like before the dice
+          became always-visible), the pulsing blur read as a stray flicker
+          rather than a roll effect. */}
+      {!idle ? (
+        <div className="animate-mystery-box-glow absolute inset-0 -z-10 rounded-full bg-emerald-400/40 blur-2xl" />
+      ) : null}
 
-      {/* Hand — shakes in place with the dice (same keyframe, so the
-          motion visibly matches), then flings forward and fades the
-          instant it releases them. */}
-      <div
-        className={cn(
-          "pointer-events-none absolute -bottom-6 z-10 text-6xl sm:-bottom-8 sm:text-7xl",
-          shuffling && "animate-dice-shuffle",
-          spinning && "animate-dice-hand-throw",
-        )}
-      >
-        🤚
-      </div>
+      {/* Hand — only appears once rolling starts. Shakes in place with the
+          dice (same keyframe, so the motion visibly matches), then flings
+          forward and fades the instant it releases them. */}
+      {!idle ? (
+        <div
+          className={cn(
+            "pointer-events-none absolute -bottom-6 z-10 text-6xl sm:-bottom-8 sm:text-7xl",
+            shuffling && "animate-dice-shuffle",
+            tumbling && "animate-dice-hand-throw",
+          )}
+        >
+          🤚
+        </div>
+      ) : null}
 
       <div className="flex gap-8 sm:gap-12" style={{ perspective: 900 }}>
         <DieCube
           value={dieFaces[0]}
-          spinning={spinning}
+          tumbling={tumbling}
+          held={shuffling}
           shuffling={shuffling}
           extra={DIE_EXTRA_TURNS[0]}
           handOffset={DIE_HAND_OFFSET[0]}
         />
         <DieCube
           value={dieFaces[1]}
-          spinning={spinning}
+          tumbling={tumbling}
+          held={shuffling}
           shuffling={shuffling}
           extra={DIE_EXTRA_TURNS[1]}
           handOffset={DIE_HAND_OFFSET[1]}

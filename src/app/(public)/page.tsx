@@ -241,11 +241,6 @@ export default async function HomePage() {
                       }
                     />
                   </CardFooter>
-                  {event.fee_paise > 0 ? (
-                    <span className="absolute bottom-2 right-4 text-[9px] font-medium uppercase tracking-wide text-slate-400">
-                      Exclusive of GST
-                    </span>
-                  ) : null}
                 </Card>
               ) : (
                 <Card key={event.id} className="overflow-hidden border-dashed border-slate-200 bg-white/60 flex flex-col opacity-80 hover:opacity-100 transition-opacity rounded-3xl shadow-sm">
