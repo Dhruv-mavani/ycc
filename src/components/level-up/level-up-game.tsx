@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import Confetti from "react-confetti";
 import { RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -147,10 +149,47 @@ export function LevelUpGame() {
           />
         </div>
 
+        {/* Cross-promo: Box Cricket is a separate, paid team event — most
+            players here already have their phone out right after the
+            result, so a poster + QR (scan to jump straight to the event
+            page) reads more naturally at a physical booth than another
+            in-app button. The whole card is still a real Link too, for
+            anyone viewing this on the same device they'd register from. */}
+        <div className="mt-10 w-full max-w-xs sm:max-w-sm">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/50">
+            Also Open Now
+          </p>
+          <Link
+            href="/events/cricket-championship-2026"
+            className="block overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02]"
+          >
+            <Image
+              src="/box-cricket/poster.png"
+              alt="YCC Box Cricket Tournament poster"
+              width={1024}
+              height={1536}
+              className="w-full"
+            />
+            <div className="flex items-center gap-3 border-t border-white/10 bg-black/40 p-3">
+              <Image
+                src="/box-cricket/qr.png"
+                alt="QR code to register for YCC Box Cricket Tournament"
+                width={96}
+                height={96}
+                className="size-20 shrink-0 rounded-md bg-white p-1.5 sm:size-24"
+              />
+              <p className="text-left text-xs text-white/70 sm:text-sm">
+                <span className="font-bold text-white">Scan to register</span>{" "}
+                for the YCC Box Cricket Tournament — or tap this poster.
+              </p>
+            </div>
+          </Link>
+        </div>
+
         <button
           type="button"
           onClick={restart}
-          className="mt-10 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-400 to-violet-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-violet-500/20 transition-all duration-300 hover:scale-105 hover:from-violet-300 hover:to-violet-400 hover:shadow-violet-500/40 sm:px-8 sm:py-3 sm:text-xl"
+          className="mt-8 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-400 to-violet-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-violet-500/20 transition-all duration-300 hover:scale-105 hover:from-violet-300 hover:to-violet-400 hover:shadow-violet-500/40 sm:px-8 sm:py-3 sm:text-xl"
         >
           <RotateCcw className="size-5" />
           Play again
