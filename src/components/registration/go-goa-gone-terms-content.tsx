@@ -215,6 +215,10 @@ const SECTIONS: TermsSection[] = [
         type: "p",
         text: "A promotional travel coupon should not be interpreted as an unconditional promise of a completely free trip unless YCC expressly states so in the applicable official promotion.",
       },
+      {
+        type: "p",
+        text: "Any starting price communicated for the Goa Travel Coupon (e.g. ₹2,499/person) is based on train fares and other travel costs prevailing at the time of announcement. If train fares or other applicable travel costs increase due to circumstances beyond YCC's control, the participant contribution towards the coupon may increase correspondingly, and YCC will communicate the revised amount before it becomes payable.",
+      },
     ],
   },
   {
