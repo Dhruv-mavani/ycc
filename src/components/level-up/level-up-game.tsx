@@ -56,8 +56,15 @@ export function LevelUpGame() {
     setLevel1Detail(null);
     setLevel2Result(null);
     setLevel2Detail(null);
-    setSessionId(crypto.randomUUID());
-    setStage("level1");
+    setSessionId(null);
+    // Back to the gate, not straight into Level 1 — this screen is often
+    // shared at a booth, so the next player needs to find their own code
+    // rather than replay as whoever went before them. Clearing selection
+    // also drops us into the "gate" branch below, which mounts a fresh
+    // TeamPlayerGate (its own code/roster state resets for free since the
+    // previous instance was already unmounted while playing).
+    setSelection(null);
+    setStage("gate");
   }
 
   const muteButton = (
