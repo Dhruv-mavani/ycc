@@ -173,10 +173,10 @@ export default async function EventDetailPage({
                             </span>
                             <p className="text-sm text-slate-600">
                               <span className="font-semibold text-slate-900">
-                                Get instant confirmation.
+                                Get your Game Certificate & Specialized Team Code.
                               </span>{" "}
-                              No payment needed — your squad&apos;s entry is confirmed the
-                              moment you submit.
+                              Your Team Code is mandatory for Match Play and
+                              verification.
                             </p>
                           </li>
                         </ol>
