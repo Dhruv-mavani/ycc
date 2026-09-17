@@ -124,7 +124,7 @@ const teamStyles = StyleSheet.create({
   logo: {
     width: ts(TEAM_LOGO_W),
     height: tsy(TEAM_LOGO_H),
-    marginBottom: tsy(22),
+    marginBottom: tsy(48),
   },
   passTitle: {
     textAlign: "center",
@@ -172,12 +172,12 @@ const teamStyles = StyleSheet.create({
     marginBottom: tsy(10),
   },
   // Captain/player names inline within the paragraph prose — same script
-  // family as "Dear," and the team name, scaled down to sit comfortably
-  // mid-sentence instead of overpowering the surrounding Times-Italic text.
+  // family as "Dear," and the team name, scaled up from the surrounding
+  // "Cap:" label so the names themselves read clearly at a glance.
   inlineName: {
     fontFamily: "Alex Brush",
-    fontSize: ts(24),
-    letterSpacing: ts(2.5),
+    fontSize: ts(32),
+    letterSpacing: ts(3),
     color: TEAM_NAVY,
   },
   rosterHeading: {
@@ -512,16 +512,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             memorable, and full of masti and fun.
           </Text>
 
-          <View style={teamStyles.box}>
-            <Text style={teamStyles.boxTitle}>Note</Text>
-            <Text style={teamStyles.boxRow}>
-              Complete your Early Registration + Entry Fee Payment for an
-              opportunity to win complimentary passes to the Goa Trip and
-              Stand-Up Comedy Shows. (Only for a few limited teams.)
-            </Text>
-          </View>
-
-          <Text style={[teamStyles.detailLine, { marginTop: tsy(10) }]}>
+          <Text style={[teamStyles.detailLine, { marginTop: tsy(20) }]}>
             <Text style={teamStyles.detailLabel}>College: </Text>
             {data.collegeName}
           </Text>
