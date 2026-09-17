@@ -262,7 +262,8 @@ export default async function EventDetailPage({
                               <span className="font-semibold text-slate-900">
                                 Get instant confirmation.
                               </span>{" "}
-                              Entry fee payable in cash at the venue — your
+                              You have to pay entry fee in cash, the place
+                              will be decided by the YCC Team — your
                               squad&apos;s invitation letter and team code download
                               automatically the moment you submit.
                             </p>
