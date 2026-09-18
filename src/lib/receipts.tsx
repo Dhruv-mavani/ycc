@@ -172,6 +172,12 @@ export interface ReceiptData {
   /** True to skip GST entirely — basePaise IS the flat total, no
    * CGST/SGST/IGST rows/columns appear anywhere in this document. */
   gstExempt?: boolean;
+  /** True to omit the per-participant ID card pages entirely — e.g. Go Goa
+   * Gone (a free games event, no physical entry check) doesn't need them,
+   * unlike Box Cricket where an ID card is mandatory at the venue. Also
+   * drops the invitation letter's "ID Card Mandatory" notice, which would
+   * otherwise reference a card that isn't actually attached. */
+  hideIdCards?: boolean;
 }
 
 function formatRupees(paise: number) {
@@ -206,6 +212,7 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
           // participants is ordered captain-first (see buildReceiptPdf's
           // query), so the rest of the array is the non-captain roster.
           players={data.participants.slice(1).map((p) => p.name)}
+          hasIdCards={!data.hideIdCards}
         />
       ) : null}
       {!data.hideReceiptPage && (
@@ -394,7 +401,7 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
       </Page>
       )}
 
-      {data.participants.map((p) => {
+      {!data.hideIdCards && data.participants.map((p) => {
         const cardData = {
           playerName: p.name,
           collegeName: data.collegeName,

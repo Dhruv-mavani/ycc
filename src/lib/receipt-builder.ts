@@ -119,6 +119,11 @@ export async function buildReceiptPdf(
     // Partner/Co-Partner registrations alike.
     hideReceiptPage: !options.forceFullReceipt && event.hide_receipt_page && paymentDue,
     gstExempt: event.gst_exempt,
+    // Go Goa Gone is a free games event with no physical entry check — no
+    // point printing an ID card nobody's asked to show. Box Cricket keeps
+    // its ID cards (mandatory at the venue). See hideIdCards on ReceiptData
+    // and hasIdCards on InvitationLetterData for what this actually swaps.
+    hideIdCards: event.slug === "ycc-go-goa-gone",
   });
 
   return { pdfBuffer, registration, paymentDue };

@@ -401,6 +401,12 @@ export type InvitationLetterData =
       captainName: string | null;
       /** Non-captain roster — woven into the congrats paragraph alongside the captain, not shown separately. */
       players: string[];
+      /** False when this event's PDF has no ID card pages (see hideIdCards
+       * on ReceiptData, e.g. Go Goa Gone) — swaps the "ID Card Mandatory"
+       * notice for a "QR Code Mandatory" one pointing at the receipt page's
+       * QR instead, rather than referencing a card that was never
+       * attached. Defaults to true (Box Cricket, which does attach cards). */
+      hasIdCards?: boolean;
     };
 
 type TextStyleProp = Style | Style[];
@@ -536,14 +542,25 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             {data.teamName}
           </Text>
 
-          <View style={teamStyles.box}>
-            <Text style={teamStyles.boxTitle}>ID Card Mandatory</Text>
-            <Text style={teamStyles.boxRow}>
-              Every player must carry their ID card print or pdf (attached
-              right after this letter) to the venue — entry will not be
-              permitted without it. Keep it safe until match day.
-            </Text>
-          </View>
+          {data.hasIdCards !== false ? (
+            <View style={teamStyles.box}>
+              <Text style={teamStyles.boxTitle}>ID Card Mandatory</Text>
+              <Text style={teamStyles.boxRow}>
+                Every player must carry their ID card print or pdf (attached
+                right after this letter) to the venue — entry will not be
+                permitted without it. Keep it safe until match day.
+              </Text>
+            </View>
+          ) : (
+            <View style={teamStyles.box}>
+              <Text style={teamStyles.boxTitle}>QR Code Mandatory</Text>
+              <Text style={teamStyles.boxRow}>
+                Every player must show their QR code (see the registration
+                receipt right after this letter) at the venue — entry will
+                not be permitted without it. Keep it safe until match day.
+              </Text>
+            </View>
+          )}
 
           <Text style={[teamStyles.paragraph, { marginTop: tsy(50), marginBottom: 0 }]}>
             For all schedules, venue details, match updates, and
