@@ -452,6 +452,14 @@ export default async function EventDetailPage({
                       render={<Link href="/partner-program">Go to Partner Program</Link>}
                     />
                   </div>
+                ) : !event.registration_open ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full rounded-full h-12 border-slate-200 text-slate-400 bg-transparent font-semibold"
+                  >
+                    Coming Soon
+                  </Button>
                 ) : (
                   <EventRegisterCta
                     eventSlug={event.slug}
@@ -551,6 +559,14 @@ export default async function EventDetailPage({
                       render={<Link href="/partner-program">Go to Partner Program</Link>}
                     />
                   </div>
+                ) : !event.registration_open ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full rounded-full h-12 border-slate-200 text-slate-400 bg-transparent font-semibold"
+                  >
+                    Coming Soon
+                  </Button>
                 ) : (
                   <EventRegisterCta
                     eventSlug={event.slug}
