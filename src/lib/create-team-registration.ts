@@ -62,6 +62,18 @@ export async function createTeamRegistration(
     };
   }
 
+  // Server-side backstop for the UI's "Coming Soon" state — blocks a
+  // submission reaching here directly (a stale form tab, a bookmarked
+  // register link, a raw API call) even though the client already hides
+  // the form for a closed event.
+  if (!event.registration_open) {
+    return {
+      ok: false,
+      status: 403,
+      error: "Registration for this event is not open yet",
+    };
+  }
+
   const min = event.min_team_size ?? 1;
   const max = event.max_team_size ?? 30;
   if (input.players.length < min || input.players.length > max) {

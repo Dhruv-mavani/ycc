@@ -9,7 +9,8 @@ import { IndividualFreeRegistrationForm } from "@/components/registration/indivi
 import { RegistrationSteps } from "@/components/registration/registration-steps";
 import { BackButton } from "@/components/site/back-button";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { UserPlus, Download, Clock } from "lucide-react";
 
 export default async function RegisterPage({
   params,
@@ -50,6 +51,38 @@ export default async function RegisterPage({
     ]);
 
   if (!event) notFound();
+
+  // The API route (createTeamRegistration) enforces this same check
+  // server-side too — this is just the UI half, so a closed event's
+  // register page never even shows the form to begin with, matching the
+  // "Coming Soon" state on the homepage and the event's own marketing page.
+  if (!event.registration_open) {
+    return (
+      <div className="min-h-screen bg-background relative overflow-hidden pb-24">
+        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        <div className="mx-auto max-w-lg px-4 pt-32 relative z-10">
+          <BackButton className="mb-8 text-slate-500 hover:text-slate-900 transition-colors" />
+          <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center shadow-2xl shadow-slate-200/50">
+            <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200">
+              <Clock className="size-7 text-amber-600" />
+            </div>
+            <Badge
+              variant="secondary"
+              className="mb-4 bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1 text-xs"
+            >
+              Coming Soon
+            </Badge>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-2">
+              {event.name}
+            </h1>
+            <p className="text-slate-500 text-sm sm:text-base">
+              Registration isn&apos;t open yet — check back soon!
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // These are the only registrations that require joining WhatsApp +
   // Instagram first (see RegistrationSteps) — every other event's form
