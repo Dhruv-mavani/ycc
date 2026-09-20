@@ -46,6 +46,43 @@ export const metadata: Metadata = {
   },
 };
 
+// Organization + WebSite structured data — gives AI answer engines
+// (Google AI Overviews, ChatGPT/Perplexity/Gemini browsing, etc.) and
+// search engines a single authoritative, machine-readable description of
+// who YCC is and how to reach it, instead of having to infer it from
+// prose. Site-wide since every page benefits from the same entity data.
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Yuva Champions Cricket",
+  alternateName: "YCC",
+  url: "https://www.ycct10.in",
+  logo: "https://www.ycct10.in/brand/ycc-logo-bgless.png",
+  description:
+    "YCC ~ Yuva Champions Cricket is a modern youth-first sports platform running college and open cricket tournaments, quizzes, and promotional games across India.",
+  email: "contact@ycct10.in",
+  telephone: "+91-84878-32810",
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+91-84878-32810",
+    contactType: "customer service",
+    email: "contact@ycct10.in",
+    areaServed: "IN",
+  },
+  sameAs: [
+    "https://instagram.com/ycct10",
+    "https://wa.me/918487832810",
+  ],
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Yuva Champions Cricket",
+  alternateName: "YCC",
+  url: "https://www.ycct10.in",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,6 +94,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <div className="min-w-0">{children}</div>
         <Toaster />
         <Analytics />

@@ -83,8 +83,26 @@ export default async function EventDetailPage({
   const isGoGoaGone = event.slug === "ycc-go-goa-gone";
   const isBoxCricket = event.slug === "cricket-championship-2026";
 
+  // BreadcrumbList — helps search/AI crawlers place this event within the
+  // site hierarchy without inferring it from nav markup. No full Event
+  // schema here: schema.org/Event requires startDate + location, which
+  // this events table doesn't track, and emitting it without them would
+  // just surface as structured-data errors in Search Console.
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ycct10.in/" },
+      { "@type": "ListItem", position: 2, name: event.name, item: `https://www.ycct10.in/events/${event.slug}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden pb-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Background grid */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
 

@@ -46,9 +46,29 @@ const FAQS = [
   },
 ];
 
+// FAQPage structured data — lets Google (and AI answer engines that read
+// schema.org markup) surface these Q&As directly in search/AI results
+// instead of only via the accordion UI below. Keep this in sync with FAQS.
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.answer,
+    },
+  })),
+};
+
 export default function FaqPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <BackButton className="mb-4" />
       <h1 className="mb-1 text-2xl font-bold">Frequently asked questions</h1>
       <p className="text-muted-foreground mb-6 text-sm">
