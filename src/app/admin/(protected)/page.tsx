@@ -4,6 +4,7 @@ import { Users, Banknote, CalendarCheck, UserCheck, UserX, type LucideIcon } fro
 import {
   getEventOverview,
   getPartnerSquadReadiness,
+  getCollegeCampusPartnerOverview,
   getRegistrationsOverTime,
   type DateRange,
 } from "@/lib/admin-stats";
@@ -93,11 +94,12 @@ async function DashboardData({
   eventId?: string;
   range?: DateRange;
 }) {
-  const [overview, trend, squadReadiness, { data: colleges }] =
+  const [overview, trend, squadReadiness, collegeCampusPartnerOverview, { data: colleges }] =
     await Promise.all([
       getEventOverview(eventId || undefined, range),
       getRegistrationsOverTime(eventId || undefined, range),
       getPartnerSquadReadiness(),
+      getCollegeCampusPartnerOverview(),
       createAdminClient().from("colleges").select("id, name").eq("is_public", true).order("name"),
     ]);
 
@@ -234,7 +236,11 @@ async function DashboardData({
             they&apos;ve registered so far.
           </CardDescription>
         </CardHeader>
-        <PartnerOverviewTable data={squadReadiness} colleges={colleges ?? []} />
+        <PartnerOverviewTable
+          data={squadReadiness}
+          collegeCampusPartnerData={collegeCampusPartnerOverview}
+          colleges={colleges ?? []}
+        />
       </Card>
     </div>
   );

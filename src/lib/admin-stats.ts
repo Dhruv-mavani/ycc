@@ -561,6 +561,53 @@ export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[
   });
 }
 
+export interface CollegeCampusPartnerOverviewRow {
+  id: string;
+  name: string;
+  collegeName: string | null;
+  stream: string;
+  year: number;
+  semester: number;
+  code: string | null;
+}
+
+/**
+ * Flat list of every College Campus Partner registration — unlike
+ * getPartnerSquadReadiness above, this has no referral hierarchy, team
+ * registrations, or revenue to roll up (it's a standalone signup form,
+ * not the Partner Program), so it's just a straight fetch + college-name
+ * join rather than a stats computation.
+ */
+export async function getCollegeCampusPartnerOverview(): Promise<
+  CollegeCampusPartnerOverviewRow[]
+> {
+  const admin = createAdminClient();
+
+  const { data: applications } = await admin
+    .from("college_campus_partner_applications")
+    .select("id, name, college_id, stream, year, semester, code")
+    .order("name");
+
+  const collegeIds = [
+    ...new Set((applications ?? []).map((a) => a.college_id)),
+  ];
+  const { data: colleges } =
+    collegeIds.length > 0
+      ? await admin.from("colleges").select("id, name").in("id", collegeIds)
+      : { data: [] as { id: string; name: string }[] };
+  const collegeNameById = new Map((colleges ?? []).map((c) => [c.id, c.name]));
+
+  return (applications ?? []).map((a) => ({
+    id: a.id,
+    name: a.name,
+    collegeName: collegeNameById.get(a.college_id) ?? null,
+    stream: a.stream,
+    year: a.year,
+    semester: a.semester,
+    code: a.code,
+  }));
+}
+
 export interface CollegeRegistrationDetail {
   registrationId: string;
   type: "team" | "individual";
