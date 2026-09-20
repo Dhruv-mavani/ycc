@@ -12,8 +12,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Award, CalendarDays, Mail, Phone, Search, Trash2Icon } from "lucide-react";
+import { Award, CalendarDays, Mail, Phone, PencilIcon, Search, Trash2Icon } from "lucide-react";
 import { ConfirmDialog } from "@/components/site/confirm-dialog";
+import { EditCollegeCampusPartnerDialog } from "@/components/admin/edit-college-campus-partner-dialog";
 
 interface CollegeCampusPartnerApplication {
   id: string;
@@ -33,15 +34,23 @@ interface CollegeCampusPartnerApplication {
   created_at: string;
 }
 
+interface CollegeOption {
+  id: string;
+  name: string;
+}
+
 export function CollegeCampusPartnerApplicationsList({
   applications,
+  colleges,
 }: {
   applications: CollegeCampusPartnerApplication[];
+  colleges: CollegeOption[];
 }) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CollegeCampusPartnerApplication | null>(null);
+  const [editTarget, setEditTarget] = useState<CollegeCampusPartnerApplication | null>(null);
 
   async function confirmDeleteApplication() {
     if (!deleteTarget) return;
@@ -114,6 +123,15 @@ export function CollegeCampusPartnerApplicationsList({
                     }
                   >
                     <Award className="size-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 w-7 p-0"
+                    onClick={() => setEditTarget(app)}
+                    aria-label="Edit application"
+                  >
+                    <PencilIcon className="size-3.5" />
                   </Button>
                   <Button
                     size="sm"
@@ -220,6 +238,20 @@ export function CollegeCampusPartnerApplicationsList({
         description={`Permanently delete ${deleteTarget?.name ?? "this"}'s College Campus Partner application. This cannot be undone.`}
         loading={deletingId === deleteTarget?.id}
         onConfirm={confirmDeleteApplication}
+      />
+
+      <EditCollegeCampusPartnerDialog
+        application={editTarget}
+        colleges={colleges}
+        open={editTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditTarget(null);
+        }}
+        onSaved={(updated) => {
+          setItems((prev) =>
+            prev.map((a) => (a.id === updated.id ? { ...a, ...updated } : a)),
+          );
+        }}
       />
     </div>
   );

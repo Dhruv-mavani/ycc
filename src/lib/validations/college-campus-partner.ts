@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ageSchema, genderSchema, phoneSchema, emailSchema } from "@/lib/validations/registration";
 
-export const collegeCampusPartnerApplicationSchema = z.object({
+const collegeCampusPartnerFieldsSchema = z.object({
   collegeId: z.string().uuid("Select your college"),
   stream: z.string().trim().min(1, "Required").max(100),
   year: z
@@ -20,16 +20,23 @@ export const collegeCampusPartnerApplicationSchema = z.object({
   instagramHandle: z.string().trim().min(1, "Required").max(100),
   age: ageSchema,
   gender: genderSchema,
+  agreedToTerms: z.boolean().refine((v) => v === true, {
+    message: "You must agree to the Terms & Conditions to continue",
+  }),
+});
+
+// Used when submitting a new application — also requires the join gate.
+export const collegeCampusPartnerApplicationSchema = collegeCampusPartnerFieldsSchema.extend({
   whatsappJoined: z.boolean().refine((v) => v === true, {
     message: "Join the WhatsApp channel to continue",
   }),
   instagramJoined: z.boolean().refine((v) => v === true, {
     message: "Join our Instagram to continue",
   }),
-  agreedToTerms: z.boolean().refine((v) => v === true, {
-    message: "You must agree to the Terms & Conditions to continue",
-  }),
 });
+
+// Used by the admin edit dialog — doesn't re-require the join gate.
+export const collegeCampusPartnerApplicationUpdateSchema = collegeCampusPartnerFieldsSchema;
 
 // Accepts either the mobile number registered with or the personalized
 // code printed on the certificate — the API route tries both, same
@@ -40,6 +47,10 @@ export const collegeCampusPartnerCertificateLookupSchema = z.object({
 
 export type CollegeCampusPartnerApplicationInput = z.infer<
   typeof collegeCampusPartnerApplicationSchema
+>;
+
+export type CollegeCampusPartnerApplicationUpdateInput = z.infer<
+  typeof collegeCampusPartnerApplicationUpdateSchema
 >;
 
 export type CollegeCampusPartnerCertificateLookupInput = z.infer<
