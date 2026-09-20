@@ -433,6 +433,48 @@ export interface Database {
         >;
         Relationships: [];
       };
+      college_campus_partner_applications: {
+        Row: {
+          id: string;
+          college_id: string;
+          stream: string;
+          year: number;
+          semester: number;
+          name: string;
+          mobile: string;
+          email: string;
+          instagram_handle: string;
+          age: number;
+          gender: string;
+          agreed_to_terms: boolean;
+          whatsapp_joined_at: string | null;
+          instagram_joined_at: string | null;
+          code: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          college_id: string;
+          stream: string;
+          year: number;
+          semester: number;
+          name: string;
+          mobile: string;
+          email: string;
+          instagram_handle: string;
+          age: number;
+          gender: string;
+          agreed_to_terms?: boolean;
+          whatsapp_joined_at?: string | null;
+          instagram_joined_at?: string | null;
+          code?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["college_campus_partner_applications"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

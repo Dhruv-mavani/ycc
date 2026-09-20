@@ -164,6 +164,7 @@ export function SiteFooter() {
           <Link href="/about" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">About YCC</Link>
           <Link href="/partner-program" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Partner Program</Link>
           <Link href="/register/ycc-super-champs-box-cricket-tournament-2026" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Super Champs Program</Link>
+          <Link href="/college-campus-partner" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">YCC College Campus Partner</Link>
           <Link href="/staff/login" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Staff Login</Link>
           <Link href="/admin/login" className="text-slate-300 hover:text-white text-sm transition-colors w-fit">Admin Login</Link>
         </div>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export default async function AdminPartnerProgramPage() {
   const admin = createAdminClient();
-  const [{ data: applications }, { data: colleges }] = await Promise.all([
+  const [{ data: applications }, { data: colleges }, { data: campusPartnerApplications }] = await Promise.all([
     admin
       .from("partner_program_applications")
       .select(
@@ -14,6 +14,12 @@ export default async function AdminPartnerProgramPage() {
       )
       .order("created_at", { ascending: false }),
     admin.from("colleges").select("id, name").eq("is_public", true).order("name"),
+    admin
+      .from("college_campus_partner_applications")
+      .select(
+        "id, name, email, mobile, age, gender, instagram_handle, stream, year, semester, code, agreed_to_terms, college_id, created_at",
+      )
+      .order("created_at", { ascending: false }),
   ]);
 
   const nameById = new Map((applications ?? []).map((a) => [a.id, a.name]));
@@ -23,6 +29,11 @@ export default async function AdminPartnerProgramPage() {
     ...a,
     referredByName: a.referred_by_id ? (nameById.get(a.referred_by_id) ?? null) : null,
     collegeName: a.college_id ? (collegeNameById.get(a.college_id) ?? null) : null,
+  }));
+
+  const campusPartnerApplicationsWithCollege = (campusPartnerApplications ?? []).map((a) => ({
+    ...a,
+    collegeName: collegeNameById.get(a.college_id) ?? null,
   }));
 
   return (
@@ -38,7 +49,11 @@ export default async function AdminPartnerProgramPage() {
           </Link>
         }
       />
-      <PartnerProgramAdminTabs applications={applicationsWithReferrer} colleges={colleges ?? []} />
+      <PartnerProgramAdminTabs
+        applications={applicationsWithReferrer}
+        colleges={colleges ?? []}
+        collegeCampusPartnerApplications={campusPartnerApplicationsWithCollege}
+      />
     </div>
   );
 }
