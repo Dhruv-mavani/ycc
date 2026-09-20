@@ -152,6 +152,7 @@ export function PartnerProgramAdminTabs({
         <CollegeCampusPartnerApplicationsList
           key={activeId}
           applications={collegeCampusPartnerApplications}
+          colleges={colleges}
         />
       ) : (
         <PartnerProgramApplicationsList
