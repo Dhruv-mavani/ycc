@@ -141,7 +141,7 @@ export function SiteHeader() {
                       "h-auto object-contain",
                       isHome ? "w-[160px] sm:w-[250px]" : "w-[140px] sm:w-[180px]",
                     )}
-                    priority={isHome}
+                    priority
                   />
                 </div>
               </Link>
