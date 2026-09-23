@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { GameBackLink } from "@/components/site/game-back-link";
 
 export const metadata: Metadata = {
   title: "Kismat Ke Khiladi ft. Go Goa Gone | YCC",
@@ -20,7 +19,6 @@ export default function LevelUpLayout({
 }) {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-[#1e1240] via-[#2a1854] to-[#0d0824] text-white">
-      <GameBackLink />
       {children}
     </div>
   );
