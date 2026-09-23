@@ -6,7 +6,7 @@ import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { MessageCircle, CheckCircle2, FileX } from "lucide-react";
-import { WHATSAPP_CHANNEL_URL } from "@/lib/partner-whatsapp";
+import { WHATSAPP_CHANNEL_URL_OFFICIAL } from "@/lib/partner-whatsapp";
 
 const INSTAGRAM_URL = "https://instagram.com/ycct10";
 
@@ -375,7 +375,7 @@ export function CollegeCampusPartnerForm({ colleges }: { colleges: CollegeOption
               nativeButton={false}
               onClick={() => setValue("whatsappJoined", true, { shouldValidate: true })}
               render={
-                <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                <a href={WHATSAPP_CHANNEL_URL_OFFICIAL} target="_blank" rel="noopener noreferrer">
                   {whatsappJoined ? (
                     <CheckCircle2 className="size-4 shrink-0" />
                   ) : (
