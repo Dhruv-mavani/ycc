@@ -9,6 +9,12 @@ export interface CreateTeamRegistrationInput {
   teamName: string;
   captainEmail?: string | null;
   players: { name: string; phone?: string }[];
+  /** Optional — a YCC College Campus Partner the team says referred them.
+   * Not validated against an approval/status column the way
+   * referred_by_partner_id's source table is — college_campus_partner_
+   * applications has no such status, every submission there stands on its
+   * own (see getCollegeCampusPartnerOverview's doc comment). */
+  referredByCollegeCampusPartnerId?: string | null;
 }
 
 export type TeamRegistrationResult =
@@ -163,6 +169,7 @@ export async function createTeamRegistration(
       captain_name: primaryContact.name,
       captain_phone: primaryContact.phone,
       captain_email: input.captainEmail ?? null,
+      referred_by_college_campus_partner_id: input.referredByCollegeCampusPartnerId || null,
       amount_paise: gst.totalPaise,
       status: "pending_payment",
     })

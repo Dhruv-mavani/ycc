@@ -26,6 +26,7 @@ export async function POST(request: Request) {
       teamName: input.teamName,
       captainEmail: input.captainEmail,
       players: input.players,
+      referredByCollegeCampusPartnerId: input.referredByCollegeCampusPartnerId,
     });
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: result.status });

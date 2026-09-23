@@ -44,6 +44,12 @@ export const teamRegistrationSchema = z.object({
     .array(playerSchema)
     .min(1, "Add at least one player")
     .max(30, "Too many players"),
+  // Optional — who referred this team, if a YCC College Campus Partner did.
+  // Currently only surfaced on the Go Goa Gone form (see
+  // self-team-registration-form.tsx), but kept on the shared team schema
+  // rather than a separate one since every team registration flows through
+  // the same createTeamRegistration/insert path.
+  referredByCollegeCampusPartnerId: z.string().uuid().optional().or(z.literal("")),
 });
 
 export const individualRegistrationSchema = z.object({

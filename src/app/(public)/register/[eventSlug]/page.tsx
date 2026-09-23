@@ -18,8 +18,14 @@ export default async function RegisterPage({
   params: Promise<{ eventSlug: string }>;
 }) {
   const [{ eventSlug }, supabase] = await Promise.all([params, createClient()]);
-  const [{ data: event }, { data: colleges }, { data: campusPartners }, { data: classPartners }, { data: schools }] =
-    await Promise.all([
+  const [
+    { data: event },
+    { data: colleges },
+    { data: campusPartners },
+    { data: classPartners },
+    { data: schools },
+    { data: collegeCampusPartners },
+  ] = await Promise.all([
       supabase
         .from("events")
         .select("*")
@@ -47,6 +53,13 @@ export default async function RegisterPage({
         .from("schools")
         .select("id, name")
         .eq("is_public", true)
+        .order("name"),
+      // Only actually used on the Go Goa Gone form's optional "referred by"
+      // field (see SelfTeamRegistrationForm) — fetched unconditionally here
+      // like colleges/schools above, rather than branching on eventSlug.
+      supabase
+        .from("college_campus_partner_applications")
+        .select("id, name, code")
         .order("name"),
     ]);
 
@@ -203,6 +216,7 @@ export default async function RegisterPage({
                       payAtVenue={event.pay_at_venue}
                       gstExempt={event.gst_exempt}
                       colleges={colleges ?? []}
+                      collegeCampusPartners={collegeCampusPartners ?? []}
                     />
                   )
                 ) : (

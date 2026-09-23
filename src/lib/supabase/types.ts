@@ -180,6 +180,7 @@ export interface Database {
           amount_paise: number;
           status: RegistrationStatus;
           referred_by_partner_id: string | null;
+          referred_by_college_campus_partner_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -195,6 +196,7 @@ export interface Database {
           amount_paise: number;
           status?: RegistrationStatus;
           referred_by_partner_id?: string | null;
+          referred_by_college_campus_partner_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };

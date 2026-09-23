@@ -45,6 +45,12 @@ interface CollegeOption {
  * TeamRegistrationForm, which stays partner-gated for events flagged
  * `requires_referral`.
  */
+interface CollegeCampusPartnerOption {
+  id: string;
+  name: string;
+  code: string | null;
+}
+
 export function SelfTeamRegistrationForm({
   eventId,
   eventSlug,
@@ -54,6 +60,7 @@ export function SelfTeamRegistrationForm({
   payAtVenue = false,
   gstExempt = false,
   colleges,
+  collegeCampusPartners = [],
 }: {
   eventId: string;
   /** Only used to scope event-specific one-off UI, e.g. the Go Goa Gone
@@ -69,6 +76,9 @@ export function SelfTeamRegistrationForm({
    * copy is dropped. */
   gstExempt?: boolean;
   colleges: CollegeOption[];
+  /** Only rendered (as an optional field) on the Go Goa Gone form — see
+   * isGoGoaGone below. Other self-team events don't pass this. */
+  collegeCampusPartners?: CollegeCampusPartnerOption[];
 }) {
   const router = useRouter();
   const [redirecting, setRedirecting] = useState(false);
@@ -112,6 +122,7 @@ export function SelfTeamRegistrationForm({
       teamName: "",
       captainEmail: "",
       players: [],
+      referredByCollegeCampusPartnerId: "",
     },
   });
 
@@ -315,6 +326,32 @@ export function SelfTeamRegistrationForm({
           <Field label="Team name" error={errors.teamName?.message}>
             <Input {...register("teamName")} placeholder="e.g. CK Strikers" />
           </Field>
+
+          {isGoGoaGone ? (
+            <Field
+              label="YCC College Campus Partner code"
+              error={errors.referredByCollegeCampusPartnerId?.message}
+            >
+              <Controller
+                control={control}
+                name="referredByCollegeCampusPartnerId"
+                render={({ field }) => (
+                  <SearchableSelect
+                    value={field.value || null}
+                    onChange={(v) => field.onChange(v ?? "")}
+                    placeholder="Search by name or code — leave blank if none"
+                    emptyText="No match found."
+                    options={collegeCampusPartners.map((p) => ({
+                      value: p.id,
+                      label: p.name,
+                      sublabel: p.code ?? undefined,
+                      searchText: p.code ?? undefined,
+                    }))}
+                  />
+                )}
+              />
+            </Field>
+          ) : null}
         </CardContent>
       </Card>
 
