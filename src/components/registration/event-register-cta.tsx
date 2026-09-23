@@ -108,7 +108,7 @@ export function EventRegisterCta({
 
       {bothJoined ? (
         <Button
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base sm:text-lg h-14 sm:h-16 rounded-xl sm:rounded-2xl shadow-[0_10px_20px_rgba(16,185,129,0.2)] hover:shadow-[0_15px_30px_rgba(16,185,129,0.3)] hover:-translate-y-1 transition-all px-2"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm min-[320px]:text-base sm:text-lg h-auto min-h-12 min-[320px]:min-h-14 sm:min-h-16 rounded-xl sm:rounded-2xl shadow-[0_10px_20px_rgba(16,185,129,0.2)] hover:shadow-[0_15px_30px_rgba(16,185,129,0.3)] hover:-translate-y-1 transition-all px-2 py-2 whitespace-normal leading-snug"
           nativeButton={false}
           render={
             <Link
@@ -122,7 +122,7 @@ export function EventRegisterCta({
       ) : (
         <Button
           disabled
-          className="w-full bg-slate-200 text-slate-400 font-bold text-base sm:text-lg h-14 sm:h-16 rounded-xl sm:rounded-2xl px-2 flex items-center justify-center gap-2"
+          className="w-full bg-slate-200 text-slate-400 font-bold text-sm min-[320px]:text-base sm:text-lg h-auto min-h-12 min-[320px]:min-h-14 sm:min-h-16 rounded-xl sm:rounded-2xl px-2 py-2 flex items-center justify-center gap-2 whitespace-normal leading-snug"
         >
           <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" /> {label}
         </Button>
