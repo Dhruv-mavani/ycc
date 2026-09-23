@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { ArrowLeftIcon } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PartnerProgramAdminTabs } from "@/components/admin/partner-program-admin-tabs";
@@ -50,13 +49,11 @@ export default async function AdminPartnerProgramPage() {
           </Link>
         }
       />
-      <Suspense fallback={null}>
-        <PartnerProgramAdminTabs
-          applications={applicationsWithReferrer}
-          colleges={colleges ?? []}
-          collegeCampusPartnerApplications={campusPartnerApplicationsWithCollege}
-        />
-      </Suspense>
+      <PartnerProgramAdminTabs
+        applications={applicationsWithReferrer}
+        colleges={colleges ?? []}
+        collegeCampusPartnerApplications={campusPartnerApplicationsWithCollege}
+      />
     </div>
   );
 }

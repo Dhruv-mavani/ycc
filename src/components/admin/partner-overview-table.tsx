@@ -124,7 +124,7 @@ export function PartnerOverviewTable({
                 <TableRow key={p.id} className="hover:bg-primary/5 transition-colors">
                   <TableCell className="pl-6 font-medium">
                     <Link
-                      href={`/admin/partner-program?type=college-campus-partner&highlight=${p.id}`}
+                      href={`/admin/college-campus-partners/${p.id}`}
                       className="text-primary hover:underline"
                     >
                       {p.name}

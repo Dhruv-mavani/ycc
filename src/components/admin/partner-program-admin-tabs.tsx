@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PartnerProgramApplicationsList } from "@/components/admin/partner-program-applications-list";
 import { CollegeCampusPartnerApplicationsList } from "@/components/admin/college-campus-partner-applications-list";
@@ -90,18 +89,8 @@ export function PartnerProgramAdminTabs({
   colleges: CollegeOption[];
   collegeCampusPartnerApplications: CollegeCampusPartnerApplication[];
 }) {
-  // Deep-links from elsewhere in admin (e.g. clicking a name in the
-  // dashboard's YCC Partner Overview) can land here on a specific tab and
-  // scroll straight to a specific application via ?type=&highlight=.
-  const searchParams = useSearchParams();
-  const typeParam = searchParams.get("type");
-  const initialType = PARTNER_TYPES.some((t) => t.id === typeParam)
-    ? (typeParam as (typeof PARTNER_TYPES)[number]["id"])
-    : "campus";
-  const highlightId = searchParams.get("highlight");
-
   const [activeId, setActiveId] =
-    useState<(typeof PARTNER_TYPES)[number]["id"]>(initialType);
+    useState<(typeof PARTNER_TYPES)[number]["id"]>("campus");
 
   const filteredApplications = applications.filter(
     (app) => app.partner_type === activeId,
@@ -165,7 +154,6 @@ export function PartnerProgramAdminTabs({
           key={activeId}
           applications={collegeCampusPartnerApplications}
           colleges={colleges}
-          highlightId={highlightId}
         />
       ) : (
         <PartnerProgramApplicationsList

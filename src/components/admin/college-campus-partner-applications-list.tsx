@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   Card,
@@ -43,28 +43,15 @@ interface CollegeOption {
 export function CollegeCampusPartnerApplicationsList({
   applications,
   colleges,
-  highlightId,
 }: {
   applications: CollegeCampusPartnerApplication[];
   colleges: CollegeOption[];
-  /** Deep-linked from elsewhere in admin (dashboard's Partner Overview) —
-   * scrolls to and briefly highlights this application's card on mount. */
-  highlightId?: string | null;
 }) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState(applications);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CollegeCampusPartnerApplication | null>(null);
   const [editTarget, setEditTarget] = useState<CollegeCampusPartnerApplication | null>(null);
-  const [highlighted, setHighlighted] = useState(highlightId ?? null);
-  const highlightRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!highlightId) return;
-    highlightRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    const timer = setTimeout(() => setHighlighted(null), 2500);
-    return () => clearTimeout(timer);
-  }, [highlightId]);
 
   async function confirmDeleteApplication() {
     if (!deleteTarget) return;
@@ -112,15 +99,7 @@ export function CollegeCampusPartnerApplicationsList({
 
       <div className="space-y-3">
         {filteredApplications.map((app) => (
-          <Card
-            key={app.id}
-            ref={app.id === highlightId ? highlightRef : undefined}
-            className={
-              app.id === highlighted
-                ? "ring-2 ring-primary transition-shadow duration-500"
-                : undefined
-            }
-          >
+          <Card key={app.id}>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <CardTitle className="text-xl">{app.name}</CardTitle>

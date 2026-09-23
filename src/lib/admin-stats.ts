@@ -608,6 +608,146 @@ export async function getCollegeCampusPartnerOverview(): Promise<
   }));
 }
 
+export interface CollegeCampusPartnerProfile {
+  id: string;
+  name: string;
+  email: string;
+  mobile: string;
+  age: number;
+  gender: string;
+  instagramHandle: string;
+  stream: string;
+  year: number;
+  semester: number;
+  code: string | null;
+  collegeName: string | null;
+  createdAt: string;
+}
+
+export interface CollegeCampusPartnerTeam {
+  registrationId: string;
+  teamName: string | null;
+  captainName: string | null;
+  squadSize: number;
+  convertedToBoxCricket: boolean;
+  createdAt: string;
+}
+
+export interface CollegeCampusPartnerInsights {
+  profile: CollegeCampusPartnerProfile;
+  teams: CollegeCampusPartnerTeam[];
+  totalPlayers: number;
+  convertedCount: number;
+}
+
+/**
+ * "How many people joined under this College Campus Partner" (registered
+ * for Kismat Ke Khiladi ft. Go Goa Gone using their code), and of those,
+ * how many teams went on to also register for Box Cricket — whether via
+ * the one-tap clone on the level-up game's summary screen (see
+ * /api/registrations/clone-team) or by registering again manually.
+ * Conversion is matched by captain_phone rather than by id, since a
+ * manual re-registration is a completely separate registrations row with
+ * no direct foreign key back to the Go Goa Gone one.
+ */
+export async function getCollegeCampusPartnerInsights(
+  partnerId: string,
+): Promise<CollegeCampusPartnerInsights | null> {
+  const admin = createAdminClient();
+
+  const { data: partner } = await admin
+    .from("college_campus_partner_applications")
+    .select(
+      "id, name, email, mobile, age, gender, instagram_handle, stream, year, semester, code, college_id, created_at",
+    )
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  if (!partner) return null;
+
+  const [{ data: college }, { data: goGoaGoneEvent }, { data: boxCricketEvent }] =
+    await Promise.all([
+      admin.from("colleges").select("name").eq("id", partner.college_id).maybeSingle(),
+      admin.from("events").select("id").eq("slug", "ycc-go-goa-gone").maybeSingle(),
+      admin.from("events").select("id").eq("slug", "cricket-championship-2026").maybeSingle(),
+    ]);
+
+  const profile: CollegeCampusPartnerProfile = {
+    id: partner.id,
+    name: partner.name,
+    email: partner.email,
+    mobile: partner.mobile,
+    age: partner.age,
+    gender: partner.gender,
+    instagramHandle: partner.instagram_handle,
+    stream: partner.stream,
+    year: partner.year,
+    semester: partner.semester,
+    code: partner.code,
+    collegeName: college?.name ?? null,
+    createdAt: partner.created_at,
+  };
+
+  if (!goGoaGoneEvent) {
+    return { profile, teams: [], totalPlayers: 0, convertedCount: 0 };
+  }
+
+  const { data: registrations } = await admin
+    .from("registrations")
+    .select("id, team_name, captain_name, captain_phone, created_at")
+    .eq("referred_by_college_campus_partner_id", partnerId)
+    .eq("event_id", goGoaGoneEvent.id)
+    .eq("status", "confirmed")
+    .order("created_at");
+
+  if (!registrations || registrations.length === 0) {
+    return { profile, teams: [], totalPlayers: 0, convertedCount: 0 };
+  }
+
+  const registrationIds = registrations.map((r) => r.id);
+  const captainPhones = [...new Set(registrations.map((r) => r.captain_phone))];
+
+  const [{ data: participants }, { data: boxCricketRegs }] = await Promise.all([
+    admin
+      .from("participants")
+      .select("registration_id")
+      .in("registration_id", registrationIds),
+    boxCricketEvent
+      ? admin
+          .from("registrations")
+          .select("captain_phone")
+          .eq("event_id", boxCricketEvent.id)
+          .eq("status", "confirmed")
+          .in("captain_phone", captainPhones)
+      : Promise.resolve({ data: [] as { captain_phone: string }[] }),
+  ]);
+
+  const squadSizeByRegistration = new Map<string, number>();
+  for (const p of participants ?? []) {
+    squadSizeByRegistration.set(
+      p.registration_id,
+      (squadSizeByRegistration.get(p.registration_id) ?? 0) + 1,
+    );
+  }
+  const convertedPhones = new Set((boxCricketRegs ?? []).map((r) => r.captain_phone));
+
+  const teams: CollegeCampusPartnerTeam[] = registrations.map((r) => ({
+    registrationId: r.id,
+    teamName: r.team_name,
+    captainName: r.captain_name,
+    squadSize: squadSizeByRegistration.get(r.id) ?? 0,
+    convertedToBoxCricket: convertedPhones.has(r.captain_phone),
+    createdAt: r.created_at,
+  }));
+
+  return {
+    profile,
+    teams,
+    totalPlayers: teams.reduce((sum, t) => sum + t.squadSize, 0),
+    convertedCount: teams.filter((t) => t.convertedToBoxCricket).length,
+  };
+}
+
 export interface CollegeRegistrationDetail {
   registrationId: string;
   type: "team" | "individual";
