@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isRateLimited } from "@/lib/rate-limit";
+import { lookupReceiptRegistration } from "@/lib/registration-lookup";
 
 function getClientIp(request: Request) {
   return (
@@ -26,40 +26,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Enter a unique ID or mobile number" }, { status: 400 });
   }
 
-  const admin = createAdminClient();
-
-  // Unique ID lookup — go via participants, since that's what the ID identifies.
-  const { data: participant } = await admin
-    .from("participants")
-    .select("registration_id")
-    .eq("unique_id", query.toUpperCase())
-    .maybeSingle();
-
-  if (participant) {
-    const { data: registration } = await admin
-      .from("registrations")
-      .select("id")
-      .eq("id", participant.registration_id)
-      .eq("status", "confirmed")
-      .maybeSingle();
-    if (registration) {
-      return NextResponse.json({ registrationId: registration.id });
-    }
-  }
-
-  // Mobile number lookup — matches the registration's primary contact number.
-  if (/^[6-9]\d{9}$/.test(query)) {
-    const { data: registration } = await admin
-      .from("registrations")
-      .select("id")
-      .eq("captain_phone", query)
-      .eq("status", "confirmed")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (registration) {
-      return NextResponse.json({ registrationId: registration.id });
-    }
+  const result = await lookupReceiptRegistration(query);
+  if (result) {
+    return NextResponse.json(result);
   }
 
   return NextResponse.json(

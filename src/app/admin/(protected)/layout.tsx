@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getAdminAccessStatus } from "@/lib/auth";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { StatusScreen } from "@/components/site/status-screen";
+import { AdminChatPanel } from "@/components/yuvan/admin-chat-panel";
 
 export default async function AdminProtectedLayout({
   children,
@@ -28,6 +29,7 @@ export default async function AdminProtectedLayout({
     <div className="flex min-h-screen flex-col">
       <AdminHeader adminName={access.admin.name ?? access.admin.email} />
       <main className="flex-1 px-4 py-6">{children}</main>
+      <AdminChatPanel />
     </div>
   );
 }

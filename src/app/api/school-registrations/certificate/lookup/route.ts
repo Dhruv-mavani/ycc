@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isRateLimited } from "@/lib/rate-limit";
 import { schoolCertificateLookupSchema } from "@/lib/validations/registration";
+import { lookupSchoolCertificate } from "@/lib/registration-lookup";
 
 function getClientIp(request: Request) {
   return (
@@ -37,36 +37,10 @@ export async function POST(request: Request) {
   }
 
   const query = parsed.data.query.trim();
-  const admin = createAdminClient();
+  const result = await lookupSchoolCertificate(query);
 
-  // Code lookup — the personalized code (e.g. "MEGH9999") printed on the
-  // certificate, always stored uppercase.
-  const { data: byCode } = await admin
-    .from("school_tournament_registrations")
-    .select("id")
-    .eq("code", query.toUpperCase())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (byCode) {
-    return NextResponse.json({ registrationId: byCode.id });
-  }
-
-  // WhatsApp number lookup — only attempted if the query looks like a
-  // 10-digit Indian mobile number, same as the receipt lookup route.
-  if (/^[6-9]\d{9}$/.test(query)) {
-    const { data: byPhone } = await admin
-      .from("school_tournament_registrations")
-      .select("id")
-      .eq("whatsapp", query)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (byPhone) {
-      return NextResponse.json({ registrationId: byPhone.id });
-    }
+  if (result) {
+    return NextResponse.json(result);
   }
 
   return NextResponse.json(

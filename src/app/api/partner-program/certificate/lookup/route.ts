@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isRateLimited } from "@/lib/rate-limit";
 import { partnerCertificateLookupSchema } from "@/lib/validations/partner-program";
+import { lookupPartnerProgramCertificate } from "@/lib/registration-lookup";
 
 function getClientIp(request: Request) {
   return (
@@ -37,22 +37,14 @@ export async function POST(request: Request) {
   }
 
   const { mobile } = parsed.data;
-  const admin = createAdminClient();
-  const { data: application } = await admin
-    .from("partner_program_applications")
-    .select("id")
-    .eq("mobile", mobile)
-    .in("partner_type", ["campus", "class", "classmate"])
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const result = await lookupPartnerProgramCertificate(mobile);
 
-  if (!application) {
+  if (!result) {
     return NextResponse.json(
       { error: "No certificate found for that mobile number" },
       { status: 404 },
     );
   }
 
-  return NextResponse.json({ applicationId: application.id });
+  return NextResponse.json(result);
 }

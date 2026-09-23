@@ -9,7 +9,7 @@ import { BackButton } from "@/components/site/back-button";
 // Placeholder content — assets/FAQs For YCC Website.sdocx is a Samsung Notes
 // export (not a parseable text format). Replace with the real FAQ copy once
 // it's available in a readable format (PDF/docx/text).
-const FAQS = [
+export const FAQS = [
   {
     question: "Who can register for YCC events?",
     answer:

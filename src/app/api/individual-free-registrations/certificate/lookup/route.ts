@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isRateLimited } from "@/lib/rate-limit";
 import { individualFreeCertificateLookupSchema } from "@/lib/validations/registration";
+import { lookupIndividualFreeCertificate } from "@/lib/registration-lookup";
 
 function getClientIp(request: Request) {
   return (
@@ -36,32 +36,10 @@ export async function POST(request: Request) {
   }
 
   const query = parsed.data.query.trim();
-  const admin = createAdminClient();
+  const result = await lookupIndividualFreeCertificate(query);
 
-  const { data: byCode } = await admin
-    .from("individual_free_registrations")
-    .select("id")
-    .eq("code", query.toUpperCase())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (byCode) {
-    return NextResponse.json({ registrationId: byCode.id });
-  }
-
-  if (/^[6-9]\d{9}$/.test(query)) {
-    const { data: byPhone } = await admin
-      .from("individual_free_registrations")
-      .select("id")
-      .eq("whatsapp", query)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (byPhone) {
-      return NextResponse.json({ registrationId: byPhone.id });
-    }
+  if (result) {
+    return NextResponse.json(result);
   }
 
   return NextResponse.json(

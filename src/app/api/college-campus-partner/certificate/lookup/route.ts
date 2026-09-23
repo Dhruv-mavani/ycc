@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isRateLimited } from "@/lib/rate-limit";
 import { collegeCampusPartnerCertificateLookupSchema } from "@/lib/validations/college-campus-partner";
+import { lookupCollegeCampusPartnerCertificate } from "@/lib/registration-lookup";
 
 function getClientIp(request: Request) {
   return (
@@ -37,32 +37,10 @@ export async function POST(request: Request) {
   }
 
   const query = parsed.data.query.trim();
-  const admin = createAdminClient();
+  const result = await lookupCollegeCampusPartnerCertificate(query);
 
-  const { data: byCode } = await admin
-    .from("college_campus_partner_applications")
-    .select("id")
-    .eq("code", query.toUpperCase())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (byCode) {
-    return NextResponse.json({ applicationId: byCode.id });
-  }
-
-  if (/^[6-9]\d{9}$/.test(query)) {
-    const { data: byMobile } = await admin
-      .from("college_campus_partner_applications")
-      .select("id")
-      .eq("mobile", query)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (byMobile) {
-      return NextResponse.json({ applicationId: byMobile.id });
-    }
+  if (result) {
+    return NextResponse.json(result);
   }
 
   return NextResponse.json(
