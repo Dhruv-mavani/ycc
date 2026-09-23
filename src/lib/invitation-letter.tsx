@@ -176,7 +176,7 @@ const teamStyles = StyleSheet.create({
   // "Cap:" label so the names themselves read clearly at a glance.
   inlineName: {
     fontFamily: "Alex Brush",
-    fontSize: ts(32),
+    fontSize: ts(42),
     letterSpacing: ts(3),
     color: TEAM_NAVY,
   },
