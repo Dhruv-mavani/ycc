@@ -157,14 +157,6 @@ export function LevelUpGame() {
           />
         </div>
 
-        {/* One-tap Box Cricket registration — only for a team that entered
-            via a real Go Goa Gone registration code, since that's the only
-            case with an existing roster to clone. Everyone else just sees
-            the poster cross-promo below as before. */}
-        {selection?.source === "registration" && selection.eventSlug === "ycc-go-goa-gone" ? (
-          <BoxCricketAutoRegister selection={selection} />
-        ) : null}
-
         {/* Cross-promo: Box Cricket is a separate, paid team event; the
             Captain Benefits poster sits beside it promoting the extra
             rewards a Box Cricket team captain unlocks by also completing
@@ -239,6 +231,14 @@ export function LevelUpGame() {
             </p>
           </Link>
         </div>
+
+        {/* One-tap Box Cricket registration — only for a team that entered
+            via a real Go Goa Gone registration code, since that's the only
+            case with an existing roster to clone. Everyone else just sees
+            the poster cross-promo above as before. */}
+        {selection?.source === "registration" && selection.eventSlug === "ycc-go-goa-gone" ? (
+          <BoxCricketAutoRegister selection={selection} />
+        ) : null}
 
         <button
           type="button"
