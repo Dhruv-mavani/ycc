@@ -187,19 +187,6 @@ export function LevelUpGame() {
               className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
             >
               <Image
-                src="/go-goa-gone/captain-benefits-poster.png"
-                alt="YCC Kismat Ke Khiladi — Exclusive Captain Benefits poster"
-                width={1024}
-                height={1536}
-                className="w-full"
-              />
-            </Link>
-
-            <Link
-              href="/events/cricket-championship-2026"
-              className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
-            >
-              <Image
                 src="/box-cricket/poster-999.png"
                 alt="YCC Box Cricket Tournament poster"
                 width={1024}
@@ -219,6 +206,19 @@ export function LevelUpGame() {
                   for the YCC Box Cricket Tournament — or tap this poster.
                 </p>
               </div>
+            </Link>
+
+            <Link
+              href="/events/cricket-championship-2026"
+              className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
+            >
+              <Image
+                src="/go-goa-gone/captain-benefits-poster.png"
+                alt="YCC Kismat Ke Khiladi — Exclusive Captain Benefits poster"
+                width={1024}
+                height={1536}
+                className="w-full"
+              />
             </Link>
           </div>
 

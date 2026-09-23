@@ -57,7 +57,7 @@ export function BoxCricketAutoRegister({ selection }: { selection: GameTeamSelec
   if (status === "declined") return null;
 
   return (
-    <div className="mb-6 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
+    <div className="mt-8 mb-6 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
       <p className="font-bold text-white">
         Enter {selection.teamLabel} for Box Cricket too?
       </p>
