@@ -569,18 +569,6 @@ export interface CollegeCampusPartnerOverviewRow {
   year: number;
   semester: number;
   code: string | null;
-  // The rest aren't shown in the compact overview table, but are needed
-  // to open EditCollegeCampusPartnerDialog directly from a table row
-  // (there's no separate detail page for this type — see the doc comment
-  // below on why not).
-  email: string;
-  mobile: string;
-  age: number;
-  gender: string;
-  instagramHandle: string;
-  agreedToTerms: boolean;
-  collegeId: string;
-  createdAt: string;
 }
 
 /**
@@ -597,9 +585,7 @@ export async function getCollegeCampusPartnerOverview(): Promise<
 
   const { data: applications } = await admin
     .from("college_campus_partner_applications")
-    .select(
-      "id, name, college_id, stream, year, semester, code, email, mobile, age, gender, instagram_handle, agreed_to_terms, created_at",
-    )
+    .select("id, name, college_id, stream, year, semester, code")
     .order("name");
 
   const collegeIds = [
@@ -619,14 +605,6 @@ export async function getCollegeCampusPartnerOverview(): Promise<
     year: a.year,
     semester: a.semester,
     code: a.code,
-    email: a.email,
-    mobile: a.mobile,
-    age: a.age,
-    gender: a.gender,
-    instagramHandle: a.instagram_handle,
-    agreedToTerms: a.agreed_to_terms,
-    collegeId: a.college_id,
-    createdAt: a.created_at,
   }));
 }
 

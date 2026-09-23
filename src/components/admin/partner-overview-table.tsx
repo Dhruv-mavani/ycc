@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EditCollegeCampusPartnerDialog } from "@/components/admin/edit-college-campus-partner-dialog";
 import type { PartnerSquadReadiness, CollegeCampusPartnerOverviewRow } from "@/lib/admin-stats";
 
 function formatRupees(paise: number) {
@@ -52,18 +51,11 @@ export function PartnerOverviewTable({
 }) {
   const [activeType, setActiveType] = useState<ActiveType>("campus");
   const [collegeFilter, setCollegeFilter] = useState<string>("all");
-  // There's no dedicated detail page for this type (see the doc comment on
-  // getCollegeCampusPartnerOverview — no recruits/teams to show), so
-  // clicking a name here reuses the same edit form the standalone College
-  // Campus Partner applications list uses, instead of building a
-  // read-only page that would just repeat these same fields.
-  const [rows, setRows] = useState(collegeCampusPartnerData);
-  const [editing, setEditing] = useState<CollegeCampusPartnerOverviewRow | null>(null);
 
   const isCollegeCampusPartner = activeType === "college-campus-partner";
 
   const hasUnassigned = isCollegeCampusPartner
-    ? rows.some((p) => !p.collegeName)
+    ? collegeCampusPartnerData.some((p) => !p.collegeName)
     : data.some((p) => !p.collegeName);
 
   const filteredPartners = data.filter((p) => {
@@ -73,7 +65,7 @@ export function PartnerOverviewTable({
     return p.collegeName === collegeFilter;
   });
 
-  const filteredCollegeCampusPartners = rows.filter((p) => {
+  const filteredCollegeCampusPartners = collegeCampusPartnerData.filter((p) => {
     if (collegeFilter === "all") return true;
     if (collegeFilter === UNASSIGNED_COLLEGE) return !p.collegeName;
     return p.collegeName === collegeFilter;
@@ -131,13 +123,12 @@ export function PartnerOverviewTable({
               {filteredCollegeCampusPartners.map((p) => (
                 <TableRow key={p.id} className="hover:bg-primary/5 transition-colors">
                   <TableCell className="pl-6 font-medium">
-                    <button
-                      type="button"
-                      onClick={() => setEditing(p)}
+                    <Link
+                      href={`/admin/partner-program?type=college-campus-partner&highlight=${p.id}`}
                       className="text-primary hover:underline"
                     >
                       {p.name}
-                    </button>
+                    </Link>
                   </TableCell>
                   <TableCell>{p.collegeName ?? "—"}</TableCell>
                   <TableCell>{p.stream}</TableCell>
@@ -201,59 +192,6 @@ export function PartnerOverviewTable({
           </Table>
         )}
       </div>
-
-      <EditCollegeCampusPartnerDialog
-        application={
-          editing
-            ? {
-                id: editing.id,
-                name: editing.name,
-                email: editing.email,
-                mobile: editing.mobile,
-                age: editing.age,
-                gender: editing.gender,
-                instagram_handle: editing.instagramHandle,
-                stream: editing.stream,
-                year: editing.year,
-                semester: editing.semester,
-                code: editing.code,
-                agreed_to_terms: editing.agreedToTerms,
-                college_id: editing.collegeId,
-                collegeName: editing.collegeName,
-                created_at: editing.createdAt,
-              }
-            : null
-        }
-        colleges={colleges}
-        open={editing !== null}
-        onOpenChange={(open) => {
-          if (!open) setEditing(null);
-        }}
-        onSaved={(updated) => {
-          setRows((prev) =>
-            prev.map((p) =>
-              p.id === updated.id
-                ? {
-                    ...p,
-                    name: updated.name,
-                    email: updated.email,
-                    mobile: updated.mobile,
-                    age: updated.age,
-                    gender: updated.gender,
-                    instagramHandle: updated.instagram_handle,
-                    stream: updated.stream,
-                    year: updated.year,
-                    semester: updated.semester,
-                    code: updated.code,
-                    agreedToTerms: updated.agreed_to_terms,
-                    collegeId: updated.college_id,
-                    collegeName: updated.collegeName,
-                  }
-                : p,
-            ),
-          );
-        }}
-      />
     </div>
   );
 }
