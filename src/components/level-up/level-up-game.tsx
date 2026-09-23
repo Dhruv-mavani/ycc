@@ -171,7 +171,7 @@ export function LevelUpGame() {
             className="block overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02]"
           >
             <Image
-              src="/box-cricket/poster.png"
+              src="/box-cricket/poster-999.png"
               alt="YCC Box Cricket Tournament poster"
               width={1024}
               height={1536}

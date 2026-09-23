@@ -18,7 +18,7 @@ const FAQS = [
   {
     question: "How do I register my cricket team?",
     answer:
-      "Pick the Box Cricket Championship event, select your college, enter a team name, then add your 6 players (name + mobile number each) — the first player is registered as team captain. Complete payment to confirm your spot.",
+      "Pick the Box Cricket Championship event, select your college, enter a team name, then add your 7 players (name + mobile number each) — the first player is registered as team captain. Complete payment to confirm your spot.",
   },
   {
     question: "Can I register for the quiz individually?",

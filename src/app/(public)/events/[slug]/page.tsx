@@ -18,7 +18,7 @@ function formatRupees(paise: number) {
 // default OG image (see root layout) when an event has none of its own.
 function posterFor(slug: string): string | undefined {
   if (slug === "ycc-go-goa-gone") return "/go-goa-gone/poster.png";
-  if (slug === "cricket-championship-2026") return "/box-cricket/poster.png";
+  if (slug === "cricket-championship-2026") return "/box-cricket/poster-999.png";
   if (slug === "ycc-jackpot-heist") return "/jackpot-heist/poster.png";
   return undefined;
 }
@@ -195,7 +195,7 @@ export default async function EventDetailPage({
                           isGoGoaGone
                             ? "/go-goa-gone/poster.png"
                             : isBoxCricket
-                              ? "/box-cricket/poster.png"
+                              ? "/box-cricket/poster-999.png"
                               : "/jackpot-heist/poster.png"
                         }
                         alt={`${event.name} poster`}
@@ -268,7 +268,7 @@ export default async function EventDetailPage({
                               <span className="font-semibold text-slate-900">
                                 Fill the team form correctly.
                               </span>{" "}
-                              College, team name, captain details, plus your 5
+                              College, team name, captain details, plus your 6
                               squad members&apos; names.
                             </p>
                           </li>
