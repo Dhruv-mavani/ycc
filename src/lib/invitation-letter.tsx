@@ -485,7 +485,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
 
           <Text style={teamStyles.passTitle}>OFFICIAL TEAM INVITATION PASS</Text>
 
-          <Text style={teamStyles.dearLine}>Dear Team,</Text>
+          <Text style={teamStyles.dearLine}>Dear,</Text>
           <Text style={teamStyles.nameLine}>{data.teamName}</Text>
           <Svg
             style={[{ alignSelf: "center" }, teamStyles.underline]}
