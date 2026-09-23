@@ -6,7 +6,7 @@ import { findAnyRegistrationOrCertificate } from "@/lib/registration-lookup";
 export function createFindRegistrationTool(ip: string) {
   return tool({
     description:
-      "Look up a visitor's OWN confirmed registration, receipt, or certificate using the mobile/WhatsApp number they registered with, or their personalized code/unique ID. Searches every YCC registration flow (tournament, Partner Program, College Campus Partner, school, individual free). Only call this with a number/code the visitor themselves just provided in this conversation — never reuse one from elsewhere, never guess.",
+      "Look up a visitor's OWN confirmed registration, receipt, or certificate using the mobile/WhatsApp number they registered with, or their personalized code/unique ID. Searches every YCC registration flow (tournament, Partner Program, College Campus Partner, school, individual free). Only call this with a number/code the visitor themselves just provided in this conversation — never reuse one from elsewhere, never guess. When it returns found:true, do not restate or link the raw downloadUrl in your reply — the chat UI renders its own download button from this result — just confirm it was found in plain words.",
     inputSchema: z.object({
       query: z
         .string()

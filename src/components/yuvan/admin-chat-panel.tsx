@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
@@ -15,6 +15,11 @@ export function AdminChatPanel() {
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/yuvan/admin" }),
   });
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, status]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,6 +66,7 @@ export function AdminChatPanel() {
                 Something went wrong — please try again.
               </p>
             ) : null}
+            <div ref={messagesEndRef} />
           </div>
 
           <form onSubmit={handleSubmit} className="flex shrink-0 gap-2 border-t border-border/50 p-3">
