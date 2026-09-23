@@ -408,7 +408,7 @@ export function TeamRegistrationForm({
 
       <Button
         type="submit"
-        className="w-full"
+        className="w-full h-12 text-base font-semibold"
         disabled={isSubmitting || loadingSquad || !squadReady}
       >
         {isSubmitting

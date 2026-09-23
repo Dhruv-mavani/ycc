@@ -448,7 +448,7 @@ export default async function EventDetailPage({
                   // render-prop merge was combining in a different order
                   // between server and client (a real, harmless-but-noisy
                   // hydration mismatch on this exact button).
-                  className="w-full rounded-full h-12 gap-2 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
+                  className="w-full rounded-full h-14 sm:h-16 gap-2 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold text-base sm:text-lg transition-all hover:scale-[1.02]"
                   nativeButton={false}
                   render={
                     <Link
@@ -488,7 +488,7 @@ export default async function EventDetailPage({
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full rounded-full h-12 border-slate-200 text-slate-400 bg-transparent font-semibold"
+                    className="w-full rounded-full h-14 sm:h-16 text-base sm:text-lg border-slate-200 text-slate-400 bg-transparent font-semibold"
                   >
                     Coming Soon
                   </Button>

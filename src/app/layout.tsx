@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -94,6 +95,15 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Chrome/Safari's native scroll restoration tries to reapply
+            whatever scroll offset a URL had before a reload/back-forward
+            navigation — in this app that meant refreshing (or navigating
+            back to) a page you'd scrolled down on would land you back near
+            the bottom instead of the top. beforeInteractive so it takes
+            effect before the browser has a chance to restore anything. */}
+        <Script id="disable-scroll-restoration" strategy="beforeInteractive">
+          {`if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }`}
+        </Script>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}

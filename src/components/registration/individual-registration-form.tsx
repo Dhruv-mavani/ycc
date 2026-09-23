@@ -236,7 +236,7 @@ export function IndividualRegistrationForm({
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isSubmitting}>
         {isSubmitting ? "Submitting..." : "Continue to payment"}
       </Button>
     </form>
