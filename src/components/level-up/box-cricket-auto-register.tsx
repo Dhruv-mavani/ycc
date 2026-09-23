@@ -42,7 +42,7 @@ export function BoxCricketAutoRegister({ selection }: { selection: GameTeamSelec
 
   if (status === "confirmed") {
     return (
-      <div className="mb-6 w-full max-w-md rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-left">
+      <div className="mt-8 mb-6 w-full max-w-md rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-left">
         <p className="flex items-center gap-2 font-bold text-emerald-300">
           <CheckCircle2 className="size-5 shrink-0" /> {selection.teamLabel} is in!
         </p>
