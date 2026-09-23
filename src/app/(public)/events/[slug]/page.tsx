@@ -245,6 +245,32 @@ export default async function EventDetailPage({
                               verification.
                             </p>
                           </li>
+                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                              4
+                            </span>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Show up & play.
+                              </span>{" "}
+                              Bring your Team Code during match play — our YCC
+                              Campus Team will conduct the challenge.
+                            </p>
+                          </li>
+                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                              5
+                            </span>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Participate in all games for special benefits.
+                              </span>{" "}
+                              All registered players must take part in every
+                              designated challenge/game to unlock eligibility
+                              for the Special Goa Travel Coupon — starting at
+                              ₹2,499/person.
+                            </p>
+                          </li>
                         </ol>
                       ) : isBoxCricket ? (
                         <ol className="space-y-3">
