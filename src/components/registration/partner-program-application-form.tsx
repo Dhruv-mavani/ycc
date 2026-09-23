@@ -72,6 +72,7 @@ interface ReferrerOption {
 interface CollegeOption {
   id: string;
   name: string;
+  initials: string;
 }
 
 export function PartnerProgramApplicationForm({
@@ -309,7 +310,7 @@ export function PartnerProgramApplicationForm({
                   onChange={(v) => field.onChange(v ?? "")}
                   placeholder="Search for your college..."
                   emptyText="No match found."
-                  options={colleges.map((c) => ({ value: c.id, label: c.name }))}
+                  options={colleges.map((c) => ({ value: c.id, label: `${c.initials}\u00A0\u00A0•\u00A0\u00A0${c.name}` }))}
                 />
               )}
             />

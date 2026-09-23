@@ -100,7 +100,7 @@ async function DashboardData({
       getRegistrationsOverTime(eventId || undefined, range),
       getPartnerSquadReadiness(),
       getCollegeCampusPartnerOverview(),
-      createAdminClient().from("colleges").select("id, name").eq("is_public", true).order("name"),
+      createAdminClient().from("colleges").select("id, name, initials").eq("is_public", true).order("name"),
     ]);
 
   return (

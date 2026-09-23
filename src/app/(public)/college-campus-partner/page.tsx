@@ -9,7 +9,7 @@ export default async function CollegeCampusPartnerPage() {
   const supabase = await createClient();
   const { data: colleges } = await supabase
     .from("colleges")
-    .select("id, name")
+    .select("id, name, initials")
     .eq("is_public", true)
     .order("name");
 
