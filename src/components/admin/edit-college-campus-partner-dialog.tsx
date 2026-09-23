@@ -57,6 +57,7 @@ interface CollegeCampusPartnerApplication {
 interface CollegeOption {
   id: string;
   name: string;
+  initials: string;
 }
 
 export function EditCollegeCampusPartnerDialog({
@@ -145,7 +146,7 @@ export function EditCollegeCampusPartnerDialog({
                   onChange={(v) => field.onChange(v ?? "")}
                   placeholder="Search for college..."
                   emptyText="No match found."
-                  options={colleges.map((c) => ({ value: c.id, label: c.name }))}
+                  options={colleges.map((c) => ({ value: c.id, label: `${c.initials}\u00A0\u00A0•\u00A0\u00A0${c.name}` }))}
                 />
               )}
             />

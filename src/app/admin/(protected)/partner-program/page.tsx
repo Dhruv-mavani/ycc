@@ -13,7 +13,7 @@ export default async function AdminPartnerProgramPage() {
         "id, name, email, mobile, age, gender, instagram_handle, referred_by, referred_by_id, agreed_to_terms, partner_type, status, created_at, college_id",
       )
       .order("created_at", { ascending: false }),
-    admin.from("colleges").select("id, name").eq("is_public", true).order("name"),
+    admin.from("colleges").select("id, name, initials").eq("is_public", true).order("name"),
     admin
       .from("college_campus_partner_applications")
       .select(

@@ -46,6 +46,7 @@ interface CollegeCampusPartnerApplication {
 interface CollegeOption {
   id: string;
   name: string;
+  initials: string;
 }
 
 const PARTNER_TYPES = [

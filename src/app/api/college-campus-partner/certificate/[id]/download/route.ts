@@ -20,7 +20,7 @@ export async function GET(
 
   const { data: application } = await admin
     .from("college_campus_partner_applications")
-    .select("name, code")
+    .select("name, code, stream, year, semester, college_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -35,9 +35,19 @@ export async function GET(
     );
   }
 
+  const { data: college } = await admin
+    .from("colleges")
+    .select("name")
+    .eq("id", application.college_id)
+    .maybeSingle();
+
   const pdfBuffer = await renderCollegeCampusPartnerCertificatePdf({
     name: application.name,
     code: application.code,
+    collegeName: college?.name ?? "—",
+    stream: application.stream,
+    year: application.year,
+    semester: application.semester,
   });
 
   return new NextResponse(new Uint8Array(pdfBuffer), {

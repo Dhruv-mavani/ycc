@@ -54,6 +54,7 @@ interface ChildGroup {
 interface CollegeOption {
   id: string;
   name: string;
+  initials: string;
 }
 
 export function PartnerProgramApplicationsList({

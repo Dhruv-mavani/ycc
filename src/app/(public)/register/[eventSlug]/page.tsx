@@ -28,7 +28,7 @@ export default async function RegisterPage({
         .maybeSingle(),
       supabase
         .from("colleges")
-        .select("id, name")
+        .select("id, name, initials")
         .eq("is_public", true)
         .order("name"),
       supabase

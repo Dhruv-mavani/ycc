@@ -37,6 +37,7 @@ interface CollegeCampusPartnerApplication {
 interface CollegeOption {
   id: string;
   name: string;
+  initials: string;
 }
 
 export function CollegeCampusPartnerApplicationsList({

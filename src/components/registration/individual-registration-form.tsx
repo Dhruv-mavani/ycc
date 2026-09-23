@@ -46,7 +46,7 @@ export function IndividualRegistrationForm({
   eventId: string;
   eventName: string;
   feePaise: number;
-  colleges: { id: string; name: string }[];
+  colleges: { id: string; name: string; initials: string }[];
   partnerOptions: PartnerOption[];
 }) {
   const [submitted, setSubmitted] = useState<{
@@ -151,7 +151,7 @@ export function IndividualRegistrationForm({
                   placeholder="Search for your college..."
                   emptyText="No college matches — try a different search."
                   options={[
-                    ...collegeOptions.map((c) => ({ value: c.id, label: c.name })),
+                    ...collegeOptions.map((c) => ({ value: c.id, label: `${c.initials}\u00A0\u00A0•\u00A0\u00A0${c.name}` })),
                     ...(individualOption
                       ? [
                           {

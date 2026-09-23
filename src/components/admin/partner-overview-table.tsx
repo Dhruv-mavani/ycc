@@ -37,6 +37,7 @@ const UNASSIGNED_COLLEGE = "__unassigned__";
 interface CollegeOption {
   id: string;
   name: string;
+  initials: string;
 }
 
 export function PartnerOverviewTable({
@@ -98,7 +99,7 @@ export function PartnerOverviewTable({
             options={[
               { value: "all", label: "All colleges" },
               ...(hasUnassigned ? [{ value: UNASSIGNED_COLLEGE, label: "No college set" }] : []),
-              ...colleges.map((c) => ({ value: c.name, label: c.name })),
+              ...colleges.map((c) => ({ value: c.name, label: `${c.initials}\u00A0\u00A0•\u00A0\u00A0${c.name}` })),
             ]}
           />
         </div>

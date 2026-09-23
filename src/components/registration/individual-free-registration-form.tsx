@@ -31,6 +31,7 @@ import {
 interface CollegeOption {
   id: string;
   name: string;
+  initials: string;
 }
 
 // Free, no-payment, individual (no team) registration — submitting
@@ -179,7 +180,7 @@ export function IndividualFreeRegistrationForm({
                   onChange={(v) => field.onChange(v ?? "")}
                   placeholder="Search for your college..."
                   emptyText="No college matches — try a different search."
-                  options={colleges.map((c) => ({ value: c.id, label: c.name }))}
+                  options={colleges.map((c) => ({ value: c.id, label: `${c.initials}\u00A0\u00A0•\u00A0\u00A0${c.name}` }))}
                 />
               )}
             />
