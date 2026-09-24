@@ -17,9 +17,11 @@ function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
 
   if (part.state === "input-streaming" || part.state === "input-available") {
     return (
-      <p key={callId} className="text-xs text-muted-foreground italic">
-        Looking that up…
-      </p>
+      <div key={callId} className="flex flex-col gap-2 mt-2 w-full max-w-[200px] animate-pulse">
+        <div className="h-2 bg-foreground/10 rounded-full w-3/4"></div>
+        <div className="h-2 bg-foreground/10 rounded-full w-1/2"></div>
+        <div className="h-8 bg-foreground/10 rounded-md w-full mt-1"></div>
+      </div>
     );
   }
 
@@ -69,12 +71,12 @@ function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
 
 export function ChatMessage({ message }: { message: UIMessage }) {
   return (
-    <div className={message.role === "user" ? "flex justify-end" : "flex justify-start"}>
+    <div className={`animate-in fade-in slide-in-from-bottom-2 duration-300 ${message.role === "user" ? "flex justify-end" : "flex justify-start"}`}>
       <div
         className={
           message.role === "user"
-            ? "max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-sm text-primary-foreground"
-            : "max-w-[90%] space-y-1.5 rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-sm"
+            ? "max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-sm text-primary-foreground shadow-sm transition-all duration-300"
+            : "max-w-[90%] space-y-1.5 rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-sm shadow-sm transition-all duration-300"
         }
       >
         {message.parts.map((part, i) => {
