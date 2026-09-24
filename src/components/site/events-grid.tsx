@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { unstable_cache } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/types";
 import {
   Card,
   CardDescription,
@@ -18,17 +20,34 @@ function formatRupees(paise: number) {
 // other static section) streams in the first HTML chunk instead of waiting
 // on this query — the headline was the LCP element and sat behind the
 // loading spinner until the events query resolved.
+// Public, session-independent read, so it can live in the Data Cache: the
+// homepage no longer pays a database round trip (240ms to 1.8s measured from
+// the function) on every request. Events are only edited directly in
+// Supabase, never through the app, so a 60s window is safe; the "events"
+// tag lets a future admin edit revalidate it immediately.
+const getHomepageEvents = unstable_cache(
+  async () => {
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { data } = await supabase
+      .from("events")
+      .select("*")
+      .eq("is_active", true)
+      // YCC Super Champs (and any future "school" type event) is free,
+      // solo, no-payment — it lives in the footer's "Super Champs" link
+      // and its own /events/[slug] page, not in this paid-events grid.
+      .neq("type", "school")
+      .order("created_at");
+    return data ?? [];
+  },
+  ["homepage-events"],
+  { revalidate: 60, tags: ["events"] },
+);
+
 export async function EventsGrid() {
-  const supabase = await createClient();
-  const { data: events } = await supabase
-    .from("events")
-    .select("*")
-    .eq("is_active", true)
-    // YCC Super Champs (and any future "school" type event) is free,
-    // solo, no-payment — it lives in the footer's "Super Champs" link
-    // and its own /events/[slug] page, not in this paid-events grid.
-    .neq("type", "school")
-    .order("created_at");
+  const events = await getHomepageEvents();
 
   return (
     <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-4 min-[380px]:gap-5 sm:gap-8 max-w-5xl mx-auto">

@@ -45,6 +45,11 @@ const FAQS = [
   }
 ];
 
+// Must stay per-request: SiteHeader picks its layout from usePathname(), which
+// resolves wrongly when this route is statically prerendered (hydration error
+// #418). The events query is cached separately, so this costs no DB round trip.
+export const dynamic = "force-dynamic";
+
 export default function HomePage() {
   return (
     <div>
