@@ -10,6 +10,7 @@ import {
   getCollegeCampusPartnerInsights,
   getCollegeDetail,
   getGameInsights,
+  getStaffDirectory,
 } from "@/lib/admin-stats";
 
 const dateRangeSchema = z
@@ -122,5 +123,12 @@ export const adminTools = {
       result: z.enum(["won", "lost"]).optional(),
     }),
     execute: async ({ gameSlug, search, result }) => getGameInsights(gameSlug, search, result),
+  }),
+
+  staffDirectory: tool({
+    description:
+      "List every admin and staff account with dashboard/scanning-booth access — names, emails, role (admin or staff), and status (admins are always 'active'; staff can be 'pending', 'approved', or 'rejected').",
+    inputSchema: z.object({}),
+    execute: async () => getStaffDirectory(),
   }),
 } satisfies ToolSet;

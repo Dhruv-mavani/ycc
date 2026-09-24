@@ -63,9 +63,14 @@ function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
   }
 
   return (
-    <pre key={callId} className="mt-1 max-w-full overflow-x-auto rounded-md bg-muted/50 p-2 text-[0.7rem] leading-relaxed">
-      {JSON.stringify(output, null, 2)}
-    </pre>
+    <details key={callId} className="mt-1 max-w-full text-xs text-muted-foreground">
+      <summary className="cursor-pointer select-none hover:text-foreground">
+        View data looked up
+      </summary>
+      <pre className="mt-1.5 max-w-full overflow-x-auto rounded-md bg-muted/50 p-2 text-[0.7rem] leading-relaxed">
+        {JSON.stringify(output, null, 2)}
+      </pre>
+    </details>
   );
 }
 

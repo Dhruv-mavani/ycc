@@ -1052,3 +1052,40 @@ export async function getGameInsights(
     recentPlays: combined.slice(0, 200),
   };
 }
+
+export interface StaffDirectoryRow {
+  name: string | null;
+  email: string;
+  role: "admin" | "staff";
+  status: "active" | "pending" | "approved" | "rejected";
+}
+
+/**
+ * Every admin and staff account — who has access to the dashboard/scanning
+ * booth, and (for staff) whether their access request is still pending.
+ * Admins have no approval workflow, so they're always "active".
+ */
+export async function getStaffDirectory(): Promise<StaffDirectoryRow[]> {
+  const admin = createAdminClient();
+
+  const [{ data: admins }, { data: staff }] = await Promise.all([
+    admin.from("admins").select("name, email").order("name"),
+    admin.from("staff").select("name, email, status").order("name"),
+  ]);
+
+  const adminRows: StaffDirectoryRow[] = (admins ?? []).map((a) => ({
+    name: a.name,
+    email: a.email,
+    role: "admin",
+    status: "active",
+  }));
+
+  const staffRows: StaffDirectoryRow[] = (staff ?? []).map((s) => ({
+    name: s.name,
+    email: s.email,
+    role: "staff",
+    status: s.status,
+  }));
+
+  return [...adminRows, ...staffRows];
+}
