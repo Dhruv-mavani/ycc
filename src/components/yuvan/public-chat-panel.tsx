@@ -136,7 +136,7 @@ export function PublicChatPanel() {
             onChange={(e) => setInput(e.target.value)}
             disabled={status !== "ready"}
             placeholder={isListening ? "Listening..." : "Type your message..."}
-            className={`h-10 w-full rounded-full border border-input bg-muted/50 pl-4 pr-10 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:bg-background focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:opacity-50 ${isListening ? "ring-2 ring-red-500/50" : ""}`}
+            className={`h-10 w-full rounded-full border border-input bg-muted/50 pl-4 pr-10 text-base outline-none transition-colors placeholder:text-muted-foreground focus:bg-background focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:opacity-50 ${isListening ? "ring-2 ring-red-500/50" : ""}`}
           />
           {speechSupported && (
             <button

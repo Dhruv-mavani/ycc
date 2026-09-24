@@ -72,7 +72,7 @@ export function AdminChatPanelBody() {
           onChange={(e) => setInput(e.target.value)}
           disabled={status !== "ready"}
           placeholder="Ask about your dashboard data…"
-          className="h-9 flex-1 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="h-9 flex-1 rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         />
         <Button
           type="submit"
