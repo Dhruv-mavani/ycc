@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Trophy, Download, ChevronDown, CalendarDays, Globe, Map, MapPin, TrendingUp, Palmtree, Gamepad2, Mic, Music } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import {
   Card,
   CardDescription,
@@ -54,8 +55,14 @@ const FAQS = [
   }
 ];
 
+// No cookies()/headers() usage on this page (createPublicClient is
+// stateless) — this lets Next.js statically render + ISR-revalidate it
+// instead of forcing Cache-Control: no-store on every request, which also
+// restores back/forward cache eligibility.
+export const revalidate = 60;
+
 export default async function HomePage() {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data: events } = await supabase
     .from("events")
     .select("*")
@@ -143,7 +150,7 @@ export default async function HomePage() {
                       <div className={`w-14 h-14 rounded-2xl ${isGoa ? 'bg-blue-50 border-blue-100' : 'bg-indigo-50 border-indigo-100'} flex items-center justify-center mb-6 border group-hover:scale-110 transition-transform`}>
                         {isGoa ? <Palmtree className="text-blue-600 w-7 h-7" /> : <Gamepad2 className="text-indigo-600 w-7 h-7" />}
                       </div>
-                      <h3 className="text-2xl font-bold text-slate-900 mb-4">{isGoa ? 'Goa Trip' : 'Lakhon Ke Rewards'}</h3>
+                      <h2 className="text-2xl font-bold text-slate-900 mb-4">{isGoa ? 'Goa Trip' : 'Lakhon Ke Rewards'}</h2>
                       <p className="text-slate-600 leading-relaxed font-medium">
                         {isGoa ? (
                           <>Kya aap hamare saath <strong className="text-slate-900 font-bold">GOA</strong> ghoomne aana chahte ho? Pack your bags!</>
@@ -167,7 +174,7 @@ export default async function HomePage() {
                       <div className={`w-14 h-14 rounded-2xl ${isComedy ? 'bg-sky-50 border-sky-100' : 'bg-purple-50 border-purple-100'} flex items-center justify-center mb-6 border group-hover:scale-110 transition-transform`}>
                         {isComedy ? <Mic className="text-sky-600 w-7 h-7" /> : <Music className="text-purple-600 w-7 h-7" />}
                       </div>
-                      <h3 className="text-2xl font-bold text-slate-900 mb-4">{isComedy ? 'Stand-Up Comedy' : 'Dance Party'}</h3>
+                      <h2 className="text-2xl font-bold text-slate-900 mb-4">{isComedy ? 'Stand-Up Comedy' : 'Dance Party'}</h2>
                       <p className="text-slate-600 leading-relaxed font-medium">
                         {isComedy ? (
                           <>Kya aap hamare saath <strong className="text-slate-900 font-bold">Stand-Up Comedy</strong> ke shows dekhna chahte ho? LOL, definitely!</>
@@ -361,9 +368,11 @@ export default async function HomePage() {
             <h2 className="text-3xl min-[400px]:text-4xl md:text-6xl font-bold tracking-tight text-slate-900 mb-6 flex flex-wrap items-center justify-center gap-2 min-[400px]:gap-3 md:gap-4">
               <span>From Gujarat to</span>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">the World</span>
-              <img 
-                src="/brand/realistic_globe.png" 
-                alt="Realistic Globe" 
+              <Image
+                src="/brand/realistic_globe.png"
+                alt="Realistic Globe"
+                width={96}
+                height={96}
                 className="w-14 h-14 min-[400px]:w-16 min-[400px]:h-16 md:w-24 md:h-24 object-contain animate-[spin_60s_linear_infinite] mix-blend-multiply rounded-full [clip-path:circle(48%_at_50%_50%)]"
               />
             </h2>

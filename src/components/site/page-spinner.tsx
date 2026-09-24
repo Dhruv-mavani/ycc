@@ -14,6 +14,7 @@ export function PageSpinner({
           alt="Loading"
           width={1641}
           height={620}
+          sizes="320px"
           className="relative w-full h-auto object-contain animate-logo-breathe"
           priority
         />

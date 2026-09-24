@@ -50,12 +50,19 @@ export function HeroCarousel() {
             src={src}
             alt={`Carousel image ${idx + 1}`}
             fill
-            unoptimized={true}
             sizes="100vw"
+            quality={65}
             className={`object-cover transition-transform duration-[10000ms] ease-out ${
               idx === activeIndex ? "scale-110" : "scale-100"
             }`}
             priority={idx === 0}
+            // All 6 sit stacked (opacity-only crossfade, never removed from
+            // the DOM), so the browser's viewport-intersection heuristic for
+            // loading="lazy" never fires for slides 2-6 — they'd silently
+            // never fetch. Keep them eager (optimized/compressed now, so the
+            // byte cost is tiny) so the crossfade actually has an image to
+            // show once it advances past the first slide.
+            loading={idx === 0 ? undefined : "eager"}
           />
         </div>
       ))}
@@ -67,6 +74,7 @@ export function HeroCarousel() {
           size="icon"
           className="rounded-full bg-background/50 backdrop-blur-sm pointer-events-auto hover:bg-background"
           onClick={showPrev}
+          aria-label="Previous slide"
         >
           <ChevronLeft className="size-5" />
         </Button>
@@ -75,6 +83,7 @@ export function HeroCarousel() {
           size="icon"
           className="rounded-full bg-background/50 backdrop-blur-sm pointer-events-auto hover:bg-background"
           onClick={showNext}
+          aria-label="Next slide"
         >
           <ChevronRight className="size-5" />
         </Button>
