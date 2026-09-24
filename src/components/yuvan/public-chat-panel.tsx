@@ -81,7 +81,7 @@ export function PublicChatPanel() {
   };
 
   return (
-    <Card className="mb-3 flex h-[70vh] max-h-[600px] w-[calc(100vw-2rem)] max-w-sm flex-col gap-0 overflow-hidden p-0 shadow-2xl ring-1 ring-border/50 font-sans border-0 rounded-2xl bg-background/95 backdrop-blur-md">
+    <Card className="mb-3 flex h-[70dvh] max-h-[600px] w-[calc(100vw-2rem)] max-w-sm flex-col gap-0 overflow-hidden p-0 shadow-2xl ring-1 ring-border/50 font-sans border-0 rounded-2xl bg-background/95 backdrop-blur-md">
       <div className="flex shrink-0 items-center gap-3 border-b border-border/50 bg-muted/30 px-4 py-3">
         <Image
           src="/yuvan/avatar.jpg"

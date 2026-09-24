@@ -29,7 +29,7 @@ export function AdminChatPanelBody() {
   }
 
   return (
-    <Card className="mb-3 flex h-[70vh] max-h-[600px] w-[calc(100vw-2rem)] max-w-md flex-col gap-0 overflow-hidden p-0 shadow-2xl ring-1 ring-foreground/10">
+    <Card className="mb-3 flex h-[70dvh] max-h-[600px] w-[calc(100vw-2rem)] max-w-md flex-col gap-0 overflow-hidden p-0 shadow-2xl ring-1 ring-foreground/10">
       <div className="flex shrink-0 items-center gap-2.5 border-b border-border/50 px-4 py-3">
         <Image
           src="/yuvan/avatar.jpg"
