@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Trophy, Download, ChevronDown, CalendarDays, Globe, Map, MapPin, TrendingUp, Palmtree, Gamepad2, Mic, Music } from "lucide-react";
-import { createPublicClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import {
   Card,
   CardDescription,
@@ -55,14 +55,8 @@ const FAQS = [
   }
 ];
 
-// No cookies()/headers() usage on this page (createPublicClient is
-// stateless) — this lets Next.js statically render + ISR-revalidate it
-// instead of forcing Cache-Control: no-store on every request, which also
-// restores back/forward cache eligibility.
-export const revalidate = 60;
-
 export default async function HomePage() {
-  const supabase = createPublicClient();
+  const supabase = await createClient();
   const { data: events } = await supabase
     .from("events")
     .select("*")
