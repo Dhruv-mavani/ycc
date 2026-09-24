@@ -1,14 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Trophy, Download, ChevronDown, CalendarDays, Globe, Map, MapPin, TrendingUp, Palmtree, Gamepad2, Mic, Music } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Suspense } from "react";
+import { EventsGrid, EventsGridSkeleton } from "@/components/site/events-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HeroCarousel } from "@/components/ui/hero-carousel";
@@ -19,10 +13,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
-function formatRupees(paise: number) {
-  return `₹${(paise / 100).toLocaleString("en-IN")}`;
-}
 
 const FAQS = [
   {
@@ -55,18 +45,7 @@ const FAQS = [
   }
 ];
 
-export default async function HomePage() {
-  const supabase = await createClient();
-  const { data: events } = await supabase
-    .from("events")
-    .select("*")
-    .eq("is_active", true)
-    // YCC Super Champs (and any future "school" type event) is free,
-    // solo, no-payment — it lives in the footer's "Super Champs" link
-    // and its own /events/[slug] page, not in this paid-events grid.
-    .neq("type", "school")
-    .order("created_at");
-
+export default function HomePage() {
   return (
     <div>
       <section className="relative z-0 flex min-h-[100svh] flex-col items-center justify-center overflow-hidden pt-36 sm:pt-48 md:pt-56 pb-16 text-center tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000">
@@ -204,72 +183,9 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-4 min-[380px]:gap-5 sm:gap-8 max-w-5xl mx-auto">
-            {(!events || events.length === 0) && (
-              <div className="min-[380px]:col-span-2 rounded-3xl border border-dashed border-blue-200 p-16 text-center bg-white/50 backdrop-blur-md">
-                <p className="text-slate-500 text-xl font-medium">
-                  No events are open for registration right now. Check back soon!
-                </p>
-              </div>
-            )}
-            {events?.map((event) =>
-              event.registration_open ? (
-                <Card key={event.id} className="relative overflow-hidden flex flex-col group hover:border-blue-400/50 transition-colors bg-white shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.2)] border-blue-100 rounded-3xl">
-                  <CardHeader className="pb-4 pt-6 sm:pt-8 px-4 sm:px-8">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-                      <CardTitle className="text-lg sm:text-2xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors break-words">{event.name}</CardTitle>
-                      <Badge
-                        variant="secondary"
-                        className="whitespace-nowrap w-fit bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 text-xs shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                      >
-                        <span className="relative flex h-1.5 w-1.5 mr-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                        </span>
-                        Open Now
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-xs sm:text-base mt-2 sm:mt-3 text-slate-600 leading-relaxed break-words">{event.description}</CardDescription>
-                  </CardHeader>
-                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-auto border-t border-slate-100 bg-slate-50">
-                    <Button
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)] transition-all font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-lg px-2"
-                      nativeButton={false}
-                      render={
-                        <Link href={`/events/${event.slug}`} className="flex items-center justify-center w-full">
-                          {event.fee_paise === 0 ? "Register for free" : `Entry Fee: ${formatRupees(event.fee_paise)}`}
-                        </Link>
-                      }
-                    />
-                  </CardFooter>
-                </Card>
-              ) : (
-                <Card key={event.id} className="overflow-hidden border-dashed border-slate-200 bg-white/60 flex flex-col opacity-80 hover:opacity-100 transition-opacity rounded-3xl shadow-sm">
-                  <CardHeader className="pb-4 pt-6 sm:pt-8 px-4 sm:px-8">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-                      <CardTitle className="text-lg sm:text-2xl font-bold text-slate-500 break-words">{event.name}</CardTitle>
-                      <Badge
-                        variant="secondary"
-                        className="whitespace-nowrap w-fit bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1 text-xs"
-                      >
-                        Coming Soon
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-xs sm:text-base mt-2 sm:mt-3 text-slate-500 leading-relaxed break-words">{event.description}</CardDescription>
-                  </CardHeader>
-                  <CardFooter className="pt-5 sm:pt-6 pb-6 sm:pb-8 px-4 sm:px-8 mt-auto border-t border-slate-100 bg-slate-50/50">
-                    <Button
-                      disabled
-                      variant="outline"
-                      className="w-full border-slate-200 text-slate-400 bg-transparent rounded-xl h-11 sm:h-12 text-sm sm:text-lg font-semibold px-2"
-                    >
-                      {event.fee_paise === 0 ? "Register for free" : `Entry Fee: ${formatRupees(event.fee_paise)}`}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ),
-            )}
-          </div>
+          <Suspense fallback={<EventsGridSkeleton />}>
+            <EventsGrid />
+          </Suspense>
         </div>
       </section>
       {/* Backed By The Best Section */}
@@ -545,7 +461,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
         
         <div className="mx-auto max-w-4xl px-4 text-center mb-10 md:mb-16 relative z-10">
-          <div className="bg-emerald-50 text-emerald-600 font-bold px-4 py-1.5 rounded-full inline-block text-sm mb-6 shadow-sm border border-emerald-200">
+          <div className="bg-emerald-50 text-emerald-700 font-bold px-4 py-1.5 rounded-full inline-block text-sm mb-6 shadow-sm border border-emerald-200">
             Why Choose YCC?
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight leading-[1.1]">

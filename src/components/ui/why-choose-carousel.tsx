@@ -124,17 +124,21 @@ export function WhyChooseCarousel() {
       </div>
 
       {/* Pagination Dots (Mobile Only) */}
-      <div className="flex lg:hidden justify-center gap-3 mt-10">
+      <div className="flex lg:hidden justify-center gap-1 mt-8">
         {CARDS.map((_, i) => (
           <button
             key={i}
             onClick={() => scrollTo(i)}
-            className={cn(
-              "h-2.5 rounded-full transition-all duration-500 ease-out",
-              i === activeIndex ? "bg-emerald-500 w-10 shadow-sm" : "bg-slate-200 w-2.5 hover:bg-slate-300"
-            )}
+            className="flex h-6 items-center justify-center px-2"
             aria-label={`Go to slide ${i + 1}`}
-          />
+          >
+            <span
+              className={cn(
+                "h-2.5 rounded-full transition-all duration-500 ease-out",
+                i === activeIndex ? "bg-emerald-500 w-10 shadow-sm" : "bg-slate-200 w-2.5 hover:bg-slate-300"
+              )}
+            />
+          </button>
         ))}
       </div>
     </div>

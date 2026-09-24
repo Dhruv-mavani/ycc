@@ -51,7 +51,7 @@ export function HeroCarousel() {
             alt={`Carousel image ${idx + 1}`}
             fill
             sizes="100vw"
-            quality={65}
+            quality={55}
             className={`object-cover transition-transform duration-[10000ms] ease-out ${
               idx === activeIndex ? "scale-110" : "scale-100"
             }`}

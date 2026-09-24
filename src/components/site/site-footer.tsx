@@ -184,7 +184,7 @@ export function SiteFooter() {
       </div>
 
       {/* Absolute Bottom */}
-      <div className="max-w-7xl mx-auto px-6 py-8 border-t border-slate-800/60 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] sm:text-xs text-slate-500 font-medium tracking-widest uppercase">
+      <div className="max-w-7xl mx-auto px-6 py-8 border-t border-slate-800/60 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] sm:text-xs text-slate-400 font-medium tracking-widest uppercase">
         <p>&copy; {new Date().getFullYear()} YCC. ALL RIGHTS RESERVED.</p>
         <div className="flex items-center gap-6 sm:gap-8">
           <Link href="/privacy" className="hover:text-white transition-colors">PRIVACY</Link>

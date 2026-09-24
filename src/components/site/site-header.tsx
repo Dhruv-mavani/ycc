@@ -137,6 +137,7 @@ export function SiteHeader() {
                     alt="Yuva Champions Cricket"
                     width={250}
                     height={90}
+                    sizes={isHome ? "(min-width: 640px) 250px, 160px" : "(min-width: 640px) 180px, 140px"}
                     className={cn(
                       "h-auto object-contain",
                       isHome ? "w-[160px] sm:w-[250px]" : "w-[140px] sm:w-[180px]",

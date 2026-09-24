@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    // AVIF first (much smaller than WebP for the hero photos). Next 16 only
+    // honours a `quality` prop that appears in this list — anything else is
+    // silently coerced to 75.
+    formats: ["image/avif", "image/webp"],
+    qualities: [55, 75],
+  },
   async headers() {
     return [
       {
