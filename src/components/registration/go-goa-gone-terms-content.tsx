@@ -1,6 +1,9 @@
-// Official Terms & Conditions for YCC Kismat Ke Khiladi ft. Go, Goa, Gone
-// With Your Squad, as provided by the organizer (September 2026). Rendering
-// shape (title + p/ul blocks) matches partner-tournament-terms-content.tsx.
+// Official Terms & Conditions for YCC Kismat Ke Khiladi ft. Go, Goa, Gone,
+// as provided by the organizer (September 2026), merged with the extra
+// individual-player contest terms (final round, 12-season commitment, etc.).
+// Section numbers are generated at render time so sections can be added or
+// reordered freely. Rendering shape (title + p/ul blocks) matches
+// partner-tournament-terms-content.tsx.
 
 type Block =
   | { type: "p"; text: string }
@@ -8,12 +11,14 @@ type Block =
 
 interface TermsSection {
   title: string;
+  /** Skips the auto-number (used for the closing notice). */
+  unnumbered?: boolean;
   blocks: Block[];
 }
 
 const SECTIONS: TermsSection[] = [
   {
-    title: "1. Event Structure",
+    title: "Event Structure",
     blocks: [
       {
         type: "p",
@@ -27,11 +32,19 @@ const SECTIONS: TermsSection[] = [
         type: "p",
         text: "The two challenges are intended to be completed by eligible participants along with participation in the YCC Box Cricket League, subject to the applicable eligibility requirements.",
       },
+      {
+        type: "p",
+        text: "These Terms & Conditions apply specifically to the individual-player promotional contest, including its two challenges and the YCC Box Cricket League.",
+      },
     ],
   },
   {
-    title: "2. Eligibility for Event Benefits",
+    title: "Individual Participation & Eligibility",
     blocks: [
+      {
+        type: "p",
+        text: "The Event is open to individual players of any gender (male and female). Each Participant must personally take part in both the YCC Spin the Wheel and the YCC Cube Challenge, and may not participate through, or on behalf of, another person.",
+      },
       {
         type: "p",
         text: "To become eligible for the applicable benefits, prizes, promotional rewards or other opportunities offered under YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, a Participant must:",
@@ -40,10 +53,10 @@ const SECTIONS: TermsSection[] = [
         type: "ul",
         items: [
           "Actively participate in both YCC challenges;",
-          "Participate in the YCC Box Cricket League through their registered squad/team;",
+          "Participate in the YCC Box Cricket League — participation in the Box Cricket League is also required to receive the benefits;",
           "Follow all applicable rules and instructions issued by YCC;",
           "Complete the activities through the authorised YCC process;",
-          "Provide accurate participant and team information wherever required; and",
+          "Provide accurate participant information wherever required; and",
           "Successfully pass YCC's verification process.",
         ],
       },
@@ -58,7 +71,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "3. One-Attempt / One-Chance Policy",
+    title: "One-Attempt / One-Chance Policy",
     blocks: [
       {
         type: "p",
@@ -89,7 +102,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "4. Role of YCC Campus Partners",
+    title: "Role of YCC Campus Partners",
     blocks: [
       {
         type: "p",
@@ -120,7 +133,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "5. Finality of the Official Game Result",
+    title: "Finality of the Official Game Result",
     blocks: [
       {
         type: "p",
@@ -141,7 +154,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "6. Game Rules",
+    title: "Game Rules",
     blocks: [
       { type: "p", text: "A. YCC Spin the Wheel" },
       {
@@ -168,7 +181,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "7. YCC Box Cricket League",
+    title: "YCC Box Cricket League",
     blocks: [
       {
         type: "p",
@@ -176,21 +189,21 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: "To qualify for benefits associated with YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, the Participant must participate through an eligible registered team/squad in the applicable YCC Box Cricket League.",
+        text: "To qualify for benefits associated with YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, the Participant must participate in the applicable YCC Box Cricket League.",
       },
       { type: "p", text: "Important:" },
       {
         type: "ul",
         items: [
           "YCC Box Cricket League participation is not necessarily free.",
-          "The applicable tournament entry fee must be paid by the participating team/players in accordance with the tournament registration terms communicated by YCC.",
+          "The applicable tournament entry fee must be paid by the participating players in accordance with the tournament registration terms communicated by YCC.",
           "Payment of the Box Cricket entry fee does not by itself guarantee any prize, travel benefit, free trip, cash reward or other promotional benefit.",
         ],
       },
     ],
   },
   {
-    title: "8. Promotional Benefits & Travel Coupons",
+    title: "Promotional Benefits & Travel Coupons",
     blocks: [
       {
         type: "p",
@@ -203,7 +216,7 @@ const SECTIONS: TermsSection[] = [
           "Promotional travel offers;",
           "Discounted trip opportunities;",
           "Event-related rewards;",
-          "Special squad benefits; or",
+          "Special participant benefits; or",
           "Other benefits communicated by YCC.",
         ],
       },
@@ -222,24 +235,46 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "9. Winner Determination",
+    title: "Winner Selection & Final Round",
     blocks: [
       {
         type: "p",
-        text: "Where the Event provides for a particular winner or winning squad, only the Participant or Squad that satisfies all applicable eligibility requirements and official game conditions will qualify.",
+        text: "Where the Event provides for a particular winner, only the Participant who satisfies all applicable eligibility requirements and official game conditions will qualify.",
       },
       {
         type: "p",
-        text: "If more than one Participant or Squad achieves an identical winning result where only one winner can be selected, YCC may conduct a random draw/lottery-style selection among the verified eligible winners, subject to applicable law and the specific promotion rules.",
+        text: "If multiple Participants qualify as winners, they will advance to a subsequent round. The subsequent round will repeat the official game and may also include two to three additional fun activities, as announced by YCC.",
       },
       {
         type: "p",
-        text: "The selected winner from that process will be treated as the winner for that particular promotional benefit. YCC's records and verification process will be used to establish eligibility.",
+        text: "Only three (3) final winners will be selected. If a tie or identical result occurs, YCC may conduct a tie-break procedure — such as a repeat round, a random draw or another fair method announced at the time — among the verified eligible Participants, subject to applicable law and the specific promotion rules.",
+      },
+      {
+        type: "p",
+        text: "The Participants selected through this process will be treated as the winners for the applicable promotional benefit. YCC's records and verification process will be used to establish eligibility.",
       },
     ],
   },
   {
-    title: "10. Verification of Participation and Results",
+    title: "Future Tournament Participation Requirement",
+    blocks: [
+      {
+        type: "p",
+        text: "Each of the three (3) final winners is required to participate in twelve (12) seasons of the YCC Box Cricket Tournament within one (1) year, subject to the conditions below:",
+      },
+      {
+        type: "ul",
+        items: [
+          "The requirement applies only where it is disclosed to the winner before participation;",
+          "The schedule and applicable fees for each season will be communicated by YCC;",
+          "Participation remains subject to the applicable tournament rules and entry fees; and",
+          "Exceptions, such as postponements or cancellations of a season, will be communicated by YCC through its official channels.",
+        ],
+      },
+    ],
+  },
+  {
+    title: "Verification of Participation and Results",
     blocks: [
       {
         type: "p",
@@ -249,8 +284,6 @@ const SECTIONS: TermsSection[] = [
         type: "ul",
         items: [
           "Participant details;",
-          "Team/squad details;",
-          "Team code;",
           "Challenge participation;",
           "Number of attempts;",
           "Game results;",
@@ -264,12 +297,16 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: "These records may be used to verify whether a Participant genuinely participated and whether the Participant is eligible for a particular benefit or prize. Where appropriate, YCC may request additional information or documents for verification.",
+        text: "Participants may be required to provide accurate details for verification.",
+      },
+      {
+        type: "p",
+        text: "These records may be used to verify whether a Participant genuinely participated and whether the Participant is eligible for a particular benefit or prize. Where appropriate, YCC may request additional information or documents for verification. Final results will be declared only after verification and communicated through YCC's official channels.",
       },
     ],
   },
   {
-    title: "11. False Claims, Fake Screenshots & Fraudulent Representation",
+    title: "False Claims, Fake Screenshots & Fraudulent Representation",
     blocks: [
       {
         type: "p",
@@ -297,7 +334,7 @@ const SECTIONS: TermsSection[] = [
         type: "ul",
         items: [
           "Reject the claim;",
-          "Disqualify the Participant or Squad;",
+          "Disqualify the Participant;",
           "Cancel any benefit or prize associated with the fraudulent claim;",
           "Restrict the Participant from participating in future YCC activities; and/or",
           "Take appropriate legal or other action available under applicable law.",
@@ -306,7 +343,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "12. No Manipulation of the Game",
+    title: "No Manipulation of the Game",
     blocks: [
       {
         type: "p",
@@ -331,18 +368,16 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "13. Team & Player Verification",
+    title: "Player Verification",
     blocks: [
       {
         type: "p",
-        text: "For team-based activities, each player must participate using their genuine identity and registered team information. YCC may verify:",
+        text: "Each player must participate using their genuine identity and registered information. YCC may verify:",
       },
       {
         type: "ul",
         items: [
           "Player identity;",
-          "Team membership;",
-          "Team code;",
           "Registration details;",
           "Match participation; and",
           "Other relevant records.",
@@ -355,7 +390,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "14. No Guarantee of Prize or Travel Benefit",
+    title: "No Guarantee of Prize or Travel Benefit",
     blocks: [
       {
         type: "p",
@@ -379,7 +414,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "15. Changes, Suspension or Cancellation",
+    title: "Changes, Suspension or Cancellation",
     blocks: [
       {
         type: "p",
@@ -405,7 +440,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "16. Technical & Operational Issues",
+    title: "Technical & Operational Issues",
     blocks: [
       {
         type: "p",
@@ -419,10 +454,14 @@ const SECTIONS: TermsSection[] = [
         type: "p",
         text: "Where YCC determines that a genuine technical or operational error materially affected an official attempt, YCC may take appropriate corrective action, including permitting a fresh attempt where reasonably necessary.",
       },
+      {
+        type: "p",
+        text: "If a verified malfunction or algorithmic error affects a challenge or its outcome, YCC may cancel the affected challenge and re-run it. YCC will notify Participants through its official channels, and the affected results will not be treated as final.",
+      },
     ],
   },
   {
-    title: "17. Participant Responsibility",
+    title: "Participant Responsibility",
     blocks: [
       { type: "p", text: "Participants are responsible for:" },
       {
@@ -439,7 +478,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "18. Acceptance of Terms",
+    title: "Acceptance of Terms",
     blocks: [
       {
         type: "p",
@@ -447,12 +486,12 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: "Participation in the Event constitutes acceptance of these Terms & Conditions and the applicable rules communicated by YCC.",
+        text: "Participation in the Event constitutes acceptance of these Terms & Conditions and the applicable rules communicated by YCC. YCC will communicate any material changes through its official channels.",
       },
     ],
   },
   {
-    title: "19. Governing Law",
+    title: "Governing Law",
     blocks: [
       {
         type: "p",
@@ -465,7 +504,7 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "20. Official Communication",
+    title: "Official Communication",
     blocks: [
       {
         type: "p",
@@ -483,6 +522,7 @@ const SECTIONS: TermsSection[] = [
   },
   {
     title: "Important Participant Notice",
+    unnumbered: true,
     blocks: [
       {
         type: "ul",
@@ -492,6 +532,7 @@ const SECTIONS: TermsSection[] = [
           "No Fake Screenshots • No Manipulation • No Extra Attempts",
           "Official YCC Records Will Be Used for Verification",
           "Box Cricket League Entry Fees Apply Separately",
+          "3 Final Winners • 12 YCC Box Cricket Tournament Seasons Within 1 Year (As Disclosed)",
           "All Benefits Are Subject to Eligibility, Verification & Applicable Promotional Terms",
         ],
       },
@@ -517,24 +558,26 @@ export function GoGoaGoneTermsContent() {
     <div className="space-y-5 text-sm text-muted-foreground">
       <div className="space-y-1">
         <p className="text-xs font-semibold tracking-wide uppercase text-foreground">
-          YCC Kismat Ke Khiladi Ft. Go, Goa, Gone With Your Squad
+          YCC Kismat Ke Khiladi Ft. Go, Goa, Gone
         </p>
         <p className="font-medium text-foreground">Terms &amp; Conditions</p>
         <p>
-          These Terms &amp; Conditions ("Terms") govern participation in YCC
-          Kismat Ke Khiladi Ft. Go, Goa, Gone With Your Squad ("Event"),
-          organised and managed by YCC ("YCC", "Organiser", "we", "us" or
-          "our"). By participating in any challenge or activity associated
-          with this Event, the participant ("Participant", "you" or "your")
+          These Terms &amp; Conditions (&quot;Terms&quot;) govern participation in YCC
+          Kismat Ke Khiladi Ft. Go, Goa, Gone (&quot;Event&quot;),
+          organised and managed by YCC (&quot;YCC&quot;, &quot;Organiser&quot;, &quot;we&quot;, &quot;us&quot; or
+          &quot;our&quot;). By participating in any challenge or activity associated
+          with this Event, the participant (&quot;Participant&quot;, &quot;you&quot; or &quot;your&quot;)
           acknowledges that they have read, understood and agreed to these
           Terms &amp; Conditions.
         </p>
       </div>
 
-      {SECTIONS.map((section) => (
+      {SECTIONS.map((section, index) => (
         <div key={section.title} className="space-y-2">
           <h3 className="text-sm font-semibold text-foreground">
-            {section.title}
+            {section.unnumbered
+              ? section.title
+              : `${SECTIONS.slice(0, index).filter((s) => !s.unnumbered).length + 1}. ${section.title}`}
           </h3>
           <div className="space-y-2">
             {section.blocks.map((block, i) => (
@@ -546,7 +589,7 @@ export function GoGoaGoneTermsContent() {
 
       <div className="space-y-0.5 border-t border-border pt-4 text-xs">
         <p>Organiser: YCC</p>
-        <p>Event: YCC Kismat Ke Khiladi Ft. Go, Goa, Gone With Your Squad</p>
+        <p>Event: YCC Kismat Ke Khiladi Ft. Go, Goa, Gone</p>
         <p>Nature of Activity: Sports Tournament, Games &amp; Promotional Contest</p>
         <p>Last Updated: September 2026</p>
       </div>
