@@ -134,7 +134,7 @@ export function TeamPlayerGate({
               find();
             }
           }}
-          placeholder="Your Unique ID or team code"
+          placeholder="Enter your code"
           className="h-11 min-w-0 flex-1 rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-white/40 backdrop-blur-sm outline-none focus:border-amber-300/60"
         />
         <button
