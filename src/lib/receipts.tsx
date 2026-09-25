@@ -215,6 +215,16 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
           hasIdCards={!data.hideIdCards}
         />
       ) : null}
+      {data.includeCongratsLetter && data.type === "individual" && data.participants[0] ? (
+        <InvitationLetterPage
+          kind="individual"
+          name={data.captainName ?? data.participants[0].name}
+          code={data.participants[0].uniqueId}
+          eventName={data.eventName}
+          collegeName={data.collegeName}
+          hasIdCards={!data.hideIdCards}
+        />
+      ) : null}
       {!data.hideReceiptPage && (
       <Page size="A4" style={styles.page}>
         <View style={styles.topRow}>

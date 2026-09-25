@@ -66,9 +66,27 @@ export const individualRegistrationSchema = z.object({
     .uuid("Select who referred you"),
 });
 
+// Open, self-serve individual entry (currently only Kismat Ke Khiladi ft.
+// Go Goa Gone). Distinct from individualRegistrationSchema above, which is
+// the quiz's partner-referred flow (age/gender + a required referrer). The
+// discriminator is request-only: the row is stored as registrations.type =
+// "individual" either way.
+export const selfIndividualRegistrationSchema = z.object({
+  type: z.literal("self_individual"),
+  eventId: z.string().uuid(),
+  collegeId: z.string().uuid({ message: "Select your college" }),
+  name: z.string().trim().min(2, "Name is too short").max(100),
+  phone: phoneSchema,
+  // "" by default in RHF (see captainEmail above), hence the .or(z.literal("")).
+  email: emailSchema.optional().or(z.literal("")),
+  // Optional YCC College Campus Partner who referred them.
+  referredByCollegeCampusPartnerId: z.string().uuid().optional().or(z.literal("")),
+});
+
 export const registrationRequestSchema = z.discriminatedUnion("type", [
   teamRegistrationSchema,
   individualRegistrationSchema,
+  selfIndividualRegistrationSchema,
 ]);
 
 // Free, no-payment individual registration for school-targeted events (e.g.
@@ -114,6 +132,9 @@ export type PlayerInput = z.infer<typeof playerSchema>;
 export type TeamRegistrationInput = z.infer<typeof teamRegistrationSchema>;
 export type IndividualRegistrationInput = z.infer<
   typeof individualRegistrationSchema
+>;
+export type SelfIndividualRegistrationInput = z.infer<
+  typeof selfIndividualRegistrationSchema
 >;
 export type RegistrationRequestInput = z.infer<
   typeof registrationRequestSchema

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { registrationRequestSchema } from "@/lib/validations/registration";
 import { applyGst } from "@/lib/gst";
 import { createTeamRegistration } from "@/lib/create-team-registration";
+import { createSelfIndividualRegistration } from "@/lib/create-self-individual-registration";
 import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
 
 export async function POST(request: Request) {
@@ -26,6 +27,29 @@ export async function POST(request: Request) {
       teamName: input.teamName,
       captainEmail: input.captainEmail,
       players: input.players,
+      referredByCollegeCampusPartnerId: input.referredByCollegeCampusPartnerId,
+    });
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+    return NextResponse.json({
+      registrationId: result.registrationId,
+      amountPaise: result.amountPaise,
+      basePaise: result.basePaise,
+      cgstPaise: result.cgstPaise,
+      sgstPaise: result.sgstPaise,
+      igstPaise: result.igstPaise,
+      confirmed: result.confirmed,
+    });
+  }
+
+  if (input.type === "self_individual") {
+    const result = await createSelfIndividualRegistration(admin, {
+      eventId: input.eventId,
+      collegeId: input.collegeId,
+      name: input.name,
+      phone: input.phone,
+      email: input.email,
       referredByCollegeCampusPartnerId: input.referredByCollegeCampusPartnerId,
     });
     if (!result.ok) {

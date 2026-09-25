@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TeamRegistrationForm } from "@/components/registration/team-registration-form";
 import { SelfTeamRegistrationForm } from "@/components/registration/self-team-registration-form";
+import { GoGoaGoneIndividualForm } from "@/components/registration/go-goa-gone-individual-form";
 import { IndividualRegistrationForm } from "@/components/registration/individual-registration-form";
 import { SchoolRegistrationForm } from "@/components/registration/school-registration-form";
 import { IndividualFreeRegistrationForm } from "@/components/registration/individual-free-registration-form";
@@ -55,7 +56,7 @@ export default async function RegisterPage({
         .eq("is_public", true)
         .order("name"),
       // Only actually used on the Go Goa Gone form's optional "referred by"
-      // field (see SelfTeamRegistrationForm) — fetched unconditionally here
+      // field (see GoGoaGoneIndividualForm) — fetched unconditionally here
       // like colleges/schools above, rather than branching on eventSlug.
       supabase
         .from("college_campus_partner_applications")
@@ -206,17 +207,25 @@ export default async function RegisterPage({
                       campusPartners={campusPartners ?? []}
                       classPartners={classPartners ?? []}
                     />
+                  ) : event.slug === "ycc-go-goa-gone" ? (
+                    <GoGoaGoneIndividualForm
+                      eventId={event.id}
+                      eventName={event.name}
+                      feePaise={event.fee_paise}
+                      payAtVenue={event.pay_at_venue}
+                      gstExempt={event.gst_exempt}
+                      colleges={colleges ?? []}
+                      collegeCampusPartners={collegeCampusPartners ?? []}
+                    />
                   ) : (
                     <SelfTeamRegistrationForm
                       eventId={event.id}
-                      eventSlug={event.slug}
                       eventName={event.name}
                       maxTeamSize={event.max_team_size ?? 6}
                       feePaise={event.fee_paise}
                       payAtVenue={event.pay_at_venue}
                       gstExempt={event.gst_exempt}
                       colleges={colleges ?? []}
-                      collegeCampusPartners={collegeCampusPartners ?? []}
                     />
                   )
                 ) : (

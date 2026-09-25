@@ -407,6 +407,17 @@ export type InvitationLetterData =
        * QR instead, rather than referencing a card that was never
        * attached. Defaults to true (Box Cricket, which does attach cards). */
       hasIdCards?: boolean;
+    }
+  | {
+      // One-person entry (Go Goa Gone): same pass design as the team one,
+      // minus the roster, with the person's own unique code in place of a
+      // team name.
+      kind: "individual";
+      name: string;
+      code: string;
+      eventName: string;
+      collegeName: string;
+      hasIdCards?: boolean;
     };
 
 type TextStyleProp = Style | Style[];
@@ -466,7 +477,9 @@ function TeamRosterLine({
 }
 
 export function InvitationLetterPage(data: InvitationLetterData) {
-  if (data.kind === "team") {
+  if (data.kind === "team" || data.kind === "individual") {
+    const isIndividual = data.kind === "individual";
+    const displayName = data.kind === "team" ? data.teamName : data.name;
     // Underline width, in native units — a fixed, generous width reads as
     // a deliberate signature-line accent regardless of name length, same
     // idea as NameUnderline below. Local to the Svg's own box now (flow
@@ -483,10 +496,12 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image */}
           <Image src={teamLogoDataUri} style={teamStyles.logo} />
 
-          <Text style={teamStyles.passTitle}>OFFICIAL TEAM INVITATION PASS</Text>
+          <Text style={teamStyles.passTitle}>
+            {isIndividual ? "OFFICIAL INVITATION PASS" : "OFFICIAL TEAM INVITATION PASS"}
+          </Text>
 
           <Text style={teamStyles.dearLine}>Dear,</Text>
-          <Text style={teamStyles.nameLine}>{data.teamName}</Text>
+          <Text style={teamStyles.nameLine}>{displayName}</Text>
           <Svg
             style={[{ alignSelf: "center" }, teamStyles.underline]}
             width={ts(underlineNativeW)}
@@ -503,50 +518,59 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             />
           </Svg>
 
-          <Text style={teamStyles.rosterHeading}>FELLOW TEAM MEMBERS</Text>
-          <TeamRosterLine
-            captainName={data.captainName}
-            players={data.players}
-            nameStyle={teamStyles.inlineName}
-          />
-          <Svg
-            style={[{ alignSelf: "center" }, teamStyles.underline]}
-            width={ts(underlineNativeW)}
-            height={tsy(6)}
-          >
-            <Line
-              x1={0}
-              y1={tsy(3)}
-              x2={ts(underlineNativeW)}
-              y2={tsy(3)}
-              stroke={TEAM_LOGO_BLUE}
-              strokeWidth={ts(2.5)}
-              strokeLinecap="round"
+          {data.kind === "team" ? (
+            <>
+            <Text style={teamStyles.rosterHeading}>FELLOW TEAM MEMBERS</Text>
+            <TeamRosterLine
+              captainName={data.captainName}
+              players={data.players}
+              nameStyle={teamStyles.inlineName}
             />
-          </Svg>
+            <Svg
+              style={[{ alignSelf: "center" }, teamStyles.underline]}
+              width={ts(underlineNativeW)}
+              height={tsy(6)}
+            >
+              <Line
+                x1={0}
+                y1={tsy(3)}
+                x2={ts(underlineNativeW)}
+                y2={tsy(3)}
+                stroke={TEAM_LOGO_BLUE}
+                strokeWidth={ts(2.5)}
+                strokeLinecap="round"
+              />
+            </Svg>
+            </>
+          ) : null}
 
           <Text style={teamStyles.paragraph}>
-            Congratulations! Your team has been officially invited and
-            registered to play in the {data.eventName}. We&apos;re excited to
-            have you with us! We truly believe that your team&apos;s
-            participation will make the tournament more exciting, energetic,
-            memorable, and full of masti and fun.
+            {isIndividual
+              ? `Congratulations! You have been officially invited and registered to play in the ${data.eventName}. We're excited to have you with us! We truly believe that your participation will make the event more exciting, energetic, memorable, and full of masti and fun.`
+              : `Congratulations! Your team has been officially invited and registered to play in the ${data.eventName}. We're excited to have you with us! We truly believe that your team's participation will make the tournament more exciting, energetic, memorable, and full of masti and fun.`}
           </Text>
 
           <Text style={[teamStyles.detailLine, { marginTop: tsy(14) }]}>
             <Text style={teamStyles.detailLabel}>College: </Text>
             {data.collegeName}
           </Text>
-          <Text style={teamStyles.detailLine}>
-            <Text style={teamStyles.detailLabel}>Team Name: </Text>
-            {data.teamName}
-          </Text>
+          {data.kind === "team" ? (
+            <Text style={teamStyles.detailLine}>
+              <Text style={teamStyles.detailLabel}>Team Name: </Text>
+              {data.teamName}
+            </Text>
+          ) : (
+            <Text style={teamStyles.detailLine}>
+              <Text style={teamStyles.detailLabel}>Your Code: </Text>
+              {data.code}
+            </Text>
+          )}
 
           {data.hasIdCards !== false ? (
             <View style={teamStyles.box}>
               <Text style={teamStyles.boxTitle}>ID Card Mandatory</Text>
               <Text style={teamStyles.boxRow}>
-                Every player must carry their ID card print or pdf (attached
+                {isIndividual ? "You must" : "Every player must"} carry {isIndividual ? "your" : "their"} ID card print or pdf (attached
                 right after this letter) to the venue — entry will not be
                 permitted without it. Keep it safe until match day.
               </Text>
@@ -555,7 +579,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
             <View style={teamStyles.box}>
               <Text style={teamStyles.boxTitle}>QR Code Mandatory</Text>
               <Text style={teamStyles.boxRow}>
-                Every player must show their QR code (see the registration
+                {isIndividual ? "You must" : "Every player must"} show {isIndividual ? "your" : "their"} QR code (see the registration
                 receipt right after this letter) at the venue — entry will
                 not be permitted without it. Keep it safe until match day.
               </Text>

@@ -136,7 +136,7 @@ export default async function AdminCollegeCampusPartnerDetailPage({
             <div>
               <p className="text-2xl font-bold tracking-tight">{teams.length}</p>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Teams joined
+                Registrations
               </p>
             </div>
           </CardContent>
@@ -177,10 +177,10 @@ export default async function AdminCollegeCampusPartnerDetailPage({
 
       <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
         <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-          <CardTitle>Teams registered under this code</CardTitle>
+          <CardTitle>Registrations under this code</CardTitle>
           <CardDescription>
             Kismat Ke Khiladi ft. Go Goa Gone registrations that entered{" "}
-            {profile.name}&apos;s code — and whether each one went on to also
+            {profile.name}&apos;s code — and whether each person went on to also
             register for the Box Cricket Tournament.
           </CardDescription>
         </CardHeader>
@@ -188,8 +188,8 @@ export default async function AdminCollegeCampusPartnerDetailPage({
           <Table className="min-w-[560px]">
             <TableHeader className="bg-muted/10">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="font-semibold text-foreground/80 pl-6">Team</TableHead>
-                <TableHead className="font-semibold text-foreground/80">Captain</TableHead>
+                <TableHead className="font-semibold text-foreground/80 pl-6">Team / Name</TableHead>
+                <TableHead className="font-semibold text-foreground/80">Captain / Player</TableHead>
                 <TableHead className="text-right font-semibold text-foreground/80">Squad</TableHead>
                 <TableHead className="font-semibold text-foreground/80">Box Cricket</TableHead>
                 <TableHead className="font-semibold text-foreground/80 pr-6">Joined</TableHead>
@@ -198,7 +198,7 @@ export default async function AdminCollegeCampusPartnerDetailPage({
             <TableBody>
               {teams.map((t) => (
                 <TableRow key={t.registrationId} className="hover:bg-primary/5 transition-colors">
-                  <TableCell className="pl-6 font-medium">{t.teamName ?? "—"}</TableCell>
+                  <TableCell className="pl-6 font-medium">{t.teamName ?? t.captainName ?? "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{t.captainName ?? "—"}</TableCell>
                   <TableCell className="text-right">{t.squadSize}</TableCell>
                   <TableCell>

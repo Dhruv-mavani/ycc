@@ -643,9 +643,8 @@ export interface CollegeCampusPartnerInsights {
 /**
  * "How many people joined under this College Campus Partner" (registered
  * for Kismat Ke Khiladi ft. Go Goa Gone using their code), and of those,
- * how many teams went on to also register for Box Cricket — whether via
- * the one-tap clone on the level-up game's summary screen (see
- * /api/registrations/clone-team) or by registering again manually.
+ * how many went on to also register for Box Cricket by registering for
+ * it separately.
  * Conversion is matched by captain_phone rather than by id, since a
  * manual re-registration is a completely separate registrations row with
  * no direct foreign key back to the Go Goa Gone one.

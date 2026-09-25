@@ -108,7 +108,11 @@ export async function buildReceiptPdf(
     cashfreePaymentId: payment?.cashfree_payment_id ?? null,
     captainName: registration.captain_name,
     participants: participantsWithQr,
-    includeCongratsLetter: registration.type === "team" && !event.requires_referral,
+    includeCongratsLetter:
+      (registration.type === "team" && !event.requires_referral) ||
+      // One-person Go Goa Gone entries get the same invitation pass teams
+      // always did (the quiz's individuals don't).
+      (registration.type === "individual" && event.slug === "ycc-go-goa-gone"),
     paymentDue,
     // Only hidden while payment is still due — once a staff member marks
     // the cash payment paid (adding a `payments` row), paymentDue flips to

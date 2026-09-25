@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
 import { SpinWheelLevel, type SpinWheelResultDetail } from "./spin-wheel-level";
 import { RollDiceLevel, type RollDiceResultDetail } from "./roll-dice-level";
-import { BoxCricketAutoRegister } from "./box-cricket-auto-register";
 
 // ---------------------------------------------------------------------------
 // Level Up (/level-up) — a two-level run through Spin the Wheel (Level 1)
@@ -231,14 +230,6 @@ export function LevelUpGame() {
             </p>
           </Link>
         </div>
-
-        {/* One-tap Box Cricket registration — only for a team that entered
-            via a real Go Goa Gone registration code, since that's the only
-            case with an existing roster to clone. Everyone else just sees
-            the poster cross-promo above as before. */}
-        {selection?.source === "registration" && selection.eventSlug === "ycc-go-goa-gone" ? (
-          <BoxCricketAutoRegister selection={selection} />
-        ) : null}
 
         <button
           type="button"

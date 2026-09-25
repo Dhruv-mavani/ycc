@@ -228,9 +228,9 @@ export default async function EventDetailPage({
                             </span>
                             <p className="text-sm text-slate-600">
                               <span className="font-semibold text-slate-900">
-                                Fill the team form correctly.
+                                Fill the registration form correctly.
                               </span>{" "}
-                              Captain details, plus your 6 squad members&apos; names.
+                              Your name, WhatsApp number and college.
                             </p>
                           </li>
                           <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -239,10 +239,10 @@ export default async function EventDetailPage({
                             </span>
                             <p className="text-sm text-slate-600">
                               <span className="font-semibold text-slate-900">
-                                Get your Game Certificate & Specialized Team Code.
+                                Get your Game Certificate & Unique Code.
                               </span>{" "}
-                              Your Team Code is mandatory for Match Play and
-                              verification.
+                              Your Unique Code is mandatory for playing the
+                              games and verification.
                             </p>
                           </li>
                           <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -253,10 +253,10 @@ export default async function EventDetailPage({
                               <span className="font-semibold text-slate-900">
                                 Participate in all games for special benefits.
                               </span>{" "}
-                              All registered players must take part in every
-                              designated challenge/game to unlock eligibility
-                              for the Special Goa Travel Coupon — starting at
-                              ₹2,499/person.
+                              Every registered participant must take part in
+                              every designated challenge/game to unlock
+                              eligibility for the Special Goa Travel Coupon —
+                              starting at ₹2,499/person.
                             </p>
                           </li>
                         </ol>
@@ -432,11 +432,9 @@ export default async function EventDetailPage({
                   </div>
                 ) : null}
 
-                {/* Go Goa Gone / Box Cricket are team registrations, not a
-                    personal-code flow — they re-download via the generic
-                    unique-ID/mobile lookup at /receipt (same PDF,
-                    captain-first roster, that the team already got on
-                    successful registration), rather than the
+                {/* Go Goa Gone (individual) / Box Cricket (team) re-download
+                    via the generic unique-ID/mobile lookup at /receipt (same
+                    PDF they got on successful registration), rather than the
                     school/individual_free single-field lookups. */}
                 <Button
                   variant="outline"
