@@ -32,10 +32,10 @@ export default async function CollegeCampusPartnerPage() {
         <div className="flex flex-wrap justify-center gap-3 mb-10">
           <Button
             variant="outline"
-            className="rounded-full px-8 h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
+            className="gap-2 rounded-full px-8 h-12 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all hover:scale-[1.02]"
             nativeButton={false}
             render={
-              <Link href="/college-campus-partner/certificate" className="flex items-center gap-2">
+              <Link href="/college-campus-partner/certificate">
                 <Download className="size-4 text-blue-600" />
                 Download your certificate
               </Link>

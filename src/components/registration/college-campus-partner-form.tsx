@@ -6,7 +6,7 @@ import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { MessageCircle, CheckCircle2, FileX } from "lucide-react";
-import { WHATSAPP_CHANNEL_URL_OFFICIAL } from "@/lib/partner-whatsapp";
+import { WHATSAPP_CHANNEL_URL, WHATSAPP_CHANNEL_URL_OFFICIAL } from "@/lib/partner-whatsapp";
 
 const INSTAGRAM_URL = "https://instagram.com/ycct10";
 
@@ -99,12 +99,14 @@ export function CollegeCampusPartnerForm({ colleges }: { colleges: CollegeOption
       instagramHandle: "",
       agreedToTerms: false,
       whatsappJoined: false,
+      partnerWhatsappJoined: false,
       instagramJoined: false,
     },
   });
 
   const agreedToTerms = useWatch({ control, name: "agreedToTerms" });
   const whatsappJoined = useWatch({ control, name: "whatsappJoined" });
+  const partnerWhatsappJoined = useWatch({ control, name: "partnerWhatsappJoined" });
   const instagramJoined = useWatch({ control, name: "instagramJoined" });
 
   // Fetches the certificate first instead of navigating the browser
@@ -362,12 +364,12 @@ export function CollegeCampusPartnerForm({ colleges }: { colleges: CollegeOption
         <CardHeader>
           <CardTitle>Join our communities</CardTitle>
           <CardDescription>
-            Required before you can submit — follow the YCC Partners Group
-            channel and our Instagram for updates, coordination, and
+            Required before you can submit — join both YCC WhatsApp channels
+            and follow our Instagram for updates, coordination, and
             announcements.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <Button
               type="button"
@@ -382,13 +384,37 @@ export function CollegeCampusPartnerForm({ colleges }: { colleges: CollegeOption
                   ) : (
                     <MessageCircle className="size-4 shrink-0" />
                   )}
-                  {whatsappJoined ? "Joined — open channel again" : "Join WhatsApp Channel"}
+                  {whatsappJoined ? "Joined — open channel again" : "Join YCC Channel"}
                 </a>
               }
             />
             {errors.whatsappJoined ? (
               <p className="text-destructive text-xs mt-1.5">
                 {errors.whatsappJoined.message}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <Button
+              type="button"
+              variant={partnerWhatsappJoined ? "outline" : "default"}
+              className="h-auto w-full min-h-8 py-2 text-center leading-snug whitespace-normal"
+              nativeButton={false}
+              onClick={() => setValue("partnerWhatsappJoined", true, { shouldValidate: true })}
+              render={
+                <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                  {partnerWhatsappJoined ? (
+                    <CheckCircle2 className="size-4 shrink-0" />
+                  ) : (
+                    <MessageCircle className="size-4 shrink-0" />
+                  )}
+                  {partnerWhatsappJoined ? "Joined — open channel again" : "Join Partners Channel"}
+                </a>
+              }
+            />
+            {errors.partnerWhatsappJoined ? (
+              <p className="text-destructive text-xs mt-1.5">
+                {errors.partnerWhatsappJoined.message}
               </p>
             ) : null}
           </div>
@@ -459,7 +485,7 @@ export function CollegeCampusPartnerForm({ colleges }: { colleges: CollegeOption
           <Button
             type="submit"
             className="w-full sm:w-auto px-8 h-12 rounded-xl text-base font-semibold shadow-md hover:shadow-lg transition-all"
-            disabled={isSubmitting || !agreedToTerms || !whatsappJoined || !instagramJoined}
+            disabled={isSubmitting || !agreedToTerms || !whatsappJoined || !partnerWhatsappJoined || !instagramJoined}
           >
             {isSubmitting ? "Submitting..." : "Submit Application"}
           </Button>

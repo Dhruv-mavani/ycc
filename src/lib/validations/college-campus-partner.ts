@@ -28,7 +28,10 @@ const collegeCampusPartnerFieldsSchema = z.object({
 // Used when submitting a new application — also requires the join gate.
 export const collegeCampusPartnerApplicationSchema = collegeCampusPartnerFieldsSchema.extend({
   whatsappJoined: z.boolean().refine((v) => v === true, {
-    message: "Join the WhatsApp channel to continue",
+    message: "Join the YCC WhatsApp channel to continue",
+  }),
+  partnerWhatsappJoined: z.boolean().refine((v) => v === true, {
+    message: "Join the YCC Partners WhatsApp channel to continue",
   }),
   instagramJoined: z.boolean().refine((v) => v === true, {
     message: "Join our Instagram to continue",
