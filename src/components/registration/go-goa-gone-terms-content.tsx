@@ -207,7 +207,7 @@ const SECTIONS: TermsSection[] = [
     blocks: [
       {
         type: "p",
-        text: "Participants who successfully complete the required activities may become eligible for certain promotional benefits announced by YCC. Such benefits may include, subject to the specific promotion:",
+        text: "Apart from the final prize described under Winner Selection, Final Round & Prize, Participants who successfully complete the required activities may become eligible for certain promotional benefits announced by YCC. Such benefits may include, subject to the specific promotion:",
       },
       {
         type: "ul",
@@ -235,23 +235,36 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "Winner Selection & Final Round",
+    title: "Winner Selection, Final Round & Prize",
     blocks: [
       {
         type: "p",
-        text: "Where the Event provides for a particular winner, only the Participant who satisfies all applicable eligibility requirements and official game conditions will qualify.",
+        text: "The Event will have one (1) final winner only. Only a Participant who satisfies all eligibility requirements and official game conditions, and who passes YCC's verification, can qualify.",
       },
       {
         type: "p",
-        text: "If multiple Participants qualify as winners, they will advance to a subsequent round. The subsequent round will repeat the official game and may also include two to three additional fun activities, as announced by YCC.",
+        text: "Where more than one Participant qualifies, they will advance to a final round. The final round will repeat the official game and may also include two to three additional fun activities, as announced by YCC. If a tie or identical result still occurs, YCC may break it through a repeat round, a random draw or another fair method announced at the time, subject to applicable law.",
       },
       {
         type: "p",
-        text: "Only three (3) final winners will be selected. If a tie or identical result occurs, YCC may conduct a tie-break procedure — such as a repeat round, a random draw or another fair method announced at the time — among the verified eligible Participants, subject to applicable law and the specific promotion rules.",
+        text: "The final winner will receive one (1) of the following prizes:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Apple iPhone 18 Pro;",
+          "Nike sneakers;",
+          "Free Goa trip; or",
+          "₹25,000 cash prize.",
+        ],
       },
       {
         type: "p",
-        text: "The Participants selected through this process will be treated as the winners for the applicable promotional benefit. YCC's records and verification process will be used to establish eligibility.",
+        text: "YCC alone determines which of these prizes is awarded and will communicate it to the winner. The winner cannot choose, request or demand a particular prize or an alternative to the one awarded, and the prize is not exchangeable or convertible into another prize.",
+      },
+      {
+        type: "p",
+        text: "Where the prize awarded is the Free Goa trip, its dates, inclusions and booking conditions will be communicated by YCC. This prize is separate from the promotional benefits and travel coupons described above, which are available to eligible Participants generally.",
       },
     ],
   },
@@ -260,7 +273,7 @@ const SECTIONS: TermsSection[] = [
     blocks: [
       {
         type: "p",
-        text: "Each of the three (3) final winners is required to participate in twelve (12) seasons of the YCC Box Cricket Tournament within one (1) year, subject to the conditions below:",
+        text: "The final winner is required to participate in twelve (12) seasons of the YCC Box Cricket Tournament within one (1) year, subject to the conditions below:",
       },
       {
         type: "ul",
@@ -394,7 +407,7 @@ const SECTIONS: TermsSection[] = [
     blocks: [
       {
         type: "p",
-        text: "Participation in the Event does not automatically guarantee a prize, free trip, cash reward, travel coupon or other benefit. Benefits are subject to:",
+        text: "Participation in the Event does not automatically guarantee a prize, free trip, cash reward, travel coupon or other benefit. Reaching the final round does not guarantee the final prize. Benefits are subject to:",
       },
       {
         type: "ul",
@@ -409,7 +422,7 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: "Where a benefit is subject to limited availability, YCC may specify the number of eligible winners or recipients in the applicable promotional announcement.",
+        text: "Where a benefit is subject to limited availability, YCC may specify the number of eligible winners or recipients in the applicable promotional announcement. The final prize is awarded to one (1) final winner only.",
       },
     ],
   },
@@ -423,7 +436,7 @@ const SECTIONS: TermsSection[] = [
       {
         type: "ul",
         items: [
-          "Technical problems;",
+          "Technical problems, system failure or unauthorised interference;",
           "Operational difficulties;",
           "Venue or scheduling issues;",
           "Force majeure events;",
@@ -440,23 +453,23 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "Technical & Operational Issues",
+    title: "Technical Errors, System Integrity & Event Cancellation",
     blocks: [
       {
         type: "p",
-        text: "YCC will make reasonable efforts to conduct the challenges fairly and according to the announced rules.",
+        text: "YCC will make reasonable efforts to conduct the challenges fairly, securely and according to the announced rules. YCC is not responsible for failure or interruption caused by circumstances beyond its reasonable control, including internet connectivity, device malfunction, network problems, power failure or third-party technical services.",
       },
       {
         type: "p",
-        text: "However, YCC will not be responsible for failure or interruption caused by circumstances beyond its reasonable control, including internet connectivity, device malfunction, network problems, power failure, third-party technical services or other technical issues.",
+        text: "Where a genuine technical or operational error materially affected an individual attempt, YCC may take appropriate corrective action, including permitting a fresh attempt where reasonably necessary.",
       },
       {
         type: "p",
-        text: "Where YCC determines that a genuine technical or operational error materially affected an official attempt, YCC may take appropriate corrective action, including permitting a fresh attempt where reasonably necessary.",
+        text: "If YCC identifies or reasonably suspects an algorithm failure, system malfunction, hacking, cyber fraud or other unauthorised interference that compromises the fairness or validity of the results — including a situation that produces multiple winners where only one is intended — YCC may cancel the affected challenge or event and/or reschedule or reorganise it.",
       },
       {
         type: "p",
-        text: "If a verified malfunction or algorithmic error affects a challenge or its outcome, YCC may cancel the affected challenge and re-run it. YCC will notify Participants through its official channels, and the affected results will not be treated as final.",
+        text: "In such a case, results affected by the verified failure or interference may be declared invalid and will not be treated as final. The challenge or event will be conducted again under the announced rules, and YCC will communicate the details through its official channels. YCC will review the circumstances and take reasonable steps to protect the fairness of the contest, subject to applicable law.",
       },
     ],
   },
@@ -532,7 +545,7 @@ const SECTIONS: TermsSection[] = [
           "No Fake Screenshots • No Manipulation • No Extra Attempts",
           "Official YCC Records Will Be Used for Verification",
           "Box Cricket League Entry Fees Apply Separately",
-          "3 Final Winners • 12 YCC Box Cricket Tournament Seasons Within 1 Year (As Disclosed)",
+          "1 Final Winner • 12 YCC Box Cricket Tournament Seasons Within 1 Year (As Disclosed)",
           "All Benefits Are Subject to Eligibility, Verification & Applicable Promotional Terms",
         ],
       },
