@@ -157,10 +157,10 @@ export default async function RegisterPage({
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-4 rounded-full border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold relative z-10"
+                className="mt-4 gap-2 rounded-full border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold relative z-10"
                 nativeButton={false}
                 render={
-                  <Link href="/super-champs/certificate" className="flex items-center gap-2">
+                  <Link href="/super-champs/certificate">
                     <Download className="size-4 text-blue-600" />
                     Download your certificate
                   </Link>
@@ -170,10 +170,10 @@ export default async function RegisterPage({
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-4 rounded-full border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold relative z-10"
+                className="mt-4 gap-2 rounded-full border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold relative z-10"
                 nativeButton={false}
                 render={
-                  <Link href="/jackpot-heist/certificate" className="flex items-center gap-2">
+                  <Link href="/jackpot-heist/certificate">
                     <Download className="size-4 text-blue-600" />
                     Download your certificate
                   </Link>
