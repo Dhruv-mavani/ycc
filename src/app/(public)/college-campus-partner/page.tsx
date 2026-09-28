@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CollegeCampusPartnerForm } from "@/components/registration/college-campus-partner-form";
@@ -29,6 +30,18 @@ export default async function CollegeCampusPartnerPage() {
             YCC to your college. Fill in your details below.
           </p>
         </div>
+
+        <div className="mb-10 overflow-hidden rounded-3xl border border-slate-200 shadow-2xl shadow-slate-200/50">
+          <Image
+            src="/college_campus_partner.png"
+            alt="YCC College + Class Campus Partner — partner benefits, partner work and campus partner target"
+            width={1024}
+            height={1536}
+            className="w-full"
+            priority
+          />
+        </div>
+
         <div className="flex flex-wrap justify-center gap-3 mb-10">
           <Button
             variant="outline"
