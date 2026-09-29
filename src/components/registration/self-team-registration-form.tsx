@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -362,11 +362,15 @@ export function SelfTeamRegistrationForm({
         className="w-full h-12 text-base font-semibold"
         disabled={isSubmitting || redirecting}
       >
-        {isSubmitting || redirecting
-          ? "Submitting..."
-          : payAtVenue
-            ? "Register"
-            : "Continue to payment"}
+        {isSubmitting || redirecting ? (
+          <>
+            <Loader2 className="size-4 shrink-0 animate-spin" /> Submitting...
+          </>
+        ) : payAtVenue ? (
+          "Register"
+        ) : (
+          "Continue to payment"
+        )}
       </Button>
 
     </form>

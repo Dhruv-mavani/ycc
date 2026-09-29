@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,7 +100,13 @@ export default function MoneyHeistCertificateLookupPage() {
               </p>
             ) : null}
             <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold shadow-md hover:shadow-lg transition-all" disabled={isSubmitting}>
-              {isSubmitting ? "Looking up..." : "Download certificate"}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="size-4 shrink-0 animate-spin" /> Looking up...
+                </span>
+              ) : (
+                "Download certificate"
+              )}
             </Button>
           </form>
         </CardContent>

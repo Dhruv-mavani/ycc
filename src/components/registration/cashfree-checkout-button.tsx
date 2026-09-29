@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Redirects to a Cashfree-hosted payment link page; Cashfree redirects back
@@ -46,7 +47,13 @@ export function CashfreeCheckoutButton({
 
   return (
     <Button className="w-full" disabled={loading} onClick={handlePay}>
-      {loading ? "Opening payment..." : "Pay & confirm registration"}
+      {loading ? (
+        <>
+          <Loader2 className="size-4 shrink-0 animate-spin" /> Opening payment...
+        </>
+      ) : (
+        "Pay & confirm registration"
+      )}
     </Button>
   );
 }

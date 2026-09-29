@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -243,7 +243,13 @@ export function SchoolRegistrationForm({
       </Card>
 
       <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isSubmitting}>
-        {isSubmitting ? "Submitting..." : "Register for free"}
+        {isSubmitting ? (
+          <>
+            <Loader2 className="size-4 shrink-0 animate-spin" /> Submitting...
+          </>
+        ) : (
+          "Register for free"
+        )}
       </Button>
     </form>
   );

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { MessageCircle, CheckCircle2, FileX } from "lucide-react";
+import { MessageCircle, CheckCircle2, FileX, Loader2 } from "lucide-react";
 import { WHATSAPP_CHANNEL_URL, WHATSAPP_CHANNEL_URL_SQUAD } from "@/lib/partner-whatsapp";
 
 const INSTAGRAM_URL = "https://instagram.com/ycct10";
@@ -211,7 +211,13 @@ export function PartnerProgramApplicationForm({
               disabled={downloading}
               onClick={() => downloadCertificate(applicationId)}
             >
-              {downloading ? "Downloading..." : "Download certificate again"}
+              {downloading ? (
+                <>
+                  <Loader2 className="size-4 shrink-0 animate-spin" /> Downloading...
+                </>
+              ) : (
+                "Download certificate again"
+              )}
             </Button>
           </CardContent>
         ) : null}
@@ -478,7 +484,13 @@ export function PartnerProgramApplicationForm({
             className="w-full sm:w-auto px-8 h-12 rounded-xl text-base font-semibold shadow-md hover:shadow-lg transition-all"
             disabled={isSubmitting || !agreedToTerms || !whatsappJoined || !instagramJoined}
           >
-            {isSubmitting ? "Submitting..." : "Submit Application"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 shrink-0 animate-spin" /> Submitting...
+              </>
+            ) : (
+              "Submit Application"
+            )}
           </Button>
         </CardFooter>
       </Card>

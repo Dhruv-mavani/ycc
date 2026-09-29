@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
@@ -20,7 +21,13 @@ export function GoogleSignInButton({ next }: { next: string }) {
 
   return (
     <Button onClick={handleSignIn} disabled={loading} className="w-full">
-      {loading ? "Redirecting..." : "Continue with Google"}
+      {loading ? (
+        <>
+          <Loader2 className="size-4 shrink-0 animate-spin" /> Redirecting...
+        </>
+      ) : (
+        "Continue with Google"
+      )}
     </Button>
   );
 }

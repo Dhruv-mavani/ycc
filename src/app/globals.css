@@ -418,3 +418,41 @@
 .animate-dice-hand-throw {
   animation: dice-hand-throw 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* YUVAN "thinking" orb — replaces a plain 3-dot typing indicator in the
+   admin/public chat panels with a small rotating, breathing gradient orb
+   (::before is a blurred glow ring, ::after is the sharp orb itself, both
+   spinning at slightly different speeds so the glow doesn't look static). */
+@keyframes yuvan-orb-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes yuvan-orb-pulse {
+  0%, 100% { transform: scale(0.82); opacity: 0.55; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+.yuvan-thinking-orb {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.yuvan-thinking-orb::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, #3b82f6, #a855f7, #ec4899, #3b82f6);
+  filter: blur(5px);
+  opacity: 0.55;
+  animation: yuvan-orb-spin 2.4s linear infinite;
+}
+.yuvan-thinking-orb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, #60a5fa, #c084fc, #f472b6, #60a5fa);
+  animation:
+    yuvan-orb-spin 1.5s linear infinite,
+    yuvan-orb-pulse 1.7s ease-in-out infinite;
+}

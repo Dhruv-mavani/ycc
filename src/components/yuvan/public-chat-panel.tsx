@@ -112,10 +112,9 @@ export function PublicChatPanel() {
         )}
         {status === "submitted" || status === "streaming" ? (
           <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 shadow-sm flex items-center gap-1.5 h-[44px]">
-              <span className="size-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="size-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="size-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+            <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 shadow-sm flex items-center gap-2 h-[44px]">
+              <span className="yuvan-thinking-orb" aria-hidden="true" />
+              <span className="text-[11px] font-medium text-muted-foreground">Thinking…</span>
             </div>
           </div>
         ) : null}

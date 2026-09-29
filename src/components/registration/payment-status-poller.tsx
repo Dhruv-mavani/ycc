@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -149,9 +150,12 @@ export function PaymentStatusPoller({
               </div>
             )}
             {downloadStarted && (
-              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                <strong>Please wait</strong> — your receipt is downloading
-                now. Don&apos;t close this page until it finishes.
+              <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                <Loader2 className="size-4 shrink-0 animate-spin" />
+                <span>
+                  <strong>Please wait</strong> — your receipt is downloading
+                  now. Don&apos;t close this page until it finishes.
+                </span>
               </div>
             )}
             {downloadError && (
@@ -193,7 +197,13 @@ export function PaymentStatusPoller({
                 disabled={downloadStarted}
                 onClick={retryDownload}
               >
-                {downloadStarted ? "Downloading..." : "Download receipt again"}
+                {downloadStarted ? (
+                  <>
+                    <Loader2 className="size-4 shrink-0 animate-spin" /> Downloading...
+                  </>
+                ) : (
+                  "Download receipt again"
+                )}
               </Button>
               {!data.teamName && data.participants[0]?.uniqueId ? (
                 <Button

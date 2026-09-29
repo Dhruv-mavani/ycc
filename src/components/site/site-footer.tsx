@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 export function SiteFooter() {
   const [result, setResult] = useState("");
@@ -95,7 +96,12 @@ export function SiteFooter() {
             <label htmlFor="footer-contact-message" className="sr-only">Your Message</label>
             <textarea id="footer-contact-message" name="message" required placeholder="Your Message" rows={3} className="w-full bg-[#0f172a] border border-slate-800 rounded-lg px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none" />
             <button type="submit" disabled={isSubmitting} className="w-full bg-slate-800 hover:bg-blue-600 disabled:opacity-50 border border-transparent text-white font-bold tracking-wide text-sm uppercase rounded-lg px-5 py-4 transition-colors duration-300 flex items-center justify-center gap-2 mt-2 group">
-              {isSubmitting ? "SENDING..." : (
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 shrink-0 animate-spin" />
+                  SENDING...
+                </>
+              ) : (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:scale-110">
                     <line x1="22" y1="2" x2="11" y2="13"></line>

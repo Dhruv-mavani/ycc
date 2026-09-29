@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, MessageCircle, Send, Mail } from "lucide-react";
+import { Phone, MessageCircle, Send, Mail, Loader2 } from "lucide-react";
 import { BackButton } from "@/components/site/back-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -182,7 +182,9 @@ export default function ContactPage() {
                   className="w-full sm:w-auto h-12 min-[320px]:h-14 px-8 min-[320px]:px-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm min-[320px]:text-base shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-300"
                 >
                   {isSubmitting ? (
-                    "Sending..."
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="size-4 min-[320px]:size-5 shrink-0 animate-spin" /> Sending...
+                    </span>
                   ) : (
                     <span className="flex items-center gap-2">
                       Send Message <Send className="size-4 min-[320px]:size-5" />
