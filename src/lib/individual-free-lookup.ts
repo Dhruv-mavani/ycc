@@ -2,6 +2,14 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AttendanceStatus } from "@/lib/supabase/types";
 
+/** Strips characters that are syntactically meaningful inside a PostgREST
+ * `.or()` filter string — `,` separates conditions and `(`/`)` group them —
+ * so a search term containing them can't inject extra filter clauses
+ * instead of being matched as literal text. */
+function sanitizeForOrFilter(value: string): string {
+  return value.replace(/[,()]/g, "");
+}
+
 export interface LookupIndividualFreeRegistration {
   registrationId: string;
   name: string;
@@ -34,11 +42,12 @@ export async function searchIndividualFreeRegistrations(
       .limit(200);
     registrationIds = (data ?? []).map((r) => r.id);
   } else {
-    const upper = trimmed.toUpperCase();
+    const upper = sanitizeForOrFilter(trimmed.toUpperCase());
+    const safeTrimmed = sanitizeForOrFilter(trimmed);
     const { data: exact } = await admin
       .from("individual_free_registrations")
       .select("id")
-      .or(`code.eq.${upper},whatsapp.eq.${trimmed}`)
+      .or(`code.eq.${upper},whatsapp.eq.${safeTrimmed}`)
       .maybeSingle();
 
     if (exact) {
@@ -48,7 +57,7 @@ export async function searchIndividualFreeRegistrations(
         .from("individual_free_registrations")
         .select("id")
         .or(
-          `name.ilike.%${trimmed}%,code.ilike.%${trimmed}%,whatsapp.ilike.%${trimmed}%`,
+          `name.ilike.%${safeTrimmed}%,code.ilike.%${safeTrimmed}%,whatsapp.ilike.%${safeTrimmed}%`,
         )
         .limit(50);
       registrationIds = (fuzzy ?? []).map((r) => r.id);

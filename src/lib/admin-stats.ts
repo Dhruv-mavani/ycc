@@ -92,6 +92,16 @@ export async function getEventOverview(
   );
   const collegeNameById = new Map((colleges ?? []).map((c) => [c.id, c.name]));
 
+  // Index once instead of re-filtering the full participants array inside
+  // the loop below for every registration — was O(registrations ×
+  // participants), now O(registrations + participants).
+  const participantsByReg = new Map<string, NonNullable<typeof participants>>();
+  for (const p of participants ?? []) {
+    const list = participantsByReg.get(p.registration_id) ?? [];
+    list.push(p);
+    participantsByReg.set(p.registration_id, list);
+  }
+
   const byCollegeMap = new Map<string, CollegeBreakdown>();
   for (const reg of registrations ?? []) {
     const key = reg.college_id;
@@ -110,9 +120,7 @@ export async function getEventOverview(
     entry.registrations += 1;
     entry.revenuePaise += reg.amount_paise;
 
-    const regParticipants = (participants ?? []).filter(
-      (p) => p.registration_id === reg.id,
-    );
+    const regParticipants = participantsByReg.get(reg.id) ?? [];
     entry.participants += regParticipants.length;
     for (const p of regParticipants) {
       const status = attendanceByParticipant.get(p.id) ?? "absent";
@@ -835,6 +843,16 @@ export async function getCollegeDetail(
   );
   const eventNameById = new Map((events ?? []).map((e) => [e.id, e.name]));
 
+  // Index once instead of re-filtering the full participants array inside
+  // the map below for every registration — was O(registrations ×
+  // participants), now O(registrations + participants).
+  const participantsByReg = new Map<string, NonNullable<typeof participants>>();
+  for (const p of participants ?? []) {
+    const list = participantsByReg.get(p.registration_id) ?? [];
+    list.push(p);
+    participantsByReg.set(p.registration_id, list);
+  }
+
   const details: CollegeRegistrationDetail[] = (registrations ?? []).map(
     (reg) => ({
       registrationId: reg.id,
@@ -846,24 +864,22 @@ export async function getCollegeDetail(
       captainEmail: reg.captain_email,
       createdAt: reg.created_at,
       amountPaise: reg.amount_paise,
-      participants: (participants ?? [])
-        .filter((p) => p.registration_id === reg.id)
-        .map((p) => ({
-          id: p.id,
-          name: p.name,
-          phone: p.phone,
-          email: p.email,
-          age: p.age,
-          gender: p.gender,
-          uniqueId: p.unique_id,
-          isCaptain: p.is_captain,
-          attendanceStatus:
-            (attendanceByParticipant.get(p.id)?.status as "present" | "absent") ??
-            "absent",
-          markedByName:
-            staffNameById.get(attendanceByParticipant.get(p.id)?.marked_by ?? "") ?? null,
-          markedAt: attendanceByParticipant.get(p.id)?.marked_at ?? null,
-        })),
+      participants: (participantsByReg.get(reg.id) ?? []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        phone: p.phone,
+        email: p.email,
+        age: p.age,
+        gender: p.gender,
+        uniqueId: p.unique_id,
+        isCaptain: p.is_captain,
+        attendanceStatus:
+          (attendanceByParticipant.get(p.id)?.status as "present" | "absent") ??
+          "absent",
+        markedByName:
+          staffNameById.get(attendanceByParticipant.get(p.id)?.marked_by ?? "") ?? null,
+        markedAt: attendanceByParticipant.get(p.id)?.marked_at ?? null,
+      })),
     }),
   );
 

@@ -1,6 +1,14 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+/** Strips characters that are syntactically meaningful inside a PostgREST
+ * `.or()` filter string — `,` separates conditions and `(`/`)` group them —
+ * so a search term containing them can't inject extra filter clauses
+ * instead of being matched as literal text. */
+function sanitizeForOrFilter(value: string): string {
+  return value.replace(/[,()]/g, "");
+}
+
 export interface PaymentLookupParticipant {
   name: string;
   uniqueId: string | null;
@@ -52,17 +60,18 @@ export async function searchRegistrationsForPayment(
     if (exact) {
       registrationIds = [exact.registration_id];
     } else {
+      const safeTrimmed = sanitizeForOrFilter(trimmed);
       const [{ data: byPhoneOrName }, { data: byCaptainPhoneOrTeam }] = await Promise.all([
         admin
           .from("participants")
           .select("registration_id")
-          .or(`name.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,unique_id.ilike.%${trimmed}%`)
+          .or(`name.ilike.%${safeTrimmed}%,phone.ilike.%${safeTrimmed}%,unique_id.ilike.%${safeTrimmed}%`)
           .limit(100),
         admin
           .from("registrations")
           .select("id")
           .eq("event_id", eventId)
-          .or(`captain_phone.ilike.%${trimmed}%,team_name.ilike.%${trimmed}%,captain_name.ilike.%${trimmed}%`)
+          .or(`captain_phone.ilike.%${safeTrimmed}%,team_name.ilike.%${safeTrimmed}%,captain_name.ilike.%${safeTrimmed}%`)
           .limit(50),
       ]);
       registrationIds = [
@@ -107,6 +116,16 @@ export async function searchRegistrationsForPayment(
   const collegeNameById = new Map((colleges ?? []).map((c) => [c.id, c.name]));
   const paidSet = new Set((paidPayments ?? []).map((p) => p.registration_id));
 
+  // Index once instead of re-filtering the full participants array inside
+  // the map below for every registration — was O(registrations ×
+  // participants), now O(registrations + participants).
+  const participantsByReg = new Map<string, NonNullable<typeof participants>>();
+  for (const p of participants ?? []) {
+    const list = participantsByReg.get(p.registration_id) ?? [];
+    list.push(p);
+    participantsByReg.set(p.registration_id, list);
+  }
+
   return registrations.map((reg) => ({
     registrationId: reg.id,
     type: reg.type as "team" | "individual",
@@ -115,12 +134,10 @@ export async function searchRegistrationsForPayment(
     collegeName: collegeNameById.get(reg.college_id) ?? "",
     amountPaise: reg.amount_paise,
     paid: paidSet.has(reg.id),
-    participants: (participants ?? [])
-      .filter((p) => p.registration_id === reg.id)
-      .map((p) => ({
-        name: p.name,
-        uniqueId: p.unique_id,
-        isCaptain: p.is_captain,
-      })),
+    participants: (participantsByReg.get(reg.id) ?? []).map((p) => ({
+      name: p.name,
+      uniqueId: p.unique_id,
+      isCaptain: p.is_captain,
+    })),
   }));
 }

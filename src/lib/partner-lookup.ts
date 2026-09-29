@@ -2,6 +2,14 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AttendanceStatus } from "@/lib/supabase/types";
 
+/** Strips characters that are syntactically meaningful inside a PostgREST
+ * `.or()` filter string — `,` separates conditions and `(`/`)` group them —
+ * so a search term containing them can't inject extra filter clauses
+ * instead of being matched as literal text. */
+function sanitizeForOrFilter(value: string): string {
+  return value.replace(/[,()]/g, "");
+}
+
 export interface LookupTeamMember {
   id: string;
   name: string;
@@ -50,7 +58,7 @@ export async function searchClassPartners(
       .limit(200);
     captainIds = (data ?? []).map((r) => r.id);
   } else {
-    const upper = trimmed.toUpperCase();
+    const upper = sanitizeForOrFilter(trimmed.toUpperCase());
     const { data: exact } = await admin
       .from("partner_program_applications")
       .select("id")
@@ -62,13 +70,14 @@ export async function searchClassPartners(
     if (exact) {
       captainIds = [exact.id];
     } else {
+      const safeTrimmed = sanitizeForOrFilter(trimmed);
       const { data: fuzzy } = await admin
         .from("partner_program_applications")
         .select("id")
         .in("partner_type", ["campus", "class"])
         .eq("status", "approved")
         .or(
-          `name.ilike.%${trimmed}%,mobile.ilike.%${trimmed}%,team_code.ilike.%${trimmed}%,unique_id.ilike.%${trimmed}%`,
+          `name.ilike.%${safeTrimmed}%,mobile.ilike.%${safeTrimmed}%,team_code.ilike.%${safeTrimmed}%,unique_id.ilike.%${safeTrimmed}%`,
         )
         .limit(50);
       captainIds = (fuzzy ?? []).map((r) => r.id);
@@ -95,6 +104,16 @@ export async function searchClassPartners(
     .eq("status", "approved")
     .order("name");
 
+  // Index once instead of re-scanning `members` inside the map below for
+  // every captain — was O(captains × members), now O(captains + members).
+  const membersByCaptain = new Map<string, NonNullable<typeof members>>();
+  for (const m of members ?? []) {
+    if (!m.referred_by_id) continue;
+    const list = membersByCaptain.get(m.referred_by_id) ?? [];
+    list.push(m);
+    membersByCaptain.set(m.referred_by_id, list);
+  }
+
   return captains.map((cp) => ({
     applicationId: cp.id,
     name: cp.name,
@@ -103,13 +122,11 @@ export async function searchClassPartners(
     teamCode: cp.team_code,
     attendanceStatus: cp.attendance_status ?? "absent",
     type: cp.partner_type as "campus" | "class",
-    members: (members ?? [])
-      .filter((m) => m.referred_by_id === cp.id)
-      .map((m) => ({
-        id: m.id,
-        name: m.name,
-        mobile: m.mobile,
-        attendanceStatus: m.attendance_status ?? "absent",
-      })),
+    members: (membersByCaptain.get(cp.id) ?? []).map((m) => ({
+      id: m.id,
+      name: m.name,
+      mobile: m.mobile,
+      attendanceStatus: m.attendance_status ?? "absent",
+    })),
   }));
 }

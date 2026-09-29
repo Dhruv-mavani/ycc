@@ -5,6 +5,14 @@ import type { Database } from "@/lib/supabase/types";
 type AdminClient = ReturnType<typeof createAdminClient>;
 type RegistrationRow = Database["public"]["Tables"]["registrations"]["Row"];
 
+/** Strips characters that are syntactically meaningful inside a PostgREST
+ * `.or()` filter string — `,` separates conditions and `(`/`)` group them —
+ * so a search term containing them (e.g. pasted text with a comma) can't
+ * inject extra filter clauses instead of being matched as literal text. */
+function sanitizeForOrFilter(value: string): string {
+  return value.replace(/[,()]/g, "");
+}
+
 export interface LookupParticipant {
   id: string;
   name: string;
@@ -94,10 +102,11 @@ export async function searchParticipants(
           .limit(20);
         registrationIdsFromPhone = (phoneRegs ?? []).map((r) => r.id);
 
+        const safeTrimmed = sanitizeForOrFilter(trimmed);
         const orParts = [
-          `name.ilike.%${trimmed}%`,
-          `unique_id.ilike.%${trimmed}%`,
-          `phone.ilike.%${trimmed}%`,
+          `name.ilike.%${safeTrimmed}%`,
+          `unique_id.ilike.%${safeTrimmed}%`,
+          `phone.ilike.%${safeTrimmed}%`,
         ];
         if (registrationIdsFromCollege.length > 0) {
           orParts.push(`registration_id.in.(${registrationIdsFromCollege.join(",")})`);
@@ -162,22 +171,30 @@ async function buildLookupResults(
   const eventById = new Map((events ?? []).map((e) => [e.id, e.name]));
   const collegeById = new Map((colleges ?? []).map((c) => [c.id, c.name]));
 
+  // Index once instead of re-scanning allParticipants inside the map below
+  // — that used to be an O(registrations × participants) filter per row,
+  // fine at today's scale but quadratic as both grow.
+  const participantsByReg = new Map<string, NonNullable<typeof allParticipants>>();
+  for (const p of allParticipants ?? []) {
+    const list = participantsByReg.get(p.registration_id) ?? [];
+    list.push(p);
+    participantsByReg.set(p.registration_id, list);
+  }
+
   return registrations.map((reg) => ({
     registrationId: reg.id,
     type: reg.type as "team" | "individual",
     eventName: eventById.get(reg.event_id) ?? "",
     collegeName: collegeById.get(reg.college_id) ?? "",
     teamName: reg.team_name,
-    participants: (allParticipants ?? [])
-      .filter((p) => p.registration_id === reg.id)
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        uniqueId: p.unique_id,
-        isCaptain: p.is_captain,
-        attendanceStatus:
-          (attendanceByParticipant.get(p.id) as "present" | "absent") ??
-          "absent",
-      })),
+    participants: (participantsByReg.get(reg.id) ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      uniqueId: p.unique_id,
+      isCaptain: p.is_captain,
+      attendanceStatus:
+        (attendanceByParticipant.get(p.id) as "present" | "absent") ??
+        "absent",
+    })),
   }));
 }

@@ -1,6 +1,14 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+/** Strips characters that are syntactically meaningful inside a PostgREST
+ * `.or()` filter string — `,` separates conditions and `(`/`)` group them —
+ * so a search term containing them can't inject extra filter clauses
+ * instead of being matched as literal text. */
+function sanitizeForOrFilter(value: string): string {
+  return value.replace(/[,()]/g, "");
+}
+
 export const GAME_SLUGS = ["spin-wheel", "mystry-box", "roll-a-dice"] as const;
 export type GameSlug = (typeof GAME_SLUGS)[number];
 
@@ -169,7 +177,7 @@ async function individualFreeRoster(
 export async function lookupGameTeamByCode(
   rawCode: string,
 ): Promise<GameTeamLookup | null> {
-  const code = rawCode.trim().toUpperCase();
+  const code = sanitizeForOrFilter(rawCode.trim().toUpperCase());
   if (!code) return null;
   const admin = createAdminClient();
 
