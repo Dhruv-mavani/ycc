@@ -401,16 +401,42 @@ export default async function EventDetailPage({
                           {/* Box Cricket's rules are stored as one line per
                               bullet (see the DB value) — split and render as
                               an actual list rather than a run-on paragraph,
-                              clearer for the 3 separate facts it covers. */}
-                          <ul className="list-disc space-y-2 pl-5 text-slate-600 leading-relaxed marker:text-amber-500">
-                            {event.rules
+                              clearer for the 3 separate facts it covers. A
+                              line prefixed "IMPORTANT:" in the DB is pulled
+                              out of the list and rendered as a standalone
+                              notice above it instead of just another bullet. */}
+                          {(() => {
+                            const lines = event.rules
                               .split("\n")
                               .map((line) => line.trim())
-                              .filter(Boolean)
-                              .map((line) => (
-                                <li key={line}>{line}</li>
-                              ))}
-                          </ul>
+                              .filter(Boolean);
+                            const notices = lines
+                              .filter((line) => /^important:/i.test(line))
+                              .map((line) => line.replace(/^important:\s*/i, ""));
+                            const bullets = lines.filter(
+                              (line) => !/^important:/i.test(line),
+                            );
+                            return (
+                              <>
+                                {notices.map((notice) => (
+                                  <div
+                                    key={notice}
+                                    className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900"
+                                  >
+                                    <AlertCircle className="w-5 h-5 shrink-0 text-amber-600" />
+                                    <p className="text-sm font-semibold leading-relaxed">
+                                      {notice}
+                                    </p>
+                                  </div>
+                                ))}
+                                <ul className="list-disc space-y-2 pl-5 text-slate-600 leading-relaxed marker:text-amber-500">
+                                  {bullets.map((line) => (
+                                    <li key={line}>{line}</li>
+                                  ))}
+                                </ul>
+                              </>
+                            );
+                          })()}
                         </div>
                       ) : null}
                     </div>
@@ -427,6 +453,15 @@ export default async function EventDetailPage({
                         <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
                         <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per team</span>
                       </div>
+                      {event.max_team_size ? (
+                        <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
+                          <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                          {formatRupees(
+                            Math.round(event.fee_paise / event.max_team_size / 100) * 100,
+                          )}{" "}
+                          per person
+                        </div>
+                      ) : null}
                       {event.gst_exempt ? (
                         <p className="text-xs sm:text-sm text-slate-500">No GST applicable</p>
                       ) : (
