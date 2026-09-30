@@ -453,15 +453,16 @@ export default async function EventDetailPage({
                         <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
                         <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per team</span>
                       </div>
-                      {event.max_team_size ? (
-                        <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
-                          <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                          {formatRupees(
-                            Math.round(event.fee_paise / event.max_team_size / 100) * 100,
-                          )}{" "}
-                          per person
-                        </div>
-                      ) : null}
+                      {/* Separate from the ₹999 team fee — a flat ₹20/player
+                          charge covering each player's digital ID card and
+                          registration form (see the poster). Not stored on
+                          the event row since it isn't collected through the
+                          site's payment flow, so it's hardcoded here rather
+                          than derived from fee_paise. */}
+                      <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
+                        <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                        ₹20 player fee
+                      </div>
                       {event.gst_exempt ? (
                         <p className="text-xs sm:text-sm text-slate-500">No GST applicable</p>
                       ) : (
