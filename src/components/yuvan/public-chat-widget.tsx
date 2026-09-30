@@ -39,15 +39,28 @@ export function PublicChatWidget() {
           size="icon-lg"
           className="size-16 overflow-hidden rounded-full p-0 shadow-lg border-2 border-blue-500 bg-background"
           onClick={() => {
-            setEverOpened(true);
-            setOpen((o) => !o);
+            if (!everOpened) {
+              // First open: mount the panel in its closed state first, then
+              // flip to open a couple of frames later so the browser has
+              // actually painted the closed state before the transition
+              // starts. Doing both in the same click otherwise mounts the
+              // panel already at its final open scale/opacity — there's no
+              // "previous frame" for the CSS transition to animate from, so
+              // it just pops in instead of animating.
+              setEverOpened(true);
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => setOpen(true));
+              });
+            } else {
+              setOpen((o) => !o);
+            }
           }}
           aria-label={open ? "Close chat" : "Chat with YUVAN"}
         >
-          <div className={`absolute inset-0 flex items-center justify-center rounded-full overflow-hidden transition-[transform,opacity] duration-500 ${open ? 'rotate-90 opacity-0 scale-50' : 'rotate-0 opacity-100 scale-100'}`}>
+          <div className={`absolute inset-0 flex items-center justify-center rounded-full overflow-hidden transition-[transform,opacity] duration-300 ease-out ${open ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}>
             <Image src="/yuvan/avatar.jpg" alt="YUVAN" width={64} height={64} className="size-full object-cover rounded-full" />
           </div>
-          <div className={`absolute inset-0 flex items-center justify-center rounded-full transition-[transform,opacity] duration-500 text-blue-500 bg-background/80 backdrop-blur-sm ${open ? 'rotate-0 opacity-100 scale-100' : '-rotate-90 opacity-0 scale-50'}`}>
+          <div className={`absolute inset-0 flex items-center justify-center rounded-full transition-[transform,opacity] duration-300 ease-out text-blue-500 bg-background/80 backdrop-blur-sm ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
             <X className="size-8" />
           </div>
         </Button>

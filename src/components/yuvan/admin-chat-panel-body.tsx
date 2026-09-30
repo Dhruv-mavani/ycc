@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { toast } from "sonner";
 import { Send, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "./chat-message";
+import { ThinkingLabel } from "./thinking-label";
 
 export function AdminChatPanelBody() {
   const [input, setInput] = useState("");
@@ -37,8 +39,24 @@ export function AdminChatPanelBody() {
         };
 
         recognition.onerror = (event: any) => {
-          console.error("Speech recognition error:", event.error, event);
           setIsListening(false);
+          const err = event.error as string;
+          // "no-speech" (nothing said) and "aborted" (clicked stop) are
+          // routine, not worth logging or alarming about. console.error
+          // here trips Next.js's dev error overlay for what's really
+          // just an expected outcome of an optional mic button.
+          if (err === "no-speech" || err === "aborted") return;
+          console.warn("Speech recognition error:", err);
+          if (err === "not-allowed" || err === "service-not-allowed") {
+            toast.error("Mic access is blocked — allow it in your browser to use voice input.");
+          } else {
+            // Chrome's speech recognition can fail with "network" (and
+            // other codes) for reasons that have nothing to do with the
+            // visitor's actual internet connection — the underlying
+            // cause isn't something we can reliably determine here, so
+            // don't guess at one.
+            toast.error("Voice input isn't working right now — please type instead.");
+          }
         };
         recognition.onend = () => setIsListening(false);
         recognitionRef.current = recognition;
@@ -110,11 +128,16 @@ export function AdminChatPanelBody() {
         ) : (
           messages.map((m) => <ChatMessage key={m.id} message={m} />)
         )}
-        {status === "submitted" || status === "streaming" ? (
+        {/* Only while "submitted" — once the reply starts "streaming", its
+            own message bubble already exists in `messages` below (text or
+            a tool-call skeleton), so showing the orb at the same time
+            produced a redundant second bubble that then vanished abruptly
+            the instant streaming finished, reading as a jump/glitch. */}
+        {status === "submitted" ? (
           <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 shadow-sm flex items-center gap-2 h-[44px]">
+            <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 shadow-sm flex items-center gap-2 min-h-[44px]">
               <span className="yuvan-thinking-orb" aria-hidden="true" />
-              <span className="text-[11px] font-medium text-muted-foreground">Thinking…</span>
+              <ThinkingLabel />
             </div>
           </div>
         ) : null}
