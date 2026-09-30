@@ -162,6 +162,15 @@ export default async function EventDetailPage({
               {event.description}
             </p>
             {isGoGoaGone && (
+              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 relative z-10 text-sm font-semibold text-slate-700 sm:text-base">
+                <span>10 Colleges</span>
+                <span className="text-slate-300">|</span>
+                <span>25K Participants</span>
+                <span className="text-slate-300">|</span>
+                <span>3 Lucky Winners</span>
+              </div>
+            )}
+            {isGoGoaGone && (
               <div className="mt-4 max-w-2xl rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700 relative z-10 sm:text-base">
                 Please play only once — we can see every game played on our
                 end, and repeat gameplay may cost you your chance at the Goa
