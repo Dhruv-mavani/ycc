@@ -449,7 +449,7 @@ export default async function EventDetailPage({
                       <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
                     </h3>
                     <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
-                      <div className="flex flex-wrap items-end gap-2 mb-2">
+                      <div className="flex flex-wrap items-end gap-2 mb-4">
                         <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
                         <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per team</span>
                       </div>
@@ -459,9 +459,13 @@ export default async function EventDetailPage({
                           the event row since it isn't collected through the
                           site's payment flow, so it's hardcoded here rather
                           than derived from fee_paise. */}
-                      <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
-                        <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                        ₹20 player fee
+                      <div className="mb-4 pt-5 border-t border-slate-100 flex items-start gap-2 text-xs sm:text-sm text-slate-600">
+                        <Users className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>
+                          <span className="font-semibold text-slate-900">₹20 Player Fee</span>
+                          <span className="text-slate-400"> · </span>
+                          Includes Registration Form &amp; ID Card
+                        </span>
                       </div>
                       {event.gst_exempt ? (
                         <p className="text-xs sm:text-sm text-slate-500">No GST applicable</p>
