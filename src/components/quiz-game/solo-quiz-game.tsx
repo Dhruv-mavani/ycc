@@ -495,7 +495,7 @@ export function SoloQuizGame() {
         <TimerRing seconds={state.timer} running={!timerPaused} />
 
         <QuestionBox text={state.question.text} questionKey={state.levelIndex} />
-        <p className="mx-auto mt-3 max-w-xl text-center text-[11px] font-semibold uppercase tracking-wide text-white/30">
+        <p className="mx-auto mt-3 max-w-xl text-center text-[11px] font-semibold uppercase tracking-wide text-amber-300">
           AI assistance is not allowed during this quiz — answer it yourself.
         </p>
 
