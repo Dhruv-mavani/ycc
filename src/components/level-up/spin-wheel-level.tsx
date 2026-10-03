@@ -260,22 +260,14 @@ export function SpinWheelLevel({
     }
   }
 
-  // If the player backgrounds the tab (switches apps, hits a browser-level
-  // back gesture that hides rather than unloads, etc.) mid-spin, jump
-  // straight to the result instead of leaving the animation to finish
-  // later — the outcome was already decided and written to game_plays the
-  // instant requestRoll's response came back, so there's nothing left to
-  // protect by letting them watch (or skip) the animation; this just makes
-  // the UI stop pretending the round is still undecided.
-  useEffect(() => {
-    function onVisibilityChange() {
-      if (document.visibilityState !== "hidden") return;
-      if (state.phase !== "spinning") return;
-      dispatch({ type: "SETTLE" });
-    }
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, [state.phase]);
+  // Backgrounding the tab at any point during a run now ends the whole
+  // run outright (see the visibilitychange handler in the parent
+  // level-up-game.tsx, which unmounts this component back to the gate
+  // screen) — a narrower, mid-spin-only version of that used to live
+  // here, but the parent's broader handler supersedes it: by the time it
+  // fires, requestRoll's response has already written the authoritative
+  // result to game_plays regardless of whether this component is still
+  // mounted to show it.
 
   const landedSection =
     state.landedIndex !== null ? state.sections[state.landedIndex] : null;

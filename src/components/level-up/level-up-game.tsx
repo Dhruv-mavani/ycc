@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Confetti from "react-confetti";
 import { RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
 import { SpinWheelLevel, type SpinWheelResultDetail } from "./spin-wheel-level";
@@ -66,6 +67,27 @@ export function LevelUpGame() {
     setSelection(null);
     setStage("gate");
   }
+
+  // Leaving the tab mid-run ends it outright — switching apps, opening
+  // another tab, minimizing, even a brief glance away all fire this the
+  // same way (the Page Visibility API can't tell them apart, and isn't
+  // meant to). No persistence exists either (see the module comment —
+  // plain useState/useReducer, nothing in localStorage/sessionStorage),
+  // so a full browser close-and-reopen already lands back on a fresh
+  // gate screen for free; this covers the remaining case, switching away
+  // without closing anything. Scoped to level1/level2 — nothing to
+  // protect on the gate screen (no run started) or the summary screen
+  // (already finished and recorded).
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState !== "hidden") return;
+      if (stage !== "level1" && stage !== "level2") return;
+      toast.error("You left the game, so this run has ended — enter your code again to start a new one.");
+      restart();
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [stage]);
 
   const muteButton = (
     <button

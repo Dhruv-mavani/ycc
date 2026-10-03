@@ -227,19 +227,11 @@ export function RollDiceLevel({
     }
   }
 
-  // If the player backgrounds the tab mid-roll, jump straight to the
-  // result instead of leaving the animation to finish later — see the
-  // identical comment on spin-wheel-level.tsx's own visibilitychange
-  // handler for why this is safe (the outcome is already recorded).
-  useEffect(() => {
-    function onVisibilityChange() {
-      if (document.visibilityState !== "hidden") return;
-      if (state.phase !== "rolling") return;
-      dispatch({ type: "SETTLE" });
-    }
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, [state.phase]);
+  // Backgrounding the tab at any point during a run now ends the whole
+  // run outright (see the visibilitychange handler in the parent
+  // level-up-game.tsx, which unmounts this component back to the gate
+  // screen) — see the identical comment on spin-wheel-level.tsx for why
+  // a narrower, mid-roll-only version of this isn't needed here anymore.
 
   // Auto-advances to the final summary once the result has sat on screen
   // long enough to read (RESULT_HOLD_MS) — no button. Guarded by a ref so
