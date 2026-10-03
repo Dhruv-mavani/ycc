@@ -495,7 +495,7 @@ export function SoloQuizGame() {
         <TimerRing seconds={state.timer} running={!timerPaused} />
 
         <QuestionBox text={state.question.text} questionKey={state.levelIndex} />
-        <p className="mx-auto mt-3 max-w-xl text-center text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+        <p className="mx-auto mt-3 max-w-xl text-center text-sm font-bold uppercase tracking-wide text-yellow-300 md:text-base">
           AI assistance is not allowed during this quiz — answer it yourself.
         </p>
 
@@ -540,7 +540,7 @@ export function SoloQuizGame() {
             );
           })}
         </div>
-        <p className="mt-4 text-center text-[11px] font-semibold uppercase tracking-wide text-white/25">
+        <p className="mt-4 text-center text-sm font-bold uppercase tracking-wide text-yellow-300 md:text-base">
           Answer honestly — no AI, no outside help.
         </p>
 
