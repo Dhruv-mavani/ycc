@@ -39,43 +39,37 @@ export interface GameTeamLookup {
  * Roster for a Box Cricket-style team registration, keyed by
  * registrations.id. Any one participant's unique_id resolves the whole
  * team, mirroring searchParticipants' "scan one, see the squad" behavior.
+ *
+ * Resolved via a single RPC (resolve_registration_roster, applied directly
+ * to the DB — see `supabase/migrations` and the "resolve_registration_roster_rpc"
+ * entry) instead of 3 separate PostgREST round-trips — under a burst of
+ * concurrent "Spin"/"Roll" clicks, each round-trip holds a connection out
+ * of PostgREST's shared pool, so collapsing this to 1 call noticeably eases
+ * contention ahead of a high-traffic event. Only this source is worth the
+ * tradeoff right now; see the migration's own comment for why.
  */
 async function registrationRoster(
   registrationId: string,
 ): Promise<GameTeamLookup | null> {
   const admin = createAdminClient();
-  const { data: registration } = await admin
-    .from("registrations")
-    .select("id, team_name, event_id")
-    .eq("id", registrationId)
-    .eq("status", "confirmed")
-    .maybeSingle();
-  if (!registration) return null;
+  const { data, error } = await admin.rpc("resolve_registration_roster", {
+    p_registration_id: registrationId,
+  });
+  if (error || !data) return null;
 
-  const [{ data: participants }, { data: event }] = await Promise.all([
-    admin
-      .from("participants")
-      .select("id, name, is_captain")
-      .eq("registration_id", registrationId)
-      .order("is_captain", { ascending: false })
-      .order("created_at"),
-    admin.from("events").select("slug").eq("id", registration.event_id).maybeSingle(),
-  ]);
-  if (!participants || participants.length === 0) return null;
+  const roster = data as {
+    teamRefId: string;
+    teamLabel: string;
+    eventSlug: string | null;
+    players: { id: string; name: string; isCaptain: boolean }[];
+  };
 
   return {
     source: "registration",
-    teamRefId: registration.id,
-    teamLabel:
-      registration.team_name ??
-      participants.find((p) => p.is_captain)?.name ??
-      participants[0].name,
-    eventSlug: event?.slug,
-    players: participants.map((p) => ({
-      id: p.id,
-      name: p.name,
-      isCaptain: p.is_captain,
-    })),
+    teamRefId: roster.teamRefId,
+    teamLabel: roster.teamLabel,
+    eventSlug: roster.eventSlug ?? undefined,
+    players: roster.players,
   };
 }
 

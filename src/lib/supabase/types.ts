@@ -512,6 +512,10 @@ export interface Database {
         Args: { p_application_id: string };
         Returns: string;
       };
+      resolve_registration_roster: {
+        Args: { p_registration_id: string };
+        Returns: unknown;
+      };
     };
   };
 }
