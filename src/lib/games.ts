@@ -1,7 +1,8 @@
 // Registry for the /games hub. Add a row here to list a new self-serve game —
-// the hub page renders whatever is in this array. Host-driven games (e.g.
-// /quiz-game, which one person runs for a seated group) are intentionally not
-// listed here. A hub tile's `slug` is just a React key here, not necessarily
+// the hub page renders whatever is in this array. A host-driven game (one
+// person runs it for a seated group, rather than each visitor playing
+// solo) would intentionally not belong here. A hub tile's `slug` is just a
+// React key here, not necessarily
 // a game_plays.game_slug value — see GAME_SLUG_LABELS below for that: Level
 // Up is one hub tile that plays two underlying, independently-recorded
 // games (Spin the Wheel, then Roll a Dice), so it deliberately isn't itself

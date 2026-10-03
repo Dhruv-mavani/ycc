@@ -321,7 +321,7 @@
 .animate-marquee-vertical-reverse:hover {
   animation-play-state: paused;
 }
-/* Quiz Game (/quiz-game) — answer entrance + selected-lock blink.
+/* Quiz Champion (/quiz-game2) — answer entrance + selected-lock blink.
    Interaction pattern adapted from the KBC-style reference at
    https://github.com/devxprite/kbc (MIT licensed), recolored to match
    YCC's own theme instead of its violet/amber palette. */

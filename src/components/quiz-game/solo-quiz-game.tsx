@@ -25,13 +25,11 @@ import { QUESTION_TIERS, LEVELS_PER_TIER, TOTAL_LEVELS, type QuizQuestion } from
 // automatic answer -> reveal -> advance sequence (no manual "Lock"/"Reveal"
 // buttons — a single click starts the sequence, same as the reference).
 // No money ladder is shown anywhere (YCC prizes, when there are any, are
-// handled outside the app) — otherwise the game logic (question bank,
-// lifelines, tiers) is the same as KbcGame (src/components/quiz-game/
-// kbc-game.tsx), our host-driven sibling game.
+// handled outside the app).
 //
-// Entrance animations use tw-animate-css utility classes (and the same
+// Entrance animations use tw-animate-css utility classes (and the
 // .animate-quiz-answer-flip-in / .animate-quiz-selected-blink globals
-// KbcGame already relies on) rather than framer-motion: framer-motion's
+// below) rather than framer-motion: framer-motion's
 // initial->animate transitions reliably froze at their initial state for
 // any element mounted after the first render, in this Next.js 16 Turbopack
 // + React 19 setup specifically — reproduced directly via the DOM's own
@@ -676,8 +674,7 @@ function AudiencePollDialog({
 
 function AudiencePollBars({ poll, hidden }: { poll: number[]; hidden: number[] }) {
   // Bars start short and transition up to their real value a beat after
-  // mount — same plain-CSS-transition technique KbcGame's own audience
-  // poll uses (see kbc-game.tsx), since the target height is a runtime
+  // mount — a plain CSS transition, since the target height is a runtime
   // value tw-animate-css's fixed keyframes can't express.
   const [grown, setGrown] = useState(false);
   useEffect(() => {
