@@ -11,24 +11,23 @@ export default function YccClubPage() {
       <div className="mx-auto max-w-3xl px-4 py-12 md:py-20 relative z-10">
         <BackButton className="mb-6" />
         <div className="text-center mb-10">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-            YCC <span className="text-blue-600">Club</span>
-          </h1>
+          {/* unoptimized: Next's image optimizer re-encodes this PNG as
+              indexed/palette color, which drops the logo's alpha
+              transparency in Chrome (the source file itself is fine —
+              verified byte-for-byte) — serve the original directly. */}
+          <Image
+            src="/brand/ycc-club-logo.png"
+            alt="YCC Club"
+            width={1600}
+            height={800}
+            className="w-full max-w-xs sm:max-w-sm h-auto mx-auto"
+            priority
+            unoptimized
+          />
           <p className="text-slate-500 mt-3 max-w-xl mx-auto">
             Join YCC Club to stay in the loop on every event, challenge, and
             announcement. Fill in your details below.
           </p>
-        </div>
-
-        <div className="mb-10 mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-          <Image
-            src="/ycc_club.png"
-            alt="What is YCC — cricket tournaments, e-gaming, stand-up comedy, and music fest categories"
-            width={941}
-            height={1671}
-            className="w-full h-auto"
-            priority
-          />
         </div>
 
         <YccClubForm />
