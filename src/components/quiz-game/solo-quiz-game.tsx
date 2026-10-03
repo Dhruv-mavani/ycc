@@ -9,6 +9,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { QUESTION_TIERS, LEVELS_PER_TIER, TOTAL_LEVELS, type QuizQuestion } from "@/lib/quiz-game-questions";
+import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
 
 // ---------------------------------------------------------------------------
 // Solo, self-serve quiz styled to match https://github.com/devxprite/kbc as
@@ -26,6 +27,16 @@ import { QUESTION_TIERS, LEVELS_PER_TIER, TOTAL_LEVELS, type QuizQuestion } from
 // buttons — a single click starts the sequence, same as the reference).
 // No money ladder is shown anywhere (YCC prizes, when there are any, are
 // handled outside the app).
+//
+// This component holds NO question content and NO correctness logic —
+// every question (text, 4 options already shuffled into display order) and
+// every correctness check comes from /api/games/quiz/* (backed by
+// src/lib/games/quiz-session.ts). The old fully-client-side version
+// imported the whole question bank — including every correctIndex —
+// straight into the browser bundle, readable via devtools regardless of
+// what any network request said; this version's client never has the
+// answer to anything it hasn't already been told. See quiz-session.ts's
+// header comment for the full session-token design.
 //
 // Entrance animations use tw-animate-css utility classes (and the
 // .animate-quiz-answer-flip-in / .animate-quiz-selected-blink globals
@@ -38,7 +49,8 @@ import { QUESTION_TIERS, LEVELS_PER_TIER, TOTAL_LEVELS, type QuizQuestion } from
 // ---------------------------------------------------------------------------
 
 const OPTION_LABELS = ["A", "B", "C", "D"] as const;
-const TIMER_SECONDS = 40;
+const TIMER_SECONDS = 30;
+const TOTAL_LEVELS = 10; // mirrors the server's own TOTAL_LEVELS (quiz-game-questions.ts) — just a display fact, not a secret, so it's simplest to keep this one small constant duplicated here rather than import anything from the now server-only question bank.
 
 const GENIUS_PHRASES = [
   "Haha, I don't know... but try option {answer}!",
@@ -70,197 +82,165 @@ function playSound(src: string) {
   audio.play().catch(() => {});
 }
 
-function tierForLevel(levelIndex: number): number {
-  return Math.floor(levelIndex / LEVELS_PER_TIER);
+interface QuizQuestionView {
+  text: string;
+  options: [string, string, string, string];
 }
 
-function currentQuestion(state: GameState): QuizQuestion {
-  const tier = QUESTION_TIERS[tierForLevel(state.levelIndex)];
-  const poolIndex = state.assignedIndexByLevel[state.levelIndex] ?? 0;
-  return tier.questions[poolIndex];
-}
+type Lifeline = "fiftyFifty" | "audiencePoll" | "askGenius" | "flip";
 
-function pickIndexExcluding(poolLength: number, exclude: number[]): number {
-  const candidates = Array.from({ length: poolLength }, (_, i) => i).filter((i) => !exclude.includes(i));
-  const pool = candidates.length > 0 ? candidates : Array.from({ length: poolLength }, (_, i) => i);
-  return pool[Math.floor(Math.random() * pool.length)];
-}
+type PendingOutcome =
+  | { correct: true; gameOver: false; token: string; levelIndex: number; question: QuizQuestionView }
+  | { correct: true; gameOver: true; questionsCorrect: number }
+  | { correct: false; gameOver: true; questionsCorrect: number; correctSlot: number; correctAnswerText: string };
 
-function assignAllLevels(): Record<number, number> {
-  const assigned: Record<number, number> = {};
-  QUESTION_TIERS.forEach((tier, tierIdx) => {
-    const shuffled = Array.from({ length: tier.questions.length }, (_, i) => i).sort(() => Math.random() - 0.5);
-    for (let slot = 0; slot < LEVELS_PER_TIER; slot++) {
-      assigned[tierIdx * LEVELS_PER_TIER + slot] = shuffled[slot % shuffled.length];
-    }
-  });
-  return assigned;
-}
-
-function generateAudiencePoll(correctIndex: number, hidden: number[]): number[] {
-  const visible = [0, 1, 2, 3].filter((i) => !hidden.includes(i));
-  const weights = visible.map((i) => (i === correctIndex ? 40 + Math.random() * 35 : Math.random() * 30));
-  const total = weights.reduce((a, b) => a + b, 0) || 1;
-  const percentages = new Array(4).fill(0);
-  visible.forEach((optionIndex, idx) => {
-    percentages[optionIndex] = Math.round((weights[idx] / total) * 100);
-  });
-  const sum = percentages.reduce((a, b) => a + b, 0);
-  if (sum !== 100 && visible.length > 0) {
-    const maxIdx = visible.reduce((best, i) => (percentages[i] > percentages[best] ? i : best), visible[0]);
-    percentages[maxIdx] += 100 - sum;
-  }
-  return percentages;
-}
-
-function shuffledOptionOrder(): number[] {
-  return [0, 1, 2, 3].sort(() => Math.random() - 0.5);
-}
-
-type Phase = "start" | "playing" | "won" | "lost";
-// idle: waiting for a click. selected: answer chosen, suspense beat before
-// colors show. revealed: colors showing, about to auto-advance/end.
+type Phase = "start" | "requesting" | "playing" | "won" | "lost";
+// idle: waiting for a click. selected: answer chosen, awaiting the server's
+// verdict. revealed: verdict known, colors showing, about to auto-advance/end.
 type Stage = "idle" | "selected" | "revealed";
 
 interface GameState {
   phase: Phase;
   stage: Stage;
+  token: string | null;
   levelIndex: number;
-  assignedIndexByLevel: Record<number, number>;
-  optionOrder: number[];
+  question: QuizQuestionView | null;
   selected: number | null;
-  hiddenOptions: number[];
+  hiddenSlots: number[];
   lifelinesUsed: { fiftyFifty: boolean; audiencePoll: boolean; askGenius: boolean; flip: boolean };
   audiencePoll: number[] | null;
   geniusPhrase: string | null;
-  questionsCorrect: number;
   timer: number;
+  pendingOutcome: PendingOutcome | null;
+  // Only meaningful once phase is "won"/"lost" — set from the server's
+  // terminal response at CONTINUE time.
+  finalQuestionsCorrect: number;
+  finalCorrectAnswerText: string | null;
 }
 
 type Action =
-  | { type: "START" }
-  | { type: "SELECT"; index: number }
-  | { type: "REVEAL" }
+  | { type: "START_REQUEST" }
+  | { type: "START_FAILED" }
+  | { type: "START_OK"; token: string; levelIndex: number; question: QuizQuestionView }
+  | { type: "SELECT"; slot: number }
   | { type: "TIMEOUT" }
+  | { type: "ANSWER_FAILED" }
+  | { type: "REVEAL"; outcome: PendingOutcome }
   | { type: "CONTINUE" }
-  | { type: "TICK" }
-  | { type: "USE_FIFTY_FIFTY" }
-  | { type: "USE_AUDIENCE_POLL" }
+  | { type: "LIFELINE_OK"; lifeline: "fiftyFifty"; token: string; hiddenSlots: number[] }
+  | { type: "LIFELINE_OK"; lifeline: "audiencePoll"; token: string; poll: number[] }
+  | { type: "LIFELINE_OK"; lifeline: "askGenius"; token: string; phrase: string }
+  | { type: "LIFELINE_OK"; lifeline: "flip"; token: string; question: QuizQuestionView }
   | { type: "CLOSE_AUDIENCE_POLL" }
-  | { type: "USE_ASK_GENIUS" }
   | { type: "CLOSE_ASK_GENIUS" }
-  | { type: "USE_FLIP" }
-  | { type: "RESTART" };
+  | { type: "RESTART" }
+  | { type: "ABANDON" };
 
 function initialState(): GameState {
   return {
     phase: "start",
     stage: "idle",
+    token: null,
     levelIndex: 0,
-    assignedIndexByLevel: {},
-    optionOrder: [0, 1, 2, 3],
+    question: null,
     selected: null,
-    hiddenOptions: [],
+    hiddenSlots: [],
     lifelinesUsed: { fiftyFifty: false, audiencePoll: false, askGenius: false, flip: false },
     audiencePoll: null,
     geniusPhrase: null,
-    questionsCorrect: 0,
     timer: TIMER_SECONDS,
+    pendingOutcome: null,
+    finalQuestionsCorrect: 0,
+    finalCorrectAnswerText: null,
   };
 }
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
-    case "START":
+    case "START_REQUEST":
+      return state.phase === "start" ? { ...state, phase: "requesting" } : state;
+    case "START_FAILED":
+      return state.phase === "requesting" ? { ...state, phase: "start" } : state;
+    case "START_OK":
       return {
         ...initialState(),
         phase: "playing",
-        assignedIndexByLevel: assignAllLevels(),
-        optionOrder: shuffledOptionOrder(),
+        token: action.token,
+        levelIndex: action.levelIndex,
+        question: action.question,
       };
     case "SELECT":
-      return state.stage === "idle" ? { ...state, selected: action.index, stage: "selected" } : state;
-    case "REVEAL":
-      return state.stage === "selected" ? { ...state, stage: "revealed" } : state;
-    // Timing out with nothing selected skips straight to "revealed" (with
-    // selected staying null) — same downstream CONTINUE handling as a wrong
-    // pick, since selected !== correctIndex is true either way.
+      return state.stage === "idle" ? { ...state, selected: action.slot, stage: "selected" } : state;
+    // Timing out with nothing selected goes through the same "selected"
+    // stage (selected stays null) as an intentional pick — the effect
+    // watching that stage submits it to the server the same way either way.
     case "TIMEOUT":
-      return state.stage === "idle" ? { ...state, stage: "revealed" } : state;
+      return state.stage === "idle" ? { ...state, selected: null, stage: "selected" } : state;
+    case "ANSWER_FAILED":
+      return state.stage === "selected" ? { ...state, stage: "idle", selected: null } : state;
+    case "REVEAL":
+      return state.stage === "selected" ? { ...state, stage: "revealed", pendingOutcome: action.outcome } : state;
     case "CONTINUE": {
-      if (state.stage !== "revealed") return state;
-      const isCorrect = state.selected === currentQuestion(state).correctIndex;
-      if (!isCorrect) return { ...state, phase: "lost" };
-      const nextLevelIndex = state.levelIndex + 1;
-      const questionsCorrect = state.questionsCorrect + 1;
-      if (nextLevelIndex >= TOTAL_LEVELS) {
-        return { ...state, phase: "won", questionsCorrect };
+      if (state.stage !== "revealed" || !state.pendingOutcome) return state;
+      const outcome = state.pendingOutcome;
+      if (!outcome.gameOver) {
+        return {
+          ...state,
+          stage: "idle",
+          token: outcome.token,
+          levelIndex: outcome.levelIndex,
+          question: outcome.question,
+          selected: null,
+          hiddenSlots: [],
+          audiencePoll: null,
+          geniusPhrase: null,
+          pendingOutcome: null,
+          timer: TIMER_SECONDS,
+        };
+      }
+      if (outcome.correct) {
+        return { ...state, phase: "won", pendingOutcome: null, finalQuestionsCorrect: outcome.questionsCorrect };
       }
       return {
         ...state,
-        levelIndex: nextLevelIndex,
-        stage: "idle",
+        phase: "lost",
+        pendingOutcome: null,
+        finalQuestionsCorrect: outcome.questionsCorrect,
+        finalCorrectAnswerText: outcome.correctAnswerText,
+      };
+    }
+    case "LIFELINE_OK": {
+      const lifelinesUsed = { ...state.lifelinesUsed, [action.lifeline]: true };
+      if (action.lifeline === "fiftyFifty") {
+        return { ...state, token: action.token, lifelinesUsed, hiddenSlots: action.hiddenSlots };
+      }
+      if (action.lifeline === "audiencePoll") {
+        return { ...state, token: action.token, lifelinesUsed, audiencePoll: action.poll };
+      }
+      if (action.lifeline === "askGenius") {
+        return { ...state, token: action.token, lifelinesUsed, geniusPhrase: action.phrase };
+      }
+      // flip
+      return {
+        ...state,
+        token: action.token,
+        lifelinesUsed,
+        question: action.question,
         selected: null,
-        hiddenOptions: [],
+        hiddenSlots: [],
         audiencePoll: null,
         geniusPhrase: null,
-        questionsCorrect,
         timer: TIMER_SECONDS,
-      };
-    }
-    case "TICK":
-      return state.timer > 0 ? { ...state, timer: state.timer - 1 } : state;
-    case "USE_FIFTY_FIFTY": {
-      if (state.lifelinesUsed.fiftyFifty || state.stage !== "idle") return state;
-      const correctIndex = currentQuestion(state).correctIndex;
-      const wrongIndexes = [0, 1, 2, 3].filter((i) => i !== correctIndex);
-      const toHide = [...wrongIndexes].sort(() => Math.random() - 0.5).slice(0, 2);
-      return {
-        ...state,
-        hiddenOptions: toHide,
-        lifelinesUsed: { ...state.lifelinesUsed, fiftyFifty: true },
-      };
-    }
-    case "USE_AUDIENCE_POLL": {
-      if (state.lifelinesUsed.audiencePoll || state.stage !== "idle") return state;
-      return {
-        ...state,
-        audiencePoll: generateAudiencePoll(currentQuestion(state).correctIndex, state.hiddenOptions),
-        lifelinesUsed: { ...state.lifelinesUsed, audiencePoll: true },
+        stage: "idle",
       };
     }
     case "CLOSE_AUDIENCE_POLL":
       return { ...state, audiencePoll: null };
-    case "USE_ASK_GENIUS": {
-      if (state.lifelinesUsed.askGenius || state.stage !== "idle") return state;
-      const correctLabel = OPTION_LABELS[state.optionOrder.indexOf(currentQuestion(state).correctIndex)];
-      const template = GENIUS_PHRASES[Math.floor(Math.random() * GENIUS_PHRASES.length)];
-      return {
-        ...state,
-        geniusPhrase: template.replace("{answer}", correctLabel),
-        lifelinesUsed: { ...state.lifelinesUsed, askGenius: true },
-      };
-    }
     case "CLOSE_ASK_GENIUS":
       return { ...state, geniusPhrase: null };
-    case "USE_FLIP": {
-      if (state.lifelinesUsed.flip || state.stage !== "idle") return state;
-      const tier = tierForLevel(state.levelIndex);
-      const tierStart = tier * LEVELS_PER_TIER;
-      const usedIndexesInTier = Array.from({ length: LEVELS_PER_TIER }, (_, i) => state.assignedIndexByLevel[tierStart + i]);
-      const newIndex = pickIndexExcluding(QUESTION_TIERS[tier].questions.length, usedIndexesInTier);
-      return {
-        ...state,
-        assignedIndexByLevel: { ...state.assignedIndexByLevel, [state.levelIndex]: newIndex },
-        selected: null,
-        hiddenOptions: [],
-        audiencePoll: null,
-        geniusPhrase: null,
-        timer: TIMER_SECONDS,
-        lifelinesUsed: { ...state.lifelinesUsed, flip: true },
-      };
-    }
     case "RESTART":
+      return initialState();
+    case "ABANDON":
       return initialState();
     default:
       return state;
@@ -275,8 +255,111 @@ export function SoloQuizGame() {
     mutedRef.current = muted;
   }, [muted]);
 
+  // Who's playing — resolved via TeamPlayerGate on the start screen, same
+  // pattern as Mystery Box. Kept outside the reducer (and outlives RESTART)
+  // so a replay doesn't need the code re-entered.
+  const [selection, setSelection] = useState<GameTeamSelection | null>(null);
+
   function play(src: string) {
     if (!mutedRef.current) playSound(src);
+  }
+
+  // Asks the server to start a new run — picks (and shuffles) the first
+  // question, mints the signed session token. See quiz-session.ts.
+  const startingRef = useRef(false);
+  async function startGame() {
+    if (startingRef.current || !selection) return;
+    startingRef.current = true;
+    dispatch({ type: "START_REQUEST" });
+    try {
+      const res = await fetch("/api/games/quiz/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: selection.source,
+          teamRefId: selection.teamRefId,
+          playerRefId: selection.playerRefId,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        toast.error(data?.error ?? "Could not start the quiz — please try again.");
+        dispatch({ type: "START_FAILED" });
+        return;
+      }
+      dispatch({ type: "START_OK", token: data.token, levelIndex: data.levelIndex, question: data.question });
+    } catch {
+      toast.error("Network error — please try again.");
+      dispatch({ type: "START_FAILED" });
+    } finally {
+      startingRef.current = false;
+    }
+  }
+
+  // Submits the player's pick (or a timeout, selectedSlot: null) to the
+  // server, which is the only place that ever knows or checks the correct
+  // slot. A fixed 500ms minimum keeps the same suspenseful "selected" beat
+  // the old fully-local version had, regardless of how fast the network
+  // actually responds.
+  const submittingRef = useRef(false);
+  async function submitAnswer(slot: number | null) {
+    if (submittingRef.current || !state.token) return;
+    submittingRef.current = true;
+    try {
+      const [res] = await Promise.all([
+        fetch("/api/games/quiz/answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: state.token, selectedSlot: slot }),
+        }),
+        new Promise((resolve) => setTimeout(resolve, 500)),
+      ]);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        toast.error(data?.error ?? "Could not submit your answer — please try again.");
+        dispatch({ type: "ANSWER_FAILED" });
+        return;
+      }
+      dispatch({ type: "REVEAL", outcome: data as PendingOutcome });
+    } catch {
+      toast.error("Network error — please try again.");
+      dispatch({ type: "ANSWER_FAILED" });
+    } finally {
+      submittingRef.current = false;
+    }
+  }
+
+  const lifelineBusyRef = useRef(false);
+  async function requestLifeline(lifeline: Lifeline) {
+    if (lifelineBusyRef.current || !state.token) return;
+    lifelineBusyRef.current = true;
+    try {
+      const res = await fetch("/api/games/quiz/lifeline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: state.token, lifeline }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        toast.error(data?.error ?? "Could not use that lifeline — please try again.");
+        return;
+      }
+      if (lifeline === "fiftyFifty") {
+        dispatch({ type: "LIFELINE_OK", lifeline, token: data.token, hiddenSlots: data.fiftyFifty.hiddenSlots });
+      } else if (lifeline === "audiencePoll") {
+        dispatch({ type: "LIFELINE_OK", lifeline, token: data.token, poll: data.audiencePoll.poll });
+      } else if (lifeline === "askGenius") {
+        const template = GENIUS_PHRASES[Math.floor(Math.random() * GENIUS_PHRASES.length)];
+        const phrase = template.replace("{answer}", data.askGenius.correctLabel);
+        dispatch({ type: "LIFELINE_OK", lifeline, token: data.token, phrase });
+      } else {
+        dispatch({ type: "LIFELINE_OK", lifeline, token: data.token, question: data.flip.question });
+      }
+    } catch {
+      toast.error("Network error — please try again.");
+    } finally {
+      lifelineBusyRef.current = false;
+    }
   }
 
   // "Let's play" cue on every new question, matching the reference's own
@@ -286,23 +369,25 @@ export function SoloQuizGame() {
     play(SFX.letsPlay);
   }, [state.phase, state.levelIndex]);
 
-  // Drives the automatic select -> reveal -> continue sequence — the same
-  // 500ms / 1000ms / 3000ms beats as the reference's Trivia.jsx handleClick.
+  // The moment a pick (or timeout) lands, submit it — the 500ms minimum
+  // suspense beat lives inside submitAnswer itself now, not a local timer,
+  // since the actual colors can't be known until the server replies.
   useEffect(() => {
     if (state.phase !== "playing") return;
-    if (state.stage === "selected") {
-      const id = setTimeout(() => dispatch({ type: "REVEAL" }), 500);
-      return () => clearTimeout(id);
-    }
-    if (state.stage === "revealed") {
-      const question = currentQuestion(state);
-      const isCorrect = state.selected === question.correctIndex;
-      // A timed-out question (nothing selected) gets its own distinct
-      // sound from an intentional wrong pick, matching the reference.
-      play(isCorrect ? SFX.correct : state.selected === null ? SFX.timeout : SFX.wrong);
-      const id = setTimeout(() => dispatch({ type: "CONTINUE" }), 2500);
-      return () => clearTimeout(id);
-    }
+    if (state.stage !== "selected") return;
+    submitAnswer(state.selected);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.stage]);
+
+  // Once the verdict is in, play the matching cue and hold on the reveal
+  // for a readable beat before auto-advancing — same 2500ms as before.
+  useEffect(() => {
+    if (state.phase !== "playing") return;
+    if (state.stage !== "revealed" || !state.pendingOutcome) return;
+    const isCorrect = state.pendingOutcome.correct;
+    play(isCorrect ? SFX.correct : state.selected === null ? SFX.timeout : SFX.wrong);
+    const id = setTimeout(() => dispatch({ type: "CONTINUE" }), 2500);
+    return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.stage]);
 
@@ -316,7 +401,7 @@ export function SoloQuizGame() {
       dispatch({ type: "TIMEOUT" });
       return;
     }
-    const id = setTimeout(() => dispatch({ type: "TICK" }), 1000);
+    const id = setTimeout(() => dispatch({ type: "TICK" as never }), 1000);
     return () => clearTimeout(id);
   }, [state.phase, state.timer, timerPaused]);
 
@@ -337,16 +422,43 @@ export function SoloQuizGame() {
     };
   }, [state.phase, timerPaused, muted]);
 
-  if (state.phase === "start") {
-    return <StartScreen onStart={() => dispatch({ type: "START" })} muted={muted} onToggleMute={() => setMuted((m) => !m)} />;
+  // Leaving the tab at any point during an active run ends it outright —
+  // same rationale and behavior as Level Up/Mystery Box's handlers. A
+  // result is only ever recorded server-side at the moment an answer is
+  // actually submitted (see quiz-session.ts), so there's nothing to dodge
+  // by leaving mid-reveal; this just stops the run from silently
+  // continuing (or being resumed by someone else at a shared booth).
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState !== "hidden") return;
+      if (state.phase !== "playing" && state.phase !== "requesting") return;
+      toast.error("You left the game, so this run has ended — enter your code again to start a new one.");
+      dispatch({ type: "ABANDON" });
+      setSelection(null);
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [state.phase]);
+
+  if (state.phase === "start" || state.phase === "requesting") {
+    return (
+      <StartScreen
+        onStart={startGame}
+        muted={muted}
+        onToggleMute={() => setMuted((m) => !m)}
+        canStart={!!selection && state.phase === "start"}
+        busy={state.phase === "requesting"}
+        onSelectionChange={setSelection}
+      />
+    );
   }
   if (state.phase === "won" || state.phase === "lost") {
     return (
       <EndScreen
         phase={state.phase}
-        questionsCorrect={state.questionsCorrect}
+        questionsCorrect={state.finalQuestionsCorrect}
         totalQuestions={TOTAL_LEVELS}
-        correctAnswer={currentQuestion(state).options[currentQuestion(state).correctIndex]}
+        correctAnswer={state.finalCorrectAnswerText}
         showCorrectAnswer={state.phase === "lost"}
         onRestart={() => dispatch({ type: "RESTART" })}
         muted={muted}
@@ -355,43 +467,53 @@ export function SoloQuizGame() {
     );
   }
 
-  const question = currentQuestion(state);
+  if (!state.question) return null; // unreachable in practice — phase "playing" always carries a question
+
+  const outcome = state.pendingOutcome;
+  const revealed = state.stage === "revealed" && outcome !== null;
 
   return (
     <div className="relative min-h-screen overflow-hidden px-4 pb-10 pt-16">
+      <CheatDisclaimerWatermark />
       <MuteButton muted={muted} onToggle={() => setMuted((m) => !m)} />
 
       <AudiencePollDialog
         poll={state.audiencePoll}
         onClose={() => dispatch({ type: "CLOSE_AUDIENCE_POLL" })}
-        hidden={state.hiddenOptions}
+        hidden={state.hiddenSlots}
       />
       <AskGeniusDialog
         phrase={state.geniusPhrase}
         onClose={() => dispatch({ type: "CLOSE_ASK_GENIUS" })}
       />
 
-      <div className="mx-auto w-full max-w-4xl">
+      <div className="relative z-10 mx-auto w-full max-w-4xl">
         <p className="mb-2 text-center text-sm font-semibold uppercase tracking-widest text-orange-400">
           Question {state.levelIndex + 1} of {TOTAL_LEVELS}
         </p>
 
         <TimerRing seconds={state.timer} running={!timerPaused} />
 
-        <QuestionBox text={question.question} questionKey={state.levelIndex} />
+        <QuestionBox text={state.question.text} questionKey={state.levelIndex} />
+        <p className="mx-auto mt-3 max-w-xl text-center text-[11px] font-semibold uppercase tracking-wide text-white/30">
+          AI assistance is not allowed during this quiz — answer it yourself.
+        </p>
 
         <div className="mt-8 grid grid-cols-1 gap-4 md:mt-12 md:grid-cols-2 md:gap-x-16 md:gap-y-6">
-          {state.optionOrder.map((index, displaySlot) => {
-            const option = question.options[index];
-            const isHidden = state.hiddenOptions.includes(index);
-            const isSelected = state.selected === index;
-            const isOptionCorrect = index === question.correctIndex;
+          {state.question.options.map((text, slot) => {
+            const isHidden = state.hiddenSlots.includes(slot);
+            const isSelected = state.selected === slot;
+            const isCorrectSlot = revealed && outcome
+              ? outcome.correct
+                ? slot === state.selected
+                : slot === outcome.correctSlot
+              : false;
 
             let tone = "from-violet-700 to-violet-950 border-white/10";
             if (isHidden) {
               tone = "from-violet-950 to-violet-950 border-white/5 opacity-20";
-            } else if (state.stage === "revealed") {
-              if (isOptionCorrect) tone = "from-emerald-500 to-emerald-800 border-emerald-300";
+            } else if (revealed) {
+              if (isCorrectSlot) tone = "from-emerald-500 to-emerald-800 border-emerald-300";
               else if (isSelected) tone = "from-red-500 to-red-800 border-red-400";
               else tone = "from-violet-950 to-violet-950 border-white/5 opacity-40";
             } else if (isSelected) {
@@ -400,11 +522,11 @@ export function SoloQuizGame() {
 
             return (
               <button
-                key={`${state.levelIndex}-${index}`}
+                key={`${state.levelIndex}-${slot}`}
                 type="button"
                 disabled={isHidden || state.stage !== "idle"}
-                onClick={() => dispatch({ type: "SELECT", index })}
-                style={{ animationDelay: `${displaySlot * 120}ms` }}
+                onClick={() => dispatch({ type: "SELECT", slot })}
+                style={{ animationDelay: `${slot * 120}ms` }}
                 className={cn(
                   "animate-quiz-answer-flip-in relative rounded-lg border-2 bg-gradient-to-b px-4 py-3 text-left text-base font-medium text-white shadow-lg transition-colors md:text-xl",
                   "disabled:cursor-not-allowed",
@@ -412,21 +534,44 @@ export function SoloQuizGame() {
                   tone,
                 )}
               >
-                <span className="mr-1 font-bold">{OPTION_LABELS[displaySlot]}:</span>
-                {option}
+                <span className="mr-1 font-bold">{OPTION_LABELS[slot]}:</span>
+                {text}
               </button>
             );
           })}
         </div>
+        <p className="mt-4 text-center text-[11px] font-semibold uppercase tracking-wide text-white/25">
+          Answer honestly — no AI, no outside help.
+        </p>
 
         <Lifelines
           lifelinesUsed={state.lifelinesUsed}
           disabled={state.stage !== "idle"}
-          onFiftyFifty={() => dispatch({ type: "USE_FIFTY_FIFTY" })}
-          onAudiencePoll={() => dispatch({ type: "USE_AUDIENCE_POLL" })}
-          onAskGenius={() => dispatch({ type: "USE_ASK_GENIUS" })}
-          onFlip={() => dispatch({ type: "USE_FLIP" })}
+          onFiftyFifty={() => requestLifeline("fiftyFifty")}
+          onAudiencePoll={() => requestLifeline("audiencePoll")}
+          onAskGenius={() => requestLifeline("askGenius")}
+          onFlip={() => requestLifeline("flip")}
         />
+      </div>
+    </div>
+  );
+}
+
+// Large, low-opacity, tiled background text behind the whole question
+// screen — purely a deterrent nudge, not an actual anti-cheat mechanism
+// (there's no way for a web page to detect or block someone photographing
+// the screen for a second device). pointer-events-none + aria-hidden so it
+// never interferes with clicking real options or with screen readers.
+function CheatDisclaimerWatermark() {
+  const repeats = Array.from({ length: 24 }, (_, i) => i);
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden">
+      <div className="absolute inset-0 flex -rotate-12 flex-wrap content-center items-center justify-center gap-x-10 gap-y-6 opacity-[0.05]">
+        {repeats.map((i) => (
+          <span key={i} className="whitespace-nowrap text-3xl font-black uppercase tracking-widest md:text-5xl">
+            AI is not allowed here
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -531,10 +676,16 @@ function StartScreen({
   onStart,
   muted,
   onToggleMute,
+  canStart,
+  busy,
+  onSelectionChange,
 }: {
   onStart: () => void;
   muted: boolean;
   onToggleMute: () => void;
+  canStart: boolean;
+  busy: boolean;
+  onSelectionChange: (selection: GameTeamSelection | null) => void;
 }) {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
@@ -555,16 +706,25 @@ function StartScreen({
         trades the current question for a new one.
         <br />
         <br />
-        No accounts, no logins, no money on the line — just you against the
-        quiz. Ready to become Quiz Champion?
+        Enter your code below to confirm who&apos;s playing, then it&apos;s
+        just you against the quiz. Ready to become Quiz Champion?
       </p>
+
+      <TeamPlayerGate onSelectionChange={onSelectionChange} />
+
       <button
         type="button"
         onClick={onStart}
+        disabled={!canStart}
         style={{ animationDelay: "900ms" }}
-        className="tw-animate-in tw-fade-in tw-zoom-in-50 tw-duration-1000 tw-fill-mode-both mt-10 rounded-lg bg-violet-700 px-10 py-3 text-xl font-bold shadow-lg transition-colors hover:bg-violet-600 md:text-2xl"
+        className={cn(
+          "tw-animate-in tw-fade-in tw-zoom-in-50 tw-duration-1000 tw-fill-mode-both mt-8 rounded-lg px-10 py-3 text-xl font-bold shadow-lg transition-colors md:text-2xl",
+          canStart
+            ? "bg-violet-700 hover:bg-violet-600"
+            : "cursor-not-allowed border border-white/10 bg-white/5 text-white/40",
+        )}
       >
-        Start New Game
+        {busy ? "Starting…" : "Start New Game"}
       </button>
     </div>
   );
@@ -583,7 +743,7 @@ function EndScreen({
   phase: "won" | "lost";
   questionsCorrect: number;
   totalQuestions: number;
-  correctAnswer: string;
+  correctAnswer: string | null;
   showCorrectAnswer: boolean;
   onRestart: () => void;
   muted: boolean;
@@ -616,7 +776,7 @@ function EndScreen({
         {heading}
       </h1>
       <p className="mt-4 max-w-sm text-base text-white/80 md:text-lg">{message}</p>
-      {showCorrectAnswer ? (
+      {showCorrectAnswer && correctAnswer ? (
         <p className="mt-2 max-w-sm text-sm text-emerald-400 md:text-base">
           Correct answer: <span className="font-bold">{correctAnswer}</span>
         </p>
@@ -682,13 +842,17 @@ function AudiencePollBars({ poll, hidden }: { poll: number[]; hidden: number[] }
     return () => cancelAnimationFrame(id);
   }, []);
 
+  // poll is already indexed by display slot (0-3) — the server builds it
+  // that way directly (see generateAudiencePoll in quiz-session.ts), since
+  // this client never has a separate "true option index" space to
+  // translate from in the first place.
   return (
     <div className="grid grid-cols-4 items-end justify-items-center gap-2 py-4">
-      {poll.map((percent, index) =>
-        hidden.includes(index) ? (
-          <div key={index} />
+      {poll.map((percent, slot) =>
+        hidden.includes(slot) ? (
+          <div key={slot} />
         ) : (
-          <div key={index} className="flex h-40 w-full flex-col items-center justify-end gap-1.5">
+          <div key={slot} className="flex h-40 w-full flex-col items-center justify-end gap-1.5">
             <span className="text-xs font-semibold text-white/70">{percent}%</span>
             <div className="flex h-full w-8 items-end overflow-hidden rounded-t-md bg-white/10 md:w-12">
               <div
@@ -696,7 +860,7 @@ function AudiencePollBars({ poll, hidden }: { poll: number[]; hidden: number[] }
                 style={{ height: grown ? `${percent}%` : "4%" }}
               />
             </div>
-            <span className="text-sm font-black">{OPTION_LABELS[index]}</span>
+            <span className="text-sm font-black">{OPTION_LABELS[slot]}</span>
           </div>
         ),
       )}

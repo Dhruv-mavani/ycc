@@ -21,7 +21,7 @@ export const GAMES: GameLink[] = [
     href: "/quiz-game2",
     title: "Quiz Champion",
     description:
-      "A solo, KBC-style quiz — timed questions, four lifelines, and every one a little tougher than the last. No login, just you against the quiz.",
+      "A solo, KBC-style quiz — timed questions, four lifelines, and every one a little tougher than the last. Enter your code, then it's just you against the quiz.",
     emoji: "🧠",
   },
   {
@@ -51,4 +51,5 @@ export const GAMES: GameLink[] = [
 export const GAME_SLUG_LABELS: { slug: string; title: string }[] = [
   { slug: "mystry-box", title: "Mystery Box" },
   { slug: "level-up", title: "Kismat Ke Khiladi ft. Go Goa Gone" },
+  { slug: "quiz-champion", title: "Quiz Champion" },
 ];

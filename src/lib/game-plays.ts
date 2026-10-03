@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { prizesFor, drawSection, NUM_COUNT } from "@/lib/games/spin-wheel-odds";
 import { drawSum, facesForSum, MIN_SUM, MAX_SUM } from "@/lib/games/roll-dice-odds";
+import { MAX_NUMBER, drawNumber } from "@/lib/games/mystery-box-odds";
 
 /** Strips characters that are syntactically meaningful inside a PostgREST
  * `.or()` filter string — `,` separates conditions and `(`/`)` group them —
@@ -11,7 +12,7 @@ function sanitizeForOrFilter(value: string): string {
   return value.replace(/[,()]/g, "");
 }
 
-export const GAME_SLUGS = ["spin-wheel", "mystry-box", "roll-a-dice"] as const;
+export const GAME_SLUGS = ["spin-wheel", "mystry-box", "roll-a-dice", "quiz-champion"] as const;
 export type GameSlug = (typeof GAME_SLUGS)[number];
 
 export type GameTeamSource = "registration" | "partner" | "school" | "individual_free";
@@ -226,7 +227,9 @@ export async function lookupGameTeamByCode(
   return null;
 }
 
-function lookupGameTeamById(
+// Exported for quiz-session.ts (src/lib/games/quiz-session.ts) — the only
+// other module that needs to resolve a roster by id rather than by code.
+export function lookupGameTeamById(
   source: GameTeamSource,
   teamRefId: string,
 ): Promise<GameTeamLookup | null> {
@@ -372,4 +375,54 @@ export async function rollAndRecordLevelUpPlay(input: {
 
   if (error) return { ok: false, error: "Could not record play" };
   return response;
+}
+
+export type MysteryBoxRollResult =
+  | { ok: true; result: "won" | "lost"; drawn: number }
+  | { ok: false; error: string };
+
+/**
+ * Server-authoritative counterpart to Mystery Box's former client-side
+ * drawNumber() call — same rationale as rollAndRecordLevelUpPlay above: the
+ * client used to decide the drawn number itself and just report a
+ * win/lost `result` to /api/games/record-play afterward, which a crafted
+ * request could forge outright regardless of what the UI actually showed.
+ * This draws the number here, server-side, and writes the game_plays row
+ * in the same call — before the client's reel animation even starts — so
+ * there's nothing left for the client to assert.
+ */
+export async function rollAndRecordMysteryBoxPlay(input: {
+  source: GameTeamSource;
+  teamRefId: string;
+  playerRefId: string;
+  picked: number;
+}): Promise<MysteryBoxRollResult> {
+  if (!Number.isInteger(input.picked) || input.picked < 1 || input.picked > MAX_NUMBER) {
+    return { ok: false, error: "Invalid pick" };
+  }
+
+  const roster = await lookupGameTeamById(input.source, input.teamRefId);
+  if (!roster) return { ok: false, error: "Team not found" };
+
+  const player = roster.players.find((p) => p.id === input.playerRefId);
+  if (!player) return { ok: false, error: "Player not found on this team" };
+
+  const drawn = drawNumber(input.picked);
+  const result: "won" | "lost" = drawn === input.picked ? "won" : "lost";
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("game_plays").insert({
+    game_slug: "mystry-box",
+    source: input.source,
+    team_ref_id: roster.teamRefId,
+    player_ref_id: player.id,
+    player_name: player.name,
+    team_label: roster.teamLabel,
+    is_captain: player.isCaptain,
+    result,
+    detail: { picked: input.picked, drawn },
+  });
+
+  if (error) return { ok: false, error: "Could not record play" };
+  return { ok: true, result, drawn };
 }

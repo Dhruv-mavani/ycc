@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { Gift, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
+import { MAX_NUMBER } from "@/lib/games/mystery-box-odds";
 
 // ---------------------------------------------------------------------------
 // Mystery Box — a solo, self-serve number-draw game (/mystry-box). The player
@@ -18,7 +20,10 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // draw — set exactly, same approach as Spin the Wheel and Roll a Dice (see
 // src/components/level-up/), not simulated to look small while secretly
 // being zero. The remaining ~100% is spread evenly across the other 49
-// (losing) numbers.
+// (losing) numbers. The actual draw (drawNumber) now lives server-side in
+// src/lib/games/mystery-box-odds.ts, called only from rollAndRecordMysteryBoxPlay
+// (src/lib/game-plays.ts) — this component never decides or asserts a
+// result itself; see requestRoll below for why.
 //
 // Animations are plain CSS (keyframes in globals.css + a runtime-value
 // translateY transition on the reel), not framer-motion — the same setup
@@ -37,8 +42,6 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // audio clips as the third distinct identity.
 // ---------------------------------------------------------------------------
 
-const MAX_NUMBER = 50;
-const PICKED_WIN_CHANCE = 0.000000000001; // 0.0000000001% — box lands on the player's own number
 const CELL_HEIGHT = 88; // px — one reel cell, and the box's viewing window
 const REEL_LENGTH = 44; // cells the reel travels through before it lands
 const SPIN_MS = 4200; // must match the transition duration set on the reel
@@ -78,18 +81,6 @@ function randomNumber() {
   return 1 + Math.floor(Math.random() * MAX_NUMBER);
 }
 
-// Draws the number the box lands on. `picked` is the player's chosen
-// number; matching it is an explicit PICKED_WIN_CHANCE draw, not the
-// "naturally" uniform 1/50 a plain randomNumber() would give — everything
-// else falls back to a uniform pick among the other 49 (losing) numbers,
-// via the standard "sample from 1..49, shift up past picked" trick so no
-// array needs to be built and filtered.
-function drawNumber(picked: number): number {
-  if (Math.random() < PICKED_WIN_CHANCE) return picked;
-  const losing = 1 + Math.floor(Math.random() * (MAX_NUMBER - 1)); // 1..49
-  return losing < picked ? losing : losing + 1;
-}
-
 function buildReel(landing: number): number[] {
   const reel: number[] = [];
   for (let i = 0; i < REEL_LENGTH - 1; i++) {
@@ -103,7 +94,7 @@ function buildReel(landing: number): number[] {
   return reel;
 }
 
-type Phase = "start" | "pick" | "spinning" | "won" | "lost";
+type Phase = "start" | "pick" | "requesting" | "spinning" | "won" | "lost";
 
 interface GameState {
   phase: Phase;
@@ -115,9 +106,12 @@ interface GameState {
 type Action =
   | { type: "START" }
   | { type: "PICK"; n: number }
-  | { type: "OPEN" }
+  | { type: "REQUEST" }
+  | { type: "OPEN"; drawn: number }
+  | { type: "REQUEST_FAILED" }
   | { type: "SETTLE" }
-  | { type: "RESTART" };
+  | { type: "RESTART" }
+  | { type: "ABANDON" };
 
 function initialState(): GameState {
   return { phase: "start", picked: null, drawn: null, reel: [] };
@@ -129,16 +123,26 @@ function reducer(state: GameState, action: Action): GameState {
       return { ...initialState(), phase: "pick" };
     case "PICK":
       return state.phase === "pick" ? { ...state, picked: action.n } : state;
+    case "REQUEST":
+      return state.phase === "pick" && state.picked !== null
+        ? { ...state, phase: "requesting" }
+        : state;
+    case "REQUEST_FAILED":
+      return state.phase === "requesting" ? { ...state, phase: "pick" } : state;
     case "OPEN": {
-      if (state.phase !== "pick" || state.picked === null) return state;
-      const drawn = drawNumber(state.picked);
-      return { ...state, phase: "spinning", drawn, reel: buildReel(drawn) };
+      // The server has already decided and recorded the outcome (see
+      // mystery-box-roll/route.ts) — `drawn` here is just what number to
+      // animate the reel toward, never a value this client computes.
+      if (state.phase !== "requesting") return state;
+      return { ...state, phase: "spinning", drawn: action.drawn, reel: buildReel(action.drawn) };
     }
     case "SETTLE":
       if (state.phase !== "spinning") return state;
       return { ...state, phase: state.picked === state.drawn ? "won" : "lost" };
     case "RESTART":
       return { ...initialState(), phase: "pick" };
+    case "ABANDON":
+      return initialState();
     default:
       return state;
   }
@@ -184,34 +188,61 @@ export function MysteryBoxGame() {
     if (state.phase === "lost") play("lose");
   }, [state.phase, play]);
 
-  // Reports the round's outcome once it settles. Guarded by a ref (not
-  // state) so StrictMode's double-invoke and any re-render mid-phase can't
-  // fire this twice for the same round; it re-arms on the next "pick".
-  const recordedRef = useRef(false);
-  useEffect(() => {
-    if (state.phase === "pick") {
-      recordedRef.current = false;
-      return;
-    }
-    if (state.phase !== "won" && state.phase !== "lost") return;
-    if (recordedRef.current) return;
-    recordedRef.current = true;
-
+  // Asks the server to draw (and record) this round's result — the server
+  // decides win/lose and the landed number; this client only ever animates
+  // toward what it's told. See mystery-box-roll/route.ts and
+  // rollAndRecordMysteryBoxPlay's doc comment in src/lib/game-plays.ts.
+  const requestingRef = useRef(false);
+  async function requestRoll(picked: number) {
+    if (requestingRef.current) return;
     const sel = selectionRef.current;
     if (!sel) return;
-    fetch("/api/games/record-play", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        gameSlug: "mystry-box",
-        source: sel.source,
-        teamRefId: sel.teamRefId,
-        playerRefId: sel.playerRefId,
-        result: state.phase,
-        detail: { picked: state.picked, drawn: state.drawn },
-      }),
-    }).catch(() => {});
-  }, [state.phase, state.picked, state.drawn]);
+    requestingRef.current = true;
+    dispatch({ type: "REQUEST" });
+    try {
+      const res = await fetch("/api/games/mystery-box-roll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: sel.source,
+          teamRefId: sel.teamRefId,
+          playerRefId: sel.playerRefId,
+          picked,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || typeof data?.drawn !== "number") {
+        toast.error(data?.error ?? "Could not open the box — please try again.");
+        dispatch({ type: "REQUEST_FAILED" });
+        return;
+      }
+      dispatch({ type: "OPEN", drawn: data.drawn });
+    } catch {
+      toast.error("Network error — please try again.");
+      dispatch({ type: "REQUEST_FAILED" });
+    } finally {
+      requestingRef.current = false;
+    }
+  }
+
+  // Leaving the tab at any point during an active round ends it outright —
+  // same rationale and behavior as Level Up's handler (see the module
+  // comment on level-up-game.tsx): switching apps, another tab, minimizing,
+  // even a brief glance away all fire this the same way. Drops all the way
+  // back to "start" (not just "pick") and clears the resolved player, so
+  // the next attempt has to re-enter a code rather than silently continue
+  // as whoever was playing before — this screen is often shared at a booth.
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState !== "hidden") return;
+      if (state.phase !== "pick" && state.phase !== "requesting" && state.phase !== "spinning") return;
+      toast.error("You left the game, so this run has ended — enter your code again to start a new one.");
+      dispatch({ type: "ABANDON" });
+      setSelection(null);
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [state.phase]);
 
   function toggleMute() {
     setMuted((m) => {
@@ -277,7 +308,8 @@ export function MysteryBoxGame() {
     );
   }
 
-  if (state.phase === "pick") {
+  if (state.phase === "pick" || state.phase === "requesting") {
+    const busy = state.phase === "requesting";
     return (
       <div className="relative flex min-h-screen flex-col items-center px-4 py-14">
         {muteButton}
@@ -285,9 +317,11 @@ export function MysteryBoxGame() {
           Pick your number
         </h1>
         <p className="mt-2 text-center text-xs text-white/70 sm:text-sm md:text-base">
-          {state.picked === null
-            ? `Choose any number from 1 to ${MAX_NUMBER}.`
-            : `You picked ${state.picked}. Open the box when you're ready.`}
+          {busy
+            ? "Getting ready…"
+            : state.picked === null
+              ? `Choose any number from 1 to ${MAX_NUMBER}.`
+              : `You picked ${state.picked}. Open the box when you're ready.`}
         </p>
 
         <div className="mt-8 grid w-full max-w-xl grid-cols-6 gap-1 sm:grid-cols-10 sm:gap-2">
@@ -295,12 +329,14 @@ export function MysteryBoxGame() {
             <button
               key={n}
               type="button"
+              disabled={busy}
               onClick={() => dispatch({ type: "PICK", n })}
               className={cn(
                 "flex aspect-square items-center justify-center rounded-lg border text-xs font-bold transition-all duration-300 sm:text-base",
                 state.picked === n
                   ? "scale-110 border-amber-300 bg-gradient-to-br from-amber-300 to-amber-500 text-black shadow-[0_0_20px_rgba(251,191,36,0.55)] z-10"
                   : "border-white/10 bg-white/5 text-white backdrop-blur-sm hover:scale-110 hover:border-white/30 hover:bg-white/20 hover:shadow-lg z-0",
+                busy && "opacity-50",
               )}
             >
               {n}
@@ -310,16 +346,16 @@ export function MysteryBoxGame() {
 
         <button
           type="button"
-          disabled={state.picked === null}
-          onClick={() => dispatch({ type: "OPEN" })}
+          disabled={state.picked === null || busy}
+          onClick={() => requestRoll(state.picked as number)}
           className={cn(
             "mt-10 rounded-xl px-6 py-2.5 text-base font-bold shadow-lg transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
-            state.picked === null
+            state.picked === null || busy
               ? "cursor-not-allowed bg-white/5 border border-white/10 text-white/40"
               : "bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-xl shadow-amber-500/20 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 border border-transparent",
           )}
         >
-          Open the Mystery Box
+          {busy ? "Starting…" : "Open the Mystery Box"}
         </button>
       </div>
     );

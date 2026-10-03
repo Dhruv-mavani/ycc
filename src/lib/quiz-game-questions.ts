@@ -1,16 +1,21 @@
-// Question bank for the KBC-style (Kaun Banega Crorepati) host-driven quiz
-// game. This is NOT the paid "YCC Quiz Competition" registration event —
-// it's a standalone party-game display that one volunteer/host controls
-// live in front of a seated group, reading questions aloud and manually
-// deciding correctness/winners. There is no scoring backend, auth, or
-// anti-cheat here on purpose: the host is the authority, this page is just
-// the on-screen prompter + lifeline effects.
+import "server-only";
+
+// Question bank for Quiz Champion (/quiz-game2), a solo KBC-style quiz.
+// server-only on purpose: this file (including every correctIndex) must
+// never reach the browser bundle — it's imported exclusively by
+// src/lib/games/quiz-session.ts, which picks/shuffles/checks questions
+// entirely server-side and only ever sends the client a question's text
+// and its 4 options in display order, never which one is correct. See
+// quiz-session.ts's own header comment for the full flow and why (a
+// client-side-only version of this used to ship the whole answer key in
+// the JS bundle, trivially readable via devtools, regardless of whether
+// any request was ever forged).
 //
-// No prize/money ladder — the host decides real-world prizes offline. Every
-// question's correctIndex is the genuine correct answer; the host's manual
-// Correct/Wrong call is just the final word, not a substitute for accuracy.
+// No prize/money ladder — YCC decides real-world prizes offline. Every
+// question's correctIndex is the genuine correct answer, individually
+// fact-checked, not just "whatever reads plausible."
 //
-// 50 questions across 5 difficulty tiers (10 per tier), mixing cricket
+// 51 questions across 5 difficulty tiers (~10 per tier), mixing cricket
 // trivia, general knowledge, and riddles. A single game only plays 10
 // questions (2 randomly drawn per tier, escalating tier by tier) so the
 // same playthrough never repeats a question, and across many plays the
