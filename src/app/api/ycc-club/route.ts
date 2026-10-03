@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { collegeCampusPartnerApplicationSchema } from "@/lib/validations/college-campus-partner";
+import { yccClubApplicationSchema } from "@/lib/validations/ycc-club";
 import { isRateLimited } from "@/lib/rate-limit";
-import { generateCollegeCampusPartnerCode } from "@/lib/college-campus-partner-approval";
 
 function getClientIp(request: Request) {
   return (
@@ -14,7 +13,7 @@ function getClientIp(request: Request) {
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  if (isRateLimited(`college-campus-partner-apply:${ip}`, { max: 5, windowMs: 60_000 })) {
+  if (isRateLimited(`ycc-club-apply:${ip}`, { max: 5, windowMs: 60_000 })) {
     return NextResponse.json(
       { error: "Too many attempts — please try again in a minute" },
       { status: 429 },
@@ -22,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = collegeCampusPartnerApplicationSchema.safeParse(body);
+  const parsed = yccClubApplicationSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -35,34 +34,24 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
 
   const { data: existingApplication } = await admin
-    .from("college_campus_partner_applications")
+    .from("ycc_club_applications")
     .select("id")
     .eq("mobile", input.mobile)
     .maybeSingle();
 
   if (existingApplication) {
     return NextResponse.json(
-      { error: "This mobile number has already applied" },
+      { error: "This mobile number has already joined YCC Club" },
       { status: 409 },
     );
   }
 
   const { data: application, error } = await admin
-    .from("college_campus_partner_applications")
+    .from("ycc_club_applications")
     .insert({
-      college_id: input.collegeId,
-      stream: input.stream,
-      year: input.year,
-      semester: input.semester,
       name: input.name,
       mobile: input.mobile,
-      email: input.email || null,
-      // No longer collected on the application form — see
-      // src/lib/validations/college-campus-partner.ts.
-      instagram_handle: input.instagramHandle || null,
-      age: input.age,
       gender: input.gender,
-      agreed_to_terms: input.agreedToTerms,
       whatsapp_joined_at: new Date().toISOString(),
       instagram_joined_at: new Date().toISOString(),
     })
@@ -75,8 +64,6 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-
-  await generateCollegeCampusPartnerCode(admin, application.id);
 
   return NextResponse.json({ applicationId: application.id });
 }

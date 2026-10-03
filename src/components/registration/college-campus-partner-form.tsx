@@ -96,7 +96,6 @@ export function CollegeCampusPartnerForm({ colleges }: { colleges: CollegeOption
       name: "",
       mobile: "",
       email: "",
-      instagramHandle: "",
       agreedToTerms: false,
       whatsappJoined: false,
       partnerWhatsappJoined: false,
@@ -328,11 +327,8 @@ export function CollegeCampusPartnerForm({ colleges }: { colleges: CollegeOption
               placeholder="10-digit mobile"
             />
           </Field>
-          <Field label="Email" error={errors.email?.message}>
+          <Field label="Email (optional)" error={errors.email?.message}>
             <Input type="email" {...register("email")} />
-          </Field>
-          <Field label="Instagram handle" error={errors.instagramHandle?.message}>
-            <Input {...register("instagramHandle")} placeholder="yourhandle" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Age" error={errors.age?.message}>

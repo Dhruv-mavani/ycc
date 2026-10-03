@@ -37,7 +37,8 @@ export function SiteHeader() {
     pathname.startsWith("/events") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/partner-program") ||
-    pathname.startsWith("/college-campus-partner");
+    pathname.startsWith("/college-campus-partner") ||
+    pathname.startsWith("/ycc-club");
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const mounted = useSyncExternalStore(

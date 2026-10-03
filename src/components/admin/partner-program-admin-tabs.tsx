@@ -9,11 +9,11 @@ import type { PartnerApplicationStatus, PartnerType } from "@/lib/supabase/types
 interface PartnerProgramApplication {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   mobile: string;
   age: number | null;
   gender: string | null;
-  instagram_handle: string;
+  instagram_handle: string | null;
   referred_by: string | null;
   agreed_to_terms: boolean;
   partner_type: PartnerType;
@@ -28,11 +28,11 @@ interface PartnerProgramApplication {
 interface CollegeCampusPartnerApplication {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   mobile: string;
   age: number;
   gender: string;
-  instagram_handle: string;
+  instagram_handle: string | null;
   stream: string;
   year: number;
   semester: number;

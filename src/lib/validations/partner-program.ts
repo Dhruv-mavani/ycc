@@ -5,11 +5,20 @@ export const partnerTypeSchema = z.enum(["campus", "class", "classmate"]);
 
 const partnerProgramFieldsSchema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(100),
-  email: z.string().trim().email("Enter a valid email address").max(200),
+  email: z
+    .string()
+    .trim()
+    .email("Enter a valid email address")
+    .max(200)
+    .optional()
+    .or(z.literal("")),
   mobile: phoneSchema,
   age: ageSchema,
   gender: genderSchema,
-  instagramHandle: z.string().trim().min(1, "Required").max(100),
+  // No longer collected on the public application form — kept optional
+  // (rather than removed) so the admin edit dialog can still read/write
+  // a handle on records that captured one before this changed.
+  instagramHandle: z.string().trim().max(100).optional().or(z.literal("")),
   collegeId: z.string().uuid("Select your college"),
   referredBy: z.string().trim().max(150).optional(),
   agreedToTerms: z.boolean().refine((v) => v === true, {

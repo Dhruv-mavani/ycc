@@ -19,11 +19,11 @@ import { EditCollegeCampusPartnerDialog } from "@/components/admin/edit-college-
 interface CollegeCampusPartnerApplication {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   mobile: string;
   age: number;
   gender: string;
-  instagram_handle: string;
+  instagram_handle: string | null;
   stream: string;
   year: number;
   semester: number;
@@ -77,7 +77,7 @@ export function CollegeCampusPartnerApplicationsList({
     const lowerQuery = query.toLowerCase();
     return (
       app.name.toLowerCase().includes(lowerQuery) ||
-      app.email.toLowerCase().includes(lowerQuery) ||
+      (app.email ?? "").toLowerCase().includes(lowerQuery) ||
       app.mobile.includes(lowerQuery) ||
       (app.code ?? "").toLowerCase().includes(lowerQuery)
     );
@@ -192,12 +192,14 @@ export function CollegeCampusPartnerApplicationsList({
                   </p>
                   <p className="font-medium capitalize">{app.age} · {app.gender}</p>
                 </div>
-                <div className="sm:pl-4">
-                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
-                    Instagram
-                  </p>
-                  <p className="font-medium">@{app.instagram_handle}</p>
-                </div>
+                {app.instagram_handle ? (
+                  <div className="sm:pl-4">
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                      Instagram
+                    </p>
+                    <p className="font-medium">@{app.instagram_handle}</p>
+                  </div>
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
                 <Badge

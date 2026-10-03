@@ -94,7 +94,7 @@ export interface Database {
           college_id: string | null;
           name: string;
           whatsapp: string;
-          email: string;
+          email: string | null;
           age: number | null;
           gender: "male" | "female" | "other" | null;
           code: string;
@@ -109,7 +109,7 @@ export interface Database {
           college_id?: string | null;
           name: string;
           whatsapp: string;
-          email: string;
+          email?: string | null;
           age?: number | null;
           gender?: "male" | "female" | "other" | null;
           code: string;
@@ -373,11 +373,11 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          email: string;
+          email: string | null;
           mobile: string;
           age: number | null;
           gender: string | null;
-          instagram_handle: string;
+          instagram_handle: string | null;
           user_id: string | null;
           partner_type: PartnerType;
           status: PartnerApplicationStatus;
@@ -403,11 +403,11 @@ export interface Database {
         Insert: {
           id?: string;
           name: string;
-          email: string;
+          email?: string | null;
           mobile: string;
           age?: number | null;
           gender?: string | null;
-          instagram_handle: string;
+          instagram_handle?: string | null;
           user_id?: string | null;
           partner_type?: PartnerType;
           status?: PartnerApplicationStatus;
@@ -444,8 +444,8 @@ export interface Database {
           semester: number;
           name: string;
           mobile: string;
-          email: string;
-          instagram_handle: string;
+          email: string | null;
+          instagram_handle: string | null;
           age: number;
           gender: string;
           agreed_to_terms: boolean;
@@ -462,8 +462,8 @@ export interface Database {
           semester: number;
           name: string;
           mobile: string;
-          email: string;
-          instagram_handle: string;
+          email?: string | null;
+          instagram_handle?: string | null;
           age: number;
           gender: string;
           agreed_to_terms?: boolean;
@@ -474,6 +474,30 @@ export interface Database {
         };
         Update: Partial<
           Database["public"]["Tables"]["college_campus_partner_applications"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      ycc_club_applications: {
+        Row: {
+          id: string;
+          name: string;
+          mobile: string;
+          gender: string;
+          whatsapp_joined_at: string | null;
+          instagram_joined_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          mobile: string;
+          gender: string;
+          whatsapp_joined_at?: string | null;
+          instagram_joined_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["ycc_club_applications"]["Insert"]
         >;
         Relationships: [];
       };

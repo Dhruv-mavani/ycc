@@ -65,7 +65,6 @@ export function SchoolRegistrationForm({
       name: "",
       email: "",
       whatsapp: "",
-      instagramHandle: "",
       age: undefined,
       gender: undefined,
       schoolId: "",
@@ -186,10 +185,6 @@ export function SchoolRegistrationForm({
               inputMode="numeric"
               placeholder="10-digit mobile"
             />
-          </Field>
-
-          <Field label="Instagram handle" error={errors.instagramHandle?.message}>
-            <Input {...register("instagramHandle")} placeholder="@yourhandle" />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">

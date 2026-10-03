@@ -259,10 +259,12 @@ export default async function AdminPartnerDetailPage({
               {partner.age ?? "—"}{partner.gender ? ` · ${partner.gender}` : ""}
             </p>
           </div>
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wider">Instagram</p>
-            <p className="font-medium">@{partner.instagram_handle}</p>
-          </div>
+          {partner.instagram_handle ? (
+            <div>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider">Instagram</p>
+              <p className="font-medium">@{partner.instagram_handle}</p>
+            </div>
+          ) : null}
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Team code</p>
             <p className="font-medium font-mono">{partner.team_code ?? "—"}</p>

@@ -34,11 +34,11 @@ import type { PartnerApplicationStatus, PartnerType } from "@/lib/supabase/types
 interface PartnerProgramApplication {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   mobile: string;
   age: number | null;
   gender: string | null;
-  instagram_handle: string;
+  instagram_handle: string | null;
   referred_by: string | null;
   agreed_to_terms: boolean;
   partner_type: PartnerType;
@@ -80,11 +80,11 @@ export function EditPartnerProgramDialog({
     if (!application) return;
     reset({
       name: application.name,
-      email: application.email,
+      email: application.email ?? "",
       mobile: application.mobile,
       age: application.age ?? undefined,
       gender: (application.gender ?? undefined) as PartnerProgramApplicationUpdateInput["gender"],
-      instagramHandle: application.instagram_handle,
+      instagramHandle: application.instagram_handle ?? "",
       collegeId: application.college_id ?? undefined,
       referredBy: application.referred_by ?? "",
       agreedToTerms: application.agreed_to_terms,

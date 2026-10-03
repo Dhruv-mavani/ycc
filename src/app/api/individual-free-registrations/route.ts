@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       college_id: input.collegeId || null,
       name: input.name,
       whatsapp: input.whatsapp,
-      email: input.email,
+      email: input.email || null,
       age: input.age,
       gender: input.gender,
       code,

@@ -40,11 +40,11 @@ const YEAR_LABELS: Record<string, string> = {
 interface CollegeCampusPartnerApplication {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   mobile: string;
   age: number;
   gender: string;
-  instagram_handle: string;
+  instagram_handle: string | null;
   stream: string;
   year: number;
   semester: number;
@@ -88,11 +88,11 @@ export function EditCollegeCampusPartnerDialog({
     if (!application) return;
     reset({
       name: application.name,
-      email: application.email,
+      email: application.email ?? "",
       mobile: application.mobile,
       age: application.age,
       gender: application.gender as CollegeCampusPartnerApplicationUpdateInput["gender"],
-      instagramHandle: application.instagram_handle,
+      instagramHandle: application.instagram_handle ?? "",
       collegeId: application.college_id,
       stream: application.stream,
       year: application.year,

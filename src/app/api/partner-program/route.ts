@@ -83,12 +83,14 @@ export async function POST(request: Request) {
     .from("partner_program_applications")
     .insert({
       name: input.name,
-      email: input.email,
+      email: input.email || null,
       partner_type: input.partnerType,
       mobile: input.mobile,
       age: input.age,
       gender: input.gender,
-      instagram_handle: input.instagramHandle,
+      // No longer collected on the application form — see
+      // src/lib/validations/partner-program.ts.
+      instagram_handle: input.instagramHandle || null,
       college_id: input.collegeId,
       referred_by: input.partnerType === "campus" ? input.referredBy || null : null,
       referred_by_id: input.partnerType === "campus" ? null : input.referredById,

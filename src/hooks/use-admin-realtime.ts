@@ -19,11 +19,11 @@ export interface RealtimeStaffRow {
 export interface RealtimePartnerProgramRow {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   mobile: string;
   age: number | null;
   gender: string | null;
-  instagram_handle: string;
+  instagram_handle: string | null;
   referred_by: string | null;
   referred_by_id: string | null;
   agreed_to_terms: boolean;

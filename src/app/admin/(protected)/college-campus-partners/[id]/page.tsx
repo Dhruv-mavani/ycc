@@ -106,10 +106,12 @@ export default async function AdminCollegeCampusPartnerDetailPage({
               {profile.age} · {profile.gender}
             </p>
           </div>
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wider">Instagram</p>
-            <p className="font-medium">@{profile.instagramHandle}</p>
-          </div>
+          {profile.instagramHandle ? (
+            <div>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider">Instagram</p>
+              <p className="font-medium">@{profile.instagramHandle}</p>
+            </div>
+          ) : null}
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Stream</p>
             <p className="font-medium">{profile.stream}</p>

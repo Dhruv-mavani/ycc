@@ -619,11 +619,11 @@ export async function getCollegeCampusPartnerOverview(): Promise<
 export interface CollegeCampusPartnerProfile {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   mobile: string;
   age: number;
   gender: string;
-  instagramHandle: string;
+  instagramHandle: string | null;
   stream: string;
   year: number;
   semester: number;

@@ -16,8 +16,11 @@ const collegeCampusPartnerFieldsSchema = z.object({
     .max(8, "Select your semester"),
   name: z.string().trim().min(2, "Name is too short").max(100),
   mobile: phoneSchema,
-  email: emailSchema,
-  instagramHandle: z.string().trim().min(1, "Required").max(100),
+  email: emailSchema.optional().or(z.literal("")),
+  // No longer collected on the public application form — kept optional
+  // (rather than removed) so the admin edit dialog can still read/write
+  // a handle on records that captured one before this changed.
+  instagramHandle: z.string().trim().max(100).optional().or(z.literal("")),
   age: ageSchema,
   gender: genderSchema,
   agreedToTerms: z.boolean().refine((v) => v === true, {

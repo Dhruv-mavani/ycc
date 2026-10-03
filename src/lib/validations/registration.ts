@@ -112,12 +112,12 @@ export const schoolCertificateLookupSchema = z.object({
 
 // Free, no-payment, individual (no team) registration for events of type
 // "individual_free" (e.g. YCC Jackpot Heist) — a college dropdown instead of
-// school's, and email is required (not optional like school's) per spec.
+// school's. Email is optional, same as every other form.
 export const individualFreeRegistrationSchema = z.object({
   eventId: z.string().uuid(),
   name: z.string().trim().min(2, "Name is too short").max(100),
   whatsapp: phoneSchema,
-  email: emailSchema,
+  email: emailSchema.optional().or(z.literal("")),
   age: ageSchema,
   gender: genderSchema,
   collegeId: z.string().uuid().optional().or(z.literal("")),

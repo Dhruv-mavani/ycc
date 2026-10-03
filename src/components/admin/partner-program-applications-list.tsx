@@ -29,11 +29,11 @@ import type { PartnerApplicationStatus, PartnerType } from "@/lib/supabase/types
 interface PartnerProgramApplication {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   mobile: string;
   age: number | null;
   gender: string | null;
-  instagram_handle: string;
+  instagram_handle: string | null;
   referred_by: string | null;
   agreed_to_terms: boolean;
   partner_type: PartnerType;
@@ -123,7 +123,7 @@ export function PartnerProgramApplicationsList({
     const lowerQuery = query.toLowerCase();
     return (
       app.name.toLowerCase().includes(lowerQuery) ||
-      app.email.toLowerCase().includes(lowerQuery) ||
+      (app.email ?? "").toLowerCase().includes(lowerQuery) ||
       app.mobile.includes(lowerQuery)
     );
   });
@@ -245,12 +245,14 @@ export function PartnerProgramApplicationsList({
                   </p>
                   <p className="font-medium">{app.collegeName ?? "—"}</p>
                 </div>
-                <div className="sm:pl-4">
-                  <p className="text-muted-foreground text-xs uppercase tracking-wider">
-                    Instagram
-                  </p>
-                  <p className="font-medium">@{app.instagram_handle}</p>
-                </div>
+                {app.instagram_handle ? (
+                  <div className="sm:pl-4">
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                      Instagram
+                    </p>
+                    <p className="font-medium">@{app.instagram_handle}</p>
+                  </div>
+                ) : null}
                 <div className="sm:pl-4">
                   <p className="text-muted-foreground text-xs uppercase tracking-wider">
                     Referred by

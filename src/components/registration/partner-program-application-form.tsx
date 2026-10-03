@@ -105,7 +105,6 @@ export function PartnerProgramApplicationForm({
       name: "",
       email: "",
       mobile: "",
-      instagramHandle: "",
       collegeId: "",
       referredBy: "",
       referredById: undefined,
@@ -261,7 +260,7 @@ export function PartnerProgramApplicationForm({
           <Field label="Full name" error={errors.name?.message}>
             <Input {...register("name")} />
           </Field>
-          <Field label="Email" error={errors.email?.message}>
+          <Field label="Email (optional)" error={errors.email?.message}>
             <Input type="email" {...register("email")} />
           </Field>
           <Field label="Mobile / WhatsApp number" error={errors.mobile?.message}>
@@ -300,12 +299,6 @@ export function PartnerProgramApplicationForm({
               />
             </Field>
           </div>
-          <Field
-            label="Instagram handle"
-            error={errors.instagramHandle?.message}
-          >
-            <Input {...register("instagramHandle")} placeholder="yourhandle" />
-          </Field>
           <Field label="College" error={errors.collegeId?.message}>
             <Controller
               control={control}

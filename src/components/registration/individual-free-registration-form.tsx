@@ -198,7 +198,7 @@ export function IndividualFreeRegistrationForm({
             />
           </Field>
 
-          <Field label="Email" error={errors.email?.message}>
+          <Field label="Email (optional)" error={errors.email?.message}>
             <Input {...register("email")} type="email" placeholder="you@example.com" />
           </Field>
 
