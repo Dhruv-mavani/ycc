@@ -177,13 +177,20 @@ export function LevelUpGame() {
               href="/events/cricket-championship-2026"
               className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
             >
-              <Image
-                src="/box-cricket/poster-999.png"
-                alt="YCC Box Cricket Tournament poster"
-                width={1024}
-                height={1536}
-                className="w-full"
-              />
+              {/* Both posters sit in a shared aspect-ratio frame (matching
+                  this one's real 941x1672 — close to 9:16) with
+                  object-contain, so the two cards always render at the
+                  same height side by side despite the source posters
+                  having different native aspect ratios — without ever
+                  cropping either poster's own content. */}
+              <div className="relative aspect-[9/16] w-full bg-black/20">
+                <Image
+                  src="/box-cricket/poster-999.png"
+                  alt="YCC Box Cricket Tournament poster"
+                  fill
+                  className="object-contain"
+                />
+              </div>
               <div className="flex items-center gap-3 border-t border-white/10 bg-black/40 p-3 md:hidden">
                 <Image
                   src="/box-cricket/qr.png"
@@ -203,13 +210,14 @@ export function LevelUpGame() {
               href="/events/cricket-championship-2026"
               className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
             >
-              <Image
-                src="/go-goa-gone/captain-benefits-poster.png"
-                alt="YCC Kismat Ke Khiladi — Exclusive Captain Benefits poster"
-                width={1024}
-                height={1536}
-                className="w-full"
-              />
+              <div className="relative aspect-[9/16] w-full bg-black/20">
+                <Image
+                  src="/go-goa-gone/captain-benefits-poster.png"
+                  alt="YCC Kismat Ke Khiladi — Exclusive Captain Benefits poster"
+                  fill
+                  className="object-contain"
+                />
+              </div>
             </Link>
           </div>
 

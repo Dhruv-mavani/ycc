@@ -3,9 +3,15 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { ArrowRight, Volume2, VolumeX } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 import type { GameTeamSelection } from "@/components/games/team-player-gate";
+import {
+  NUM_COUNT,
+  prizesFor,
+  type PrizeSection,
+} from "@/lib/games/spin-wheel-odds";
 
 // ---------------------------------------------------------------------------
 // Level 1 of Level Up (/level-up) — Spin the Wheel, adapted from the former
@@ -21,73 +27,8 @@ import type { GameTeamSelection } from "@/components/games/team-player-gate";
 // history) for the full odds/animation rationale, unchanged here.
 // ---------------------------------------------------------------------------
 
-const NUM_COUNT = 10;
-
-interface PrizeSection {
-  id: string;
-  emoji: string;
-  wheelLines: string[];
-  name: string;
-  winChance: number;
-}
-
-const CASH_PRIZE: PrizeSection = {
-  id: "cash",
-  emoji: "💰",
-  wheelLines: ["₹25,000/-", "CASH PRIZE"],
-  name: "₹25,000/- Cash Prize",
-  winChance: 0.000000000001, // 0.0000000001%
-};
-
-// The original Spin the Wheel prize, before it became the Cash Prize above
-// for every non-school audience (see git history, "Change Spin the Wheel's
-// Goa Trip prize to a ₹25,000/- Cash Prize") — brought back specifically
-// for YCC Go Goa Gone, whose own poster promises this exact trip.
-const GOA_TRIP: PrizeSection = {
-  id: "goa",
-  emoji: "🏖️",
-  wheelLines: ["GOA TRIP", "WITH GANG", "(FREE TO ALL)"],
-  name: "Goa Trip with Gang (free to all)",
-  winChance: 0.000000000001,
-};
-
-const SUPERCHAMPS_PRIZES: PrizeSection[] = [
-  { id: "sneakers", emoji: "👟", wheelLines: ["SNEAKERS"], name: "Nike Sneakers", winChance: 0.000000000001 },
-  { id: "ps5", emoji: "🎮", wheelLines: ["PS5"], name: "PS5", winChance: 0.000000000001 },
-  { id: "cycle", emoji: "🚲", wheelLines: ["CYCLE"], name: "Gear Cycle", winChance: 0.000000000001 },
-];
-
-const SURPRISE_GIFT: PrizeSection = {
-  id: "surprise",
-  emoji: "🎁",
-  wheelLines: ["SURPRISE", "GIFT"],
-  name: "Surprise Gift",
-  winChance: 0.0005, // 5 in 10,000 = 0.05%
-};
-
-// Audience is source-driven (school -> Super Champs' three real items,
-// everyone else -> the single Cash Prize slice) except Go Goa Gone, which
-// needs event-level granularity since it shares "registration" source with
-// every other team event (Box Cricket, Plastic Ball, Tennis Ball, Partners
-// Box Cricket) — those keep the Cash Prize, only Go Goa Gone gets its own
-// Goa Trip slice back. See GameTeamSelection.eventSlug.
-function prizesFor(
-  source: GameTeamSelection["source"] | undefined,
-  eventSlug: string | undefined,
-): PrizeSection[] {
-  const audiencePrizes =
-    eventSlug === "ycc-go-goa-gone"
-      ? [GOA_TRIP]
-      : source === "school"
-        ? SUPERCHAMPS_PRIZES
-        : [CASH_PRIZE];
-  return [...audiencePrizes, SURPRISE_GIFT];
-}
-
 const SPECIAL_TOTAL_DEG = 120;
 const NUM_SLICE_DEG = (360 - SPECIAL_TOTAL_DEG) / NUM_COUNT;
-
-const PICKED_WIN_CHANCE = 0.000000000001;
 
 const SPIN_MS = 4500;
 const PRESPIN_MS = 300;
@@ -172,22 +113,7 @@ function rotationFor(section: WheelSection, spins: number): number {
   return spins * 360 + base;
 }
 
-function drawSection(picked: number, prizes: PrizeSection[]): number {
-  const pickedIndex = picked - 1;
-  const r = Math.random();
-  if (r < PICKED_WIN_CHANCE) return pickedIndex;
-  let acc = PICKED_WIN_CHANCE;
-  for (let i = 0; i < prizes.length; i++) {
-    acc += prizes[i].winChance;
-    if (r < acc) return NUM_COUNT + i;
-  }
-  const losingIndexes = Array.from({ length: NUM_COUNT }, (_, i) => i).filter(
-    (i) => i !== pickedIndex,
-  );
-  return losingIndexes[Math.floor(Math.random() * losingIndexes.length)];
-}
-
-type Phase = "pick" | "spinning" | "won" | "lost";
+type Phase = "pick" | "requesting" | "spinning" | "won" | "lost";
 
 interface GameState {
   phase: Phase;
@@ -198,7 +124,9 @@ interface GameState {
 
 type Action =
   | { type: "PICK"; n: number }
-  | { type: "OPEN"; prizes: PrizeSection[] }
+  | { type: "REQUEST" }
+  | { type: "OPEN"; landedIndex: number }
+  | { type: "REQUEST_FAILED" }
   | { type: "SETTLE" };
 
 function initialState(prizes: PrizeSection[]): GameState {
@@ -213,10 +141,18 @@ function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case "PICK":
       return state.phase === "pick" ? { ...state, picked: action.n } : state;
+    case "REQUEST":
+      return state.phase === "pick" && state.picked !== null
+        ? { ...state, phase: "requesting" }
+        : state;
+    case "REQUEST_FAILED":
+      return state.phase === "requesting" ? { ...state, phase: "pick" } : state;
     case "OPEN": {
-      if (state.phase !== "pick" || state.picked === null) return state;
-      const landedIndex = drawSection(state.picked, action.prizes);
-      return { ...state, phase: "spinning", landedIndex };
+      // The server has already decided and recorded the outcome (see
+      // level-up-roll/route.ts) — landedIndex here is just which wheel
+      // section to animate toward, never a value this client computes.
+      if (state.phase !== "requesting" || state.picked === null) return state;
+      return { ...state, phase: "spinning", landedIndex: action.landedIndex };
     }
     case "SETTLE": {
       if (state.phase !== "spinning" || state.landedIndex === null || state.picked === null)
@@ -286,34 +222,60 @@ export function SpinWheelLevel({
     }
   }, [state.phase, play]);
 
-  // Reports Level 1's outcome once it settles. Guarded by a ref (not
-  // state) so StrictMode's double-invoke can't fire this twice.
-  const recordedRef = useRef(false);
-  useEffect(() => {
-    if (state.phase !== "won" && state.phase !== "lost") return;
-    if (recordedRef.current) return;
-    recordedRef.current = true;
-
-    const landed =
-      state.landedIndex !== null ? state.sections[state.landedIndex] : null;
-    fetch("/api/games/record-play", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        gameSlug: "spin-wheel",
-        source: selection.source,
-        teamRefId: selection.teamRefId,
-        playerRefId: selection.playerRefId,
-        result: state.phase,
-        detail: {
-          picked: state.picked,
-          landedIndex: state.landedIndex,
-          prizeId: landed?.kind === "prize" ? landed.prize.id : null,
+  // Asks the server to draw (and record) this spin's result — the server
+  // decides win/lose and which section the wheel lands on; this client
+  // only ever animates toward what it's told. See level-up-roll/route.ts
+  // and rollAndRecordLevelUpPlay's doc comment in src/lib/game-plays.ts.
+  const requestingRef = useRef(false);
+  async function requestRoll(picked: number) {
+    if (requestingRef.current) return;
+    requestingRef.current = true;
+    dispatch({ type: "REQUEST" });
+    try {
+      const res = await fetch("/api/games/level-up-roll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          level: "spin-wheel",
+          source: selection.source,
+          teamRefId: selection.teamRefId,
+          playerRefId: selection.playerRefId,
+          picked,
+          eventSlug: selection.eventSlug,
           levelUpSessionId,
-        },
-      }),
-    }).catch(() => {});
-  }, [state.phase, state.picked, state.landedIndex, state.sections, selection, levelUpSessionId]);
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || typeof data?.landedIndex !== "number") {
+        toast.error(data?.error ?? "Could not start your spin — please try again.");
+        dispatch({ type: "REQUEST_FAILED" });
+        return;
+      }
+      dispatch({ type: "OPEN", landedIndex: data.landedIndex });
+    } catch {
+      toast.error("Network error — please try again.");
+      dispatch({ type: "REQUEST_FAILED" });
+    } finally {
+      requestingRef.current = false;
+    }
+  }
+
+  // If the player backgrounds the tab (switches apps, hits a browser-level
+  // back gesture that hides rather than unloads, etc.) mid-spin, jump
+  // straight to the result instead of leaving the animation to finish
+  // later — the outcome was already decided and written to game_plays the
+  // instant requestRoll's response came back, so there's nothing left to
+  // protect by letting them watch (or skip) the animation; this just makes
+  // the UI stop pretending the round is still undecided.
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState !== "hidden") return;
+      if (state.phase !== "spinning") return;
+      dispatch({ type: "SETTLE" });
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [state.phase]);
 
   const landedSection =
     state.landedIndex !== null ? state.sections[state.landedIndex] : null;
@@ -361,8 +323,9 @@ export function SpinWheelLevel({
     </button>
   );
 
-  if (state.phase === "pick" || state.phase === "spinning") {
+  if (state.phase === "pick" || state.phase === "requesting" || state.phase === "spinning") {
     const spinning = state.phase === "spinning";
+    const busy = state.phase === "requesting" || spinning;
     return (
       <div className="relative flex min-h-screen flex-col items-center px-4 py-10 sm:py-14">
         {muteButton}
@@ -391,9 +354,11 @@ export function SpinWheelLevel({
         <p className="mt-2 text-center text-xs text-white/70 sm:text-sm md:text-base">
           {spinning
             ? `Spinning… your number: ${state.picked}`
-            : state.picked === null
-              ? `Choose any number from 1 to ${NUM_COUNT}.`
-              : `You picked ${state.picked}. Spin when you're ready.`}
+            : state.phase === "requesting"
+              ? "Getting ready…"
+              : state.picked === null
+                ? `Choose any number from 1 to ${NUM_COUNT}.`
+                : `You picked ${state.picked}. Spin when you're ready.`}
         </p>
 
         <div className="mt-6 grid w-full max-w-sm grid-cols-5 gap-2">
@@ -401,14 +366,14 @@ export function SpinWheelLevel({
             <button
               key={n}
               type="button"
-              disabled={spinning}
+              disabled={busy}
               onClick={() => dispatch({ type: "PICK", n })}
               className={cn(
                 "flex aspect-square items-center justify-center rounded-lg border text-base font-bold transition-all duration-300 sm:text-lg",
                 state.picked === n
                   ? "scale-110 border-amber-300 bg-gradient-to-br from-amber-300 to-amber-500 text-black shadow-[0_0_20px_rgba(251,191,36,0.55)] z-10"
                   : "border-white/10 bg-white/5 text-white backdrop-blur-sm hover:scale-110 hover:border-white/30 hover:bg-white/20 hover:shadow-lg z-0",
-                spinning && "opacity-50",
+                busy && "opacity-50",
               )}
             >
               {n}
@@ -418,16 +383,16 @@ export function SpinWheelLevel({
 
         <button
           type="button"
-          disabled={state.picked === null || spinning}
-          onClick={() => dispatch({ type: "OPEN", prizes })}
+          disabled={state.picked === null || busy}
+          onClick={() => requestRoll(state.picked as number)}
           className={cn(
             "mt-10 rounded-xl px-6 py-2.5 text-base font-bold shadow-lg transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
-            state.picked === null || spinning
+            state.picked === null || busy
               ? "cursor-not-allowed bg-white/5 border border-white/10 text-white/40"
               : "bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-xl shadow-amber-500/20 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 border border-transparent",
           )}
         >
-          {spinning ? "Spinning…" : "Spin the Wheel"}
+          {spinning ? "Spinning…" : state.phase === "requesting" ? "Starting…" : "Spin the Wheel"}
         </button>
       </div>
     );

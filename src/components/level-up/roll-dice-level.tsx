@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { Trophy, Volume2, VolumeX } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 import type { GameTeamSelection } from "@/components/games/team-player-gate";
+import { MIN_SUM, MAX_SUM, SUM_COUNT } from "@/lib/games/roll-dice-odds";
 
 // ---------------------------------------------------------------------------
 // Level 2 of Level Up (/level-up) — Roll a Dice, adapted from the former
@@ -29,12 +31,6 @@ import type { GameTeamSelection } from "@/components/games/team-player-gate";
 // keyframe and a differing per-die inline transform can't safely share one
 // element (the animation would just override the inline value outright).
 // ---------------------------------------------------------------------------
-
-const MIN_SUM = 2;
-const MAX_SUM = 12;
-const SUM_COUNT = MAX_SUM - MIN_SUM + 1;
-
-const PICKED_WIN_CHANCE = 0.000000000001;
 
 const DIE_SIZE = 76;
 const HALF = DIE_SIZE / 2;
@@ -90,22 +86,7 @@ const DICE_SFX = {
     ]),
 };
 
-function drawSum(picked: number): number {
-  if (Math.random() < PICKED_WIN_CHANCE) return picked;
-  const offset = 1 + Math.floor(Math.random() * (SUM_COUNT - 1));
-  return MIN_SUM + ((picked - MIN_SUM + offset) % SUM_COUNT);
-}
-
-function facesForSum(sum: number): [number, number] {
-  const options: [number, number][] = [];
-  for (let a = 1; a <= 6; a++) {
-    const b = sum - a;
-    if (b >= 1 && b <= 6) options.push([a, b]);
-  }
-  return options[Math.floor(Math.random() * options.length)];
-}
-
-type Phase = "pick" | "rolling" | "won" | "lost";
+type Phase = "pick" | "requesting" | "rolling" | "won" | "lost";
 
 interface GameState {
   phase: Phase;
@@ -114,7 +95,12 @@ interface GameState {
   dieFaces: [number, number] | null;
 }
 
-type Action = { type: "PICK"; n: number } | { type: "ROLL" } | { type: "SETTLE" };
+type Action =
+  | { type: "PICK"; n: number }
+  | { type: "REQUEST" }
+  | { type: "REQUEST_FAILED" }
+  | { type: "ROLL"; drawnSum: number; dieFaces: [number, number] }
+  | { type: "SETTLE" };
 
 function initialState(): GameState {
   return { phase: "pick", picked: null, drawnSum: null, dieFaces: null };
@@ -124,10 +110,18 @@ function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case "PICK":
       return state.phase === "pick" ? { ...state, picked: action.n } : state;
+    case "REQUEST":
+      return state.phase === "pick" && state.picked !== null
+        ? { ...state, phase: "requesting" }
+        : state;
+    case "REQUEST_FAILED":
+      return state.phase === "requesting" ? { ...state, phase: "pick" } : state;
     case "ROLL": {
-      if (state.phase !== "pick" || state.picked === null) return state;
-      const drawnSum = drawSum(state.picked);
-      return { ...state, phase: "rolling", drawnSum, dieFaces: facesForSum(drawnSum) };
+      // The server has already decided and recorded the outcome (see
+      // level-up-roll/route.ts) — drawnSum/dieFaces here are just what to
+      // animate toward, never values this client computes.
+      if (state.phase !== "requesting" || state.picked === null) return state;
+      return { ...state, phase: "rolling", drawnSum: action.drawnSum, dieFaces: action.dieFaces };
     }
     case "SETTLE":
       if (state.phase !== "rolling" || state.drawnSum === null) return state;
@@ -191,32 +185,61 @@ export function RollDiceLevel({
     }
   }, [state.phase, play]);
 
-  // Reports Level 2's outcome once it settles. Guarded by a ref (not
-  // state) so StrictMode's double-invoke can't fire this twice.
-  const recordedRef = useRef(false);
-  useEffect(() => {
-    if (state.phase !== "won" && state.phase !== "lost") return;
-    if (recordedRef.current) return;
-    recordedRef.current = true;
-
-    fetch("/api/games/record-play", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        gameSlug: "roll-a-dice",
-        source: selection.source,
-        teamRefId: selection.teamRefId,
-        playerRefId: selection.playerRefId,
-        result: state.phase,
-        detail: {
-          picked: state.picked,
-          drawnSum: state.drawnSum,
-          dieFaces: state.dieFaces,
+  // Asks the server to draw (and record) this roll's result — the server
+  // decides win/lose and the actual dice total/faces; this client only
+  // ever animates toward what it's told. See level-up-roll/route.ts and
+  // rollAndRecordLevelUpPlay's doc comment in src/lib/game-plays.ts.
+  const requestingRef = useRef(false);
+  async function requestRoll(picked: number) {
+    if (requestingRef.current) return;
+    requestingRef.current = true;
+    dispatch({ type: "REQUEST" });
+    try {
+      const res = await fetch("/api/games/level-up-roll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          level: "roll-a-dice",
+          source: selection.source,
+          teamRefId: selection.teamRefId,
+          playerRefId: selection.playerRefId,
+          picked,
+          eventSlug: selection.eventSlug,
           levelUpSessionId,
-        },
-      }),
-    }).catch(() => {});
-  }, [state.phase, state.picked, state.drawnSum, state.dieFaces, selection, levelUpSessionId]);
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || typeof data?.drawnSum !== "number" || !Array.isArray(data?.dieFaces)) {
+        toast.error(data?.error ?? "Could not start your roll — please try again.");
+        dispatch({ type: "REQUEST_FAILED" });
+        return;
+      }
+      dispatch({
+        type: "ROLL",
+        drawnSum: data.drawnSum,
+        dieFaces: data.dieFaces as [number, number],
+      });
+    } catch {
+      toast.error("Network error — please try again.");
+      dispatch({ type: "REQUEST_FAILED" });
+    } finally {
+      requestingRef.current = false;
+    }
+  }
+
+  // If the player backgrounds the tab mid-roll, jump straight to the
+  // result instead of leaving the animation to finish later — see the
+  // identical comment on spin-wheel-level.tsx's own visibilitychange
+  // handler for why this is safe (the outcome is already recorded).
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState !== "hidden") return;
+      if (state.phase !== "rolling") return;
+      dispatch({ type: "SETTLE" });
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [state.phase]);
 
   // Auto-advances to the final summary once the result has sat on screen
   // long enough to read (RESULT_HOLD_MS) — no button. Guarded by a ref so
@@ -258,8 +281,9 @@ export function RollDiceLevel({
     </button>
   );
 
-  if (state.phase === "pick" || state.phase === "rolling") {
+  if (state.phase === "pick" || state.phase === "requesting" || state.phase === "rolling") {
     const rolling = state.phase === "rolling";
+    const busy = state.phase === "requesting" || rolling;
     return (
       <div className="relative flex min-h-screen flex-col items-center px-4 py-10 sm:py-14">
         {muteButton}
@@ -287,9 +311,11 @@ export function RollDiceLevel({
         <p className="mt-2 text-center text-xs text-white/70 sm:text-sm md:text-base">
           {rolling
             ? `Rolling… your total: ${state.picked}`
-            : state.picked === null
-              ? `Choose any total from ${MIN_SUM} to ${MAX_SUM}.`
-              : `You picked ${state.picked}. Roll when you're ready.`}
+            : state.phase === "requesting"
+              ? "Getting ready…"
+              : state.picked === null
+                ? `Choose any total from ${MIN_SUM} to ${MAX_SUM}.`
+                : `You picked ${state.picked}. Roll when you're ready.`}
         </p>
 
         <div className="mt-6 grid w-full max-w-md grid-cols-4 gap-2 sm:grid-cols-6">
@@ -297,14 +323,14 @@ export function RollDiceLevel({
             <button
               key={n}
               type="button"
-              disabled={rolling}
+              disabled={busy}
               onClick={() => dispatch({ type: "PICK", n })}
               className={cn(
                 "flex aspect-square items-center justify-center rounded-lg border text-base font-bold transition-all duration-300 sm:text-lg",
                 state.picked === n
                   ? "scale-110 border-emerald-300 bg-gradient-to-br from-emerald-300 to-emerald-500 text-black shadow-[0_0_20px_rgba(52,211,153,0.55)] z-10"
                   : "border-white/10 bg-white/5 text-white backdrop-blur-sm hover:scale-110 hover:border-white/30 hover:bg-white/20 hover:shadow-lg z-0",
-                rolling && "opacity-50",
+                busy && "opacity-50",
               )}
             >
               {n}
@@ -314,16 +340,16 @@ export function RollDiceLevel({
 
         <button
           type="button"
-          disabled={state.picked === null || rolling}
-          onClick={() => dispatch({ type: "ROLL" })}
+          disabled={state.picked === null || busy}
+          onClick={() => requestRoll(state.picked as number)}
           className={cn(
             "mt-10 rounded-xl px-6 py-2.5 text-base font-bold shadow-lg transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
-            state.picked === null || rolling
+            state.picked === null || busy
               ? "cursor-not-allowed bg-white/5 border border-white/10 text-white/40"
               : "bg-gradient-to-r from-emerald-400 to-emerald-500 text-black shadow-xl shadow-emerald-500/20 hover:scale-105 hover:from-emerald-300 hover:to-emerald-400 hover:shadow-emerald-500/40 border border-transparent",
           )}
         >
-          {rolling ? "Rolling…" : "Roll the Dice"}
+          {rolling ? "Rolling…" : state.phase === "requesting" ? "Starting…" : "Roll the Dice"}
         </button>
       </div>
     );

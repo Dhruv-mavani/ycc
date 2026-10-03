@@ -1,5 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { prizesFor, drawSection, NUM_COUNT } from "@/lib/games/spin-wheel-odds";
+import { drawSum, facesForSum, MIN_SUM, MAX_SUM } from "@/lib/games/roll-dice-odds";
 
 /** Strips characters that are syntactically meaningful inside a PostgREST
  * `.or()` filter string — `,` separates conditions and `(`/`)` group them —
@@ -274,4 +276,106 @@ export async function recordGamePlay(input: {
 
   if (error) return { ok: false, error: "Could not record play" };
   return { ok: true };
+}
+
+export type LevelUpRollResult =
+  | {
+      ok: true;
+      result: "won" | "lost";
+      // Spin the Wheel only — a 0-based index into the client's own
+      // sections array (built from the identical prizesFor() call), so it
+      // can animate the wheel to the exact section the server drew.
+      landedIndex?: number;
+      // Roll a Dice only — the drawn total and a matching pair of real die
+      // faces, so the client can animate the cube to that exact result.
+      drawnSum?: number;
+      dieFaces?: [number, number];
+    }
+  | { ok: false; error: string };
+
+/**
+ * The server-authoritative counterpart to recordGamePlay, used only by
+ * Level Up (Kismat Ke Khiladi ft. Go Goa Gone's Spin the Wheel / Roll a
+ * Dice) — unlike recordGamePlay, this never accepts a client-asserted
+ * `result`. The win/loss outcome is drawn here, server-side, using the
+ * same odds tables the UI used to run in the browser (now in
+ * src/lib/games/*-odds.ts), and the game_plays row is written in the same
+ * call — before any animation plays on the client. That closes two things
+ * at once: a visitor can no longer forge a "won" result by crafting their
+ * own request (the server decides, not the request body), and leaving the
+ * tab mid-animation can't be used to dodge or retry a result that's
+ * already been drawn and recorded.
+ */
+export async function rollAndRecordLevelUpPlay(input: {
+  level: "spin-wheel" | "roll-a-dice";
+  source: GameTeamSource;
+  teamRefId: string;
+  playerRefId: string;
+  picked: number;
+  eventSlug?: string;
+  levelUpSessionId: string;
+}): Promise<LevelUpRollResult> {
+  if (input.level === "spin-wheel") {
+    if (!Number.isInteger(input.picked) || input.picked < 1 || input.picked > NUM_COUNT) {
+      return { ok: false, error: "Invalid pick" };
+    }
+  } else {
+    if (!Number.isInteger(input.picked) || input.picked < MIN_SUM || input.picked > MAX_SUM) {
+      return { ok: false, error: "Invalid pick" };
+    }
+  }
+
+  const roster = await lookupGameTeamById(input.source, input.teamRefId);
+  if (!roster) return { ok: false, error: "Team not found" };
+
+  const player = roster.players.find((p) => p.id === input.playerRefId);
+  if (!player) return { ok: false, error: "Player not found on this team" };
+
+  let result: "won" | "lost";
+  let detail: Record<string, unknown>;
+  let response: LevelUpRollResult;
+
+  if (input.level === "spin-wheel") {
+    const prizes = prizesFor(input.source, input.eventSlug);
+    const landedIndex = drawSection(input.picked, prizes);
+    const landedIsPrize = landedIndex >= NUM_COUNT;
+    const prize = landedIsPrize ? prizes[landedIndex - NUM_COUNT] : null;
+    const won = landedIsPrize || landedIndex + 1 === input.picked;
+    result = won ? "won" : "lost";
+    detail = {
+      picked: input.picked,
+      landedIndex,
+      prizeId: prize?.id ?? null,
+      levelUpSessionId: input.levelUpSessionId,
+    };
+    response = { ok: true, result, landedIndex };
+  } else {
+    const drawnSum = drawSum(input.picked);
+    const dieFaces = facesForSum(drawnSum);
+    const won = input.picked === drawnSum;
+    result = won ? "won" : "lost";
+    detail = {
+      picked: input.picked,
+      drawnSum,
+      dieFaces,
+      levelUpSessionId: input.levelUpSessionId,
+    };
+    response = { ok: true, result, drawnSum, dieFaces };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("game_plays").insert({
+    game_slug: input.level,
+    source: input.source,
+    team_ref_id: roster.teamRefId,
+    player_ref_id: player.id,
+    player_name: player.name,
+    team_label: roster.teamLabel,
+    is_captain: player.isCaptain,
+    result,
+    detail,
+  });
+
+  if (error) return { ok: false, error: "Could not record play" };
+  return response;
 }
