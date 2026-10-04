@@ -1,4 +1,4 @@
-# YCC - yYuva Champions Cricket
+# YCC - Yuva Champions Cricket
 
 Mobile-first registration platform for YCC's cricket championship and quiz competition: team/individual registration, Razorpay payment, QR-coded receipts, a staff scanning/verification portal, and an admin reporting dashboard.
 
