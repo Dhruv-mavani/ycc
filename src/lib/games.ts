@@ -34,7 +34,7 @@ export const GAMES: GameLink[] = [
   },
   {
     slug: "level-up",
-    href: "/level-up",
+    href: "/level-upp",
     title: "Kismat Ke Khiladi ft. Go Goa Gone",
     description:
       "Two levels, one code: Spin the Wheel, then Roll a Dice. Win or lose, you always move on to the next level.",

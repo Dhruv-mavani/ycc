@@ -12,7 +12,7 @@ import { SpinWheelLevel, type SpinWheelResultDetail } from "./spin-wheel-level";
 import { RollDiceLevel, type RollDiceResultDetail } from "./roll-dice-level";
 
 // ---------------------------------------------------------------------------
-// Level Up (/level-up) — a two-level run through Spin the Wheel (Level 1)
+// Level Up (/level-upp) — a two-level run through Spin the Wheel (Level 1)
 // and Roll a Dice (Level 2), one code, one continuous session. Replaces the
 // former standalone /spin-wheel and /roll-a-dice games: TeamPlayerGate now
 // only runs once, here, up front — see spin-wheel-level.tsx /

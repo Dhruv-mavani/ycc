@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BackButton } from "@/components/site/back-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
-import { Banknote, Users, ScrollText, AlertCircle, Trophy, Download } from "lucide-react";
+import { Banknote, Users, ScrollText, AlertCircle, Trophy, Download, CalendarDays } from "lucide-react";
 import { EventRegisterCta } from "@/components/registration/event-register-cta";
 
 function formatRupees(paise: number) {
@@ -213,6 +213,39 @@ export default async function EventDetailPage({
                         className="w-full h-auto"
                       />
                     </div>
+
+                    {isBoxCricket && (
+                      <div className="mt-6 text-left">
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                          <CalendarDays className="w-5 h-5 text-amber-600" /> Tournament Dates
+                        </h3>
+                        <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-6">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                              Tournament Starts
+                            </p>
+                            <p className="text-xl sm:text-2xl font-bold text-slate-900">
+                              21st October 2026
+                            </p>
+                          </div>
+                          <div className="pt-4 border-t border-amber-200/70">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                              Fee Payment Date
+                            </p>
+                            <p className="text-lg font-bold text-slate-900">15th October 2026</p>
+                            <p className="mt-1 text-sm leading-relaxed text-amber-900/80">
+                              Team Entry Fee &amp; Player Fee must be paid in advance to
+                              confirm your registration.
+                            </p>
+                          </div>
+                          <p className="pt-4 border-t border-amber-200/70 text-sm leading-relaxed text-amber-900/80">
+                            Match Schedule, Team Groups, Match Dates, Venues &amp; Other
+                            Tournament Updates will be shared before the tournament starts.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mt-6 text-left">
                       <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
                         <ScrollText className="w-5 h-5 text-indigo-600" /> How to Register

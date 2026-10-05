@@ -14,7 +14,7 @@ import {
 } from "@/lib/games/spin-wheel-odds";
 
 // ---------------------------------------------------------------------------
-// Level 1 of Level Up (/level-up) — Spin the Wheel, adapted from the former
+// Level 1 of Level Up (/level-upp) — Spin the Wheel, adapted from the former
 // standalone /spin-wheel game (same mechanics, sections, odds, sound and
 // visuals) to run as one level of a two-level flow instead of its own
 // self-contained page: `selection` is resolved once by the parent's own

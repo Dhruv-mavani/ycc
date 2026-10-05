@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
 // Top-left "back to the games hub" pill for the standalone full-screen game
-// routes (/quiz-game2, /mystry-box, /level-up). They render outside the
+// routes (/quiz-game2, /mystry-box, /level-upp). They render outside the
 // (public) route group, so there's no site header to navigate back from.
 export function GameBackLink() {
   return (

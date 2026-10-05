@@ -10,7 +10,7 @@ import type { GameTeamSelection } from "@/components/games/team-player-gate";
 import { MIN_SUM, MAX_SUM, SUM_COUNT } from "@/lib/games/roll-dice-odds";
 
 // ---------------------------------------------------------------------------
-// Level 2 of Level Up (/level-up) — Roll a Dice, adapted from the former
+// Level 2 of Level Up (/level-upp) — Roll a Dice, adapted from the former
 // standalone /roll-a-dice game (same mechanics, odds, 3D dice and sound) to
 // run as the second level of the flow instead of its own page: `selection`
 // comes from the parent (resolved once, before Level 1), mute is lifted to
