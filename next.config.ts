@@ -8,19 +8,10 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     qualities: [55, 75],
   },
-  async redirects() {
-    return [
-      // /level-up was renamed to /level-upp — this keeps every
-      // already-shared link, QR code, and printed poster pointing at the
-      // old URL working (181+ real plays happened on /level-up the day
-      // before this rename), rather than 404ing them.
-      {
-        source: "/level-up",
-        destination: "/level-upp",
-        permanent: true,
-      },
-    ];
-  },
+  // /level-up was renamed to /level-upp — deliberately no redirect from
+  // the old path. Anyone still holding the old link/QR code is meant to
+  // hit a plain 404, not get waved through to the game; see the commit
+  // this reverted for the (rejected) alternative that did redirect.
   async headers() {
     return [
       {
