@@ -23,7 +23,7 @@ export default function NotFound() {
   return (
     <div className="relative flex min-h-screen flex-col selection:bg-primary/20">
       <div className="absolute inset-x-0 top-0 -z-10 h-screen w-full bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(2,132,199,0.15),rgba(2,132,199,0.04)_55%,rgba(255,255,255,0)_100%)]"></div>
-      <SiteHeader />
+      <SiteHeader forcePill />
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center sm:py-32">
         <p className="text-7xl font-extrabold tracking-tight text-slate-900 sm:text-8xl">
           404

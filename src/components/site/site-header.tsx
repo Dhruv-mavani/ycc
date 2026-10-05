@@ -23,12 +23,18 @@ const subscribeNoop = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-export function SiteHeader() {
+export function SiteHeader({ forcePill = false }: { forcePill?: boolean } = {}) {
   const pathname = usePathname();
   const isHome = pathname === "/";
   // These pages share the floating pill nav look — everything else (admin/
-  // staff tools, etc.) keeps the plain always-visible bar.
+  // staff tools, etc.) keeps the plain always-visible bar. `forcePill` is
+  // for the 404 page (src/app/not-found.tsx): it renders for literally any
+  // unmatched URL, so there's no fixed pathname to add to this allowlist —
+  // it opts into the pill look directly instead. `isHome` stays driven by
+  // the real pathname either way, so this still gets the non-home pill
+  // variant (no hero to float over), not home's.
   const hasPillHeader =
+    forcePill ||
     isHome ||
     pathname === "/about" ||
     pathname === "/contact" ||
