@@ -690,25 +690,41 @@ function StartScreen({
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       <MuteButton muted={muted} onToggle={onToggleMute} />
-      <h1 className="tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000 text-4xl font-black md:text-6xl">
+      <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-violet-400/30 blur-3xl sm:size-72" />
+      <span className="text-5xl sm:text-6xl">🧠</span>
+      <h1 className="mt-6 tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000 text-4xl font-black md:text-6xl">
         Welcome to Quiz Champion
       </h1>
-      <p
+      <ul
         style={{ animationDelay: "400ms" }}
-        className="tw-animate-in tw-fade-in tw-slide-in-from-bottom-4 tw-duration-1000 tw-fill-mode-both mt-8 max-w-2xl px-2 text-base leading-relaxed text-white/80 md:text-lg"
+        className="tw-animate-in tw-fade-in tw-slide-in-from-bottom-4 tw-duration-1000 tw-fill-mode-both mt-8 max-w-2xl list-disc space-y-3 px-2 text-left text-base leading-relaxed text-white/80 marker:text-amber-400 md:text-lg"
       >
-        {`Test your knowledge and nerves as you take on ${TOTAL_LEVELS} thrilling questions — cricket trivia, general knowledge, and riddles. With just ${TIMER_SECONDS} seconds to answer each one, the pressure is on. You'll get four options (A, B, C, D) for each question, and every one gets a little tougher than the last.`}
-        <br />
-        <br />
-        Four lifelines are here to help: <b>Audience Poll</b> taps into the
-        wisdom of the crowd, <b>Ask a Genius</b> gives you an expert opinion,{" "}
-        <b>Fifty-Fifty</b> removes two wrong options, and <b>Flip Question</b>{" "}
-        trades the current question for a new one.
-        <br />
-        <br />
-        Enter your code below to confirm who&apos;s playing, then it&apos;s
-        just you against the quiz. Ready to become Quiz Champion?
-      </p>
+        <li>
+          {`${TOTAL_LEVELS} thrilling questions — cricket trivia, general knowledge, and riddles — each one a little tougher than the last.`}
+        </li>
+        <li>{`${TIMER_SECONDS} seconds per question, four options (A, B, C, D) every time.`}</li>
+        <li>
+          Four lifelines are here to help:
+          <ul className="mt-2 list-[circle] space-y-1.5 pl-5 marker:text-amber-300/70">
+            <li>
+              <b>Audience Poll</b> — taps into the wisdom of the crowd
+            </li>
+            <li>
+              <b>Ask a Genius</b> — gives you an expert opinion
+            </li>
+            <li>
+              <b>Fifty-Fifty</b> — removes two wrong options
+            </li>
+            <li>
+              <b>Flip Question</b> — trades the current question for a new one
+            </li>
+          </ul>
+        </li>
+        <li>
+          Enter your code below to confirm who&apos;s playing, then it&apos;s
+          just you against the quiz. Ready to become Quiz Champion?
+        </li>
+      </ul>
 
       <TeamPlayerGate onSelectionChange={onSelectionChange} />
 

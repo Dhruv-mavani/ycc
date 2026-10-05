@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { GameBackLink } from "@/components/site/game-back-link";
 
 export const metadata: Metadata = {
   title: "Quiz Champion | YCC",
@@ -7,10 +6,11 @@ export const metadata: Metadata = {
 };
 
 // Deliberately outside the (public) route group — no site header/footer.
-// Same reasoning as /quiz-game's layout: this is a full-screen game
-// experience, so the marketing chrome would only get in the way. Dark
-// violet background matches the devxprite/kbc reference this page is
-// styled after (see solo-quiz-game.tsx's header comment).
+// This is a full-screen game experience, so the marketing chrome would
+// only get in the way. Dark violet background matches the devxprite/kbc
+// reference this page is styled after (see solo-quiz-game.tsx's header
+// comment). No back-to-games link here either, matching Mystery Box and
+// Level Up's layouts.
 export default function QuizGame2Layout({
   children,
 }: {
@@ -18,7 +18,6 @@ export default function QuizGame2Layout({
 }) {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-violet-950 to-[#0c0420] text-white">
-      <GameBackLink />
       {children}
     </div>
   );

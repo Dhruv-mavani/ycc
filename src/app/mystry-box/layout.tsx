@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { GameBackLink } from "@/components/site/game-back-link";
 
 export const metadata: Metadata = {
   title: "Mystery Box | YCC",
@@ -10,7 +9,8 @@ export const metadata: Metadata = {
 // Deliberately outside the (public) route group — no site header/footer, same
 // reasoning as /quiz-game2: this is a full-screen game experience and the
 // marketing chrome would only get in the way. Dark magic-purple ground behind
-// a warm amber crate.
+// a warm amber crate. No back-to-games link here either, matching Level Up's
+// layout — the game screens are meant to be played start to finish.
 export default function MysteryBoxLayout({
   children,
 }: {
@@ -18,7 +18,6 @@ export default function MysteryBoxLayout({
 }) {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-[#1b1030] via-[#241247] to-[#0b0616] text-white">
-      <GameBackLink />
       {children}
     </div>
   );
