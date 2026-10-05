@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CompassIcon, HomeIcon } from "lucide-react";
+import { HomeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -25,7 +25,7 @@ export default function NotFound() {
       <div className="absolute inset-x-0 top-0 -z-10 h-screen w-full bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(2,132,199,0.15),rgba(2,132,199,0.04)_55%,rgba(255,255,255,0)_100%)]"></div>
       <SiteHeader />
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center sm:py-32">
-        <p className="text-7xl font-extrabold tracking-tight text-slate-200 sm:text-8xl">
+        <p className="text-7xl font-extrabold tracking-tight text-slate-900 sm:text-8xl">
           404
         </p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">
@@ -42,16 +42,6 @@ export default function NotFound() {
               <Link href="/">
                 <HomeIcon className="size-4" />
                 Back to Home
-              </Link>
-            }
-          />
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={
-              <Link href="/games">
-                <CompassIcon className="size-4" />
-                Browse Games
               </Link>
             }
           />
