@@ -695,9 +695,9 @@ function StartScreen({
       <h1 className="mt-6 tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000 text-4xl font-black md:text-6xl">
         Welcome to Quiz Champion
       </h1>
-      <ul
+      <ol
         style={{ animationDelay: "400ms" }}
-        className="tw-animate-in tw-fade-in tw-slide-in-from-bottom-4 tw-duration-1000 tw-fill-mode-both mt-8 max-w-2xl list-disc space-y-3 px-2 text-left text-base leading-relaxed text-white/80 marker:text-amber-400 md:text-lg"
+        className="tw-animate-in tw-fade-in tw-slide-in-from-bottom-4 tw-duration-1000 tw-fill-mode-both mt-8 max-w-2xl list-decimal space-y-3 px-2 text-left text-base leading-relaxed text-white/80 marker:font-bold marker:text-amber-400 md:text-lg"
       >
         <li>
           {`${TOTAL_LEVELS} thrilling questions — cricket trivia, general knowledge, and riddles — each one a little tougher than the last.`}
@@ -724,7 +724,7 @@ function StartScreen({
           Enter your code below to confirm who&apos;s playing, then it&apos;s
           just you against the quiz. Ready to become Quiz Champion?
         </li>
-      </ul>
+      </ol>
 
       <TeamPlayerGate onSelectionChange={onSelectionChange} />
 
