@@ -151,14 +151,11 @@ const teamStyles = StyleSheet.create({
     letterSpacing: ts(10),
     color: TEAM_LOGO_BLUE,
   },
-  // Team/individual name — same bold sans family (and uppercase) as the
-  // "OFFICIAL TEAM INVITATION PASS" title above it, not the cursive
-  // script dearLine still uses.
   nameLine: {
     textAlign: "center",
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Alex Brush",
     fontSize: ts(42),
-    letterSpacing: ts(3),
+    letterSpacing: ts(10),
     color: TEAM_NAVY,
   },
   underline: {
@@ -428,17 +425,21 @@ type TextStyleProp = Style | Style[];
 
 // Renders a name list as "a, b, and c" (Oxford comma) but with each NAME
 // itself wrapped in its own styled <Text> (the script inlineName style) —
-// the separators ("," / ", and ") are plain siblings so they stay in the
-// surrounding paragraph's own font rather than inheriting the name style.
+// the separators ("," / ", and ") get that same style too (rather than
+// the surrounding paragraph's own, much smaller/plainer font) so they
+// read as part of the same styled run instead of mismatched punctuation.
 function NameList({
   names,
   nameStyle,
   useAnd = true,
+  uppercase = false,
 }: {
   names: string[];
   nameStyle: TextStyleProp;
   /** false for a plain "A, B, C" roster list rather than "A, B, and C" prose. */
   useAnd?: boolean;
+  /** true to render each name in caps (the roster list; prose names stay as typed). */
+  uppercase?: boolean;
 }) {
   return (
     <>
@@ -448,8 +449,8 @@ function NameList({
         const sep = isLast ? "" : useAnd && isSecondLast ? ", and " : ", ";
         return (
           <Fragment key={i}>
-            <Text style={nameStyle}>{name}</Text>
-            {sep}
+            <Text style={nameStyle}>{uppercase ? name.toUpperCase() : name}</Text>
+            {sep ? <Text style={nameStyle}>{sep}</Text> : null}
           </Fragment>
         );
       })}
@@ -475,7 +476,7 @@ function TeamRosterLine({
   return (
     <Text style={teamStyles.rosterLine}>
       <Text style={teamStyles.rosterLabel}>Cap: </Text>
-      <NameList names={names} nameStyle={nameStyle} useAnd={false} />
+      <NameList names={names} nameStyle={nameStyle} useAnd={false} uppercase />
     </Text>
   );
 }
@@ -484,6 +485,13 @@ export function InvitationLetterPage(data: InvitationLetterData) {
   if (data.kind === "team" || data.kind === "individual") {
     const isIndividual = data.kind === "individual";
     const displayName = data.kind === "team" ? data.teamName : data.name;
+    // Box Cricket-only: the congrats paragraph names the event with its
+    // season/city tag appended — other team events sharing this same
+    // component (Plastic Ball, Tennis Ball) keep the plain event name.
+    const eventDisplayName =
+      data.eventName === "YCC Box Cricket Tournament 2026"
+        ? `${data.eventName} Season 1 • Surat`
+        : data.eventName;
     // Underline width, in native units — a fixed, generous width reads as
     // a deliberate signature-line accent regardless of name length, same
     // idea as NameUnderline below. Local to the Svg's own box now (flow
@@ -505,7 +513,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           </Text>
 
           <Text style={teamStyles.dearLine}>Dear,</Text>
-          <Text style={teamStyles.nameLine}>{displayName.toUpperCase()}</Text>
+          <Text style={teamStyles.nameLine}>{displayName}</Text>
           <Svg
             style={[{ alignSelf: "center" }, teamStyles.underline]}
             width={ts(underlineNativeW)}
@@ -550,8 +558,8 @@ export function InvitationLetterPage(data: InvitationLetterData) {
 
           <Text style={teamStyles.paragraph}>
             {isIndividual
-              ? `Congratulations! You have been officially invited and registered to play in the ${data.eventName}. We're excited to have you with us! We truly believe that your participation will make the event more exciting, energetic, memorable, and full of masti and fun.`
-              : `Congratulations! Your team has been officially invited and registered to play in the ${data.eventName}. We're excited to have you with us! We truly believe that your team's participation will make the tournament more exciting, energetic, memorable, and full of masti and fun.`}
+              ? `Congratulations! You have been officially invited and registered to play in the ${eventDisplayName}. We're excited to have you with us! We truly believe that your participation will make the event more exciting, energetic, memorable, and full of masti and fun.`
+              : `Congratulations! Your team has been officially invited and registered to play in the ${eventDisplayName}. We're excited to have you with us! We truly believe that your team's participation will make the tournament more exciting, energetic, memorable, and full of masti and fun.`}
           </Text>
 
           <Text style={[teamStyles.detailLine, { marginTop: tsy(14) }]}>

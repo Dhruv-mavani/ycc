@@ -233,7 +233,12 @@ export default async function EventDetailPage({
             </div>
             
             <h1 className="text-3xl min-[320px]:text-4xl sm:text-5xl font-extrabold text-slate-900 mb-4 sm:mb-6 tracking-tight leading-tight relative z-10 break-words">
+              {/* Box Cricket-only: "Season 1" suffix on the heading itself,
+                  not the underlying event.name — that field also drives the
+                  page <title>, admin listings, and the receipt's order-summary
+                  line, which don't need it appended everywhere. */}
               {event.name}
+              {isBoxCricket ? " Season 1" : ""}
             </h1>
             <p className="text-slate-600 text-base sm:text-lg md:text-xl leading-relaxed max-w-2xl relative z-10">
               {event.description}
