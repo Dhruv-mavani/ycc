@@ -97,6 +97,83 @@ export default async function EventDetailPage({
     ],
   };
 
+  // Go Goa Gone (individual) / Box Cricket (team) re-download via the
+  // generic unique-ID/mobile lookup at /receipt (same PDF they got on
+  // successful registration), rather than the school/individual_free
+  // single-field lookups. Pulled out to a variable (rather than inline
+  // in the JSX below) so Box Cricket can render it after the register
+  // CTA instead of before, without duplicating the markup.
+  const downloadCertificateButton = (
+    <Button
+      variant="outline"
+      // buttonVariants' own base classes already give the rendered <a>
+      // (via `render` below) inline-flex/items-center/justify-center —
+      // putting gap-2 here too, rather than as a second className on the
+      // Link itself, avoids two independent className sources that
+      // base-ui's render-prop merge was combining in a different order
+      // between server and client (a real, harmless-but-noisy hydration
+      // mismatch on this exact button).
+      className="w-full rounded-full h-auto min-h-12 min-[320px]:min-h-14 sm:min-h-16 gap-2 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm min-[320px]:text-base sm:text-lg whitespace-normal leading-snug py-2 transition-all hover:scale-[1.02]"
+      nativeButton={false}
+      render={
+        <Link
+          href={
+            event.type === "school"
+              ? "/super-champs/certificate"
+              : isGoGoaGone || isBoxCricket
+                ? "/receipt"
+                : "/jackpot-heist/certificate"
+          }
+        >
+          <Download className="size-4 text-blue-600" />
+          Download your certificate
+        </Link>
+      }
+    />
+  );
+
+  const registerCta = isBoxCricket && event.is_partner_only ? (
+    <div className="space-y-4 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 sm:p-6 text-sm text-left">
+      <div className="flex items-center gap-2 text-indigo-700 mb-2 font-semibold text-sm sm:text-base">
+        <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" /> Partner Exclusive
+      </div>
+      <p className="text-indigo-900/80 leading-relaxed text-xs sm:text-sm">
+        Registration for this event is exclusively through the YCC
+        Partner Program — a YCC Co-Partner registers their own team
+        (themselves + 5 Squad Members). To join a team,
+        ask your YCC Co-Partner for their team code and apply as a
+        Squad Member.
+      </p>
+      <Button
+        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 sm:h-12 mt-2 shadow-[0_5px_15px_rgba(79,70,229,0.2)] transition-all text-xs sm:text-sm rounded-xl"
+        nativeButton={false}
+        render={<Link href="/partner-program">Go to Partner Program</Link>}
+      />
+    </div>
+  ) : !event.registration_open ? (
+    <Button
+      disabled
+      variant="outline"
+      className="w-full rounded-full h-auto min-h-12 min-[320px]:min-h-14 sm:min-h-16 text-sm min-[320px]:text-base sm:text-lg border-slate-200 text-slate-400 bg-transparent font-semibold whitespace-normal leading-snug py-2"
+    >
+      Coming Soon
+    </Button>
+  ) : (
+    <EventRegisterCta
+      eventSlug={event.slug}
+      // The join-to-unlock gate used to live here too, alongside the "How
+      // to Register" list above — meaning visitors joined
+      // WhatsApp+Instagram on this page, then had to do it again as Step
+      // 1 of RegistrationSteps on /register/[eventSlug]. That page is
+      // now the one real gate for every event in this branch (school,
+      // individual_free, Go Goa Gone, Box Cricket) — reachable directly
+      // too, unlike this marketing page — so this CTA always just links
+      // straight through.
+      requireCommunityGate={false}
+      label={isBoxCricket ? "Register Now & Pay" : "Register for free"}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden pb-24">
       <script
@@ -225,7 +302,7 @@ export default async function EventDetailPage({
                               Tournament Starts
                             </p>
                             <p className="text-xl sm:text-2xl font-bold text-slate-900">
-                              21st October 2026
+                              2nd November 2026
                             </p>
                           </div>
                           <div className="pt-4 border-t border-amber-200/70">
@@ -246,143 +323,6 @@ export default async function EventDetailPage({
                       </div>
                     )}
 
-                    <div className="mt-6 text-left">
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
-                        <ScrollText className="w-5 h-5 text-indigo-600" /> How to Register
-                      </h3>
-                      {isGoGoaGone ? (
-                        <ol className="space-y-3">
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              1
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Follow our WhatsApp channel & Instagram.
-                              </span>{" "}
-                              It&apos;s mandatory to join both — we&apos;ll share
-                              important updates there.
-                            </p>
-                          </li>
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              2
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Fill the registration form correctly.
-                              </span>{" "}
-                              Your name, WhatsApp number and college.
-                            </p>
-                          </li>
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              3
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Get your Game Certificate & Unique Code.
-                              </span>{" "}
-                              Your Unique Code is mandatory for playing the
-                              games and verification.
-                            </p>
-                          </li>
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              4
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Participate in all games for special benefits.
-                              </span>{" "}
-                              Every registered participant must take part in
-                              every designated challenge/game to unlock
-                              eligibility for the Special Goa Travel Coupon —
-                              starting at ₹2,499/person.
-                            </p>
-                          </li>
-                        </ol>
-                      ) : isBoxCricket ? (
-                        <ol className="space-y-3">
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              1
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Follow our WhatsApp channel & Instagram.
-                              </span>{" "}
-                              It&apos;s mandatory to join both — we&apos;ll share
-                              important updates there.
-                            </p>
-                          </li>
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              2
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Fill the team form correctly.
-                              </span>{" "}
-                              College, team name, captain details, plus your 6
-                              squad members&apos; names.
-                            </p>
-                          </li>
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              3
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Get instant confirmation.
-                              </span>{" "}
-                              You have to pay entry fee in cash, the place
-                              will be decided by the YCC Team — your
-                              squad&apos;s invitation letter and team code download
-                              automatically the moment you submit.
-                            </p>
-                          </li>
-                        </ol>
-                      ) : (
-                        <ol className="space-y-3">
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              1
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Follow our WhatsApp channel & Instagram.
-                              </span>{" "}
-                              It&apos;s mandatory to join both — we&apos;ll share
-                              important updates there.
-                            </p>
-                          </li>
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              2
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Fill the form correctly.
-                              </span>{" "}
-                              Tap &ldquo;Register for free&rdquo; and enter your real name, WhatsApp
-                              number, email, age and gender.
-                            </p>
-                          </li>
-                          <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                              3
-                            </span>
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                Get your personal code instantly.
-                              </span>{" "}
-                              Your certificate downloads automatically the moment you submit.
-                            </p>
-                          </li>
-                        </ol>
-                      )}
-                    </div>
                   </div>
                 ) : (
                   <div>
@@ -413,10 +353,10 @@ export default async function EventDetailPage({
                         <div className="flex items-center gap-2 text-slate-600">
                           <Users className="w-4 h-4 text-emerald-600 shrink-0" />
                           <span>
-                            Squad size:{" "}
+                            Team size:{" "}
                             <span className="font-semibold text-slate-900">
                               {event.min_team_size === event.max_team_size
-                                ? `Exactly ${event.min_team_size}`
+                                ? `${event.min_team_size}`
                                 : `${event.min_team_size}–${event.max_team_size}`}{" "}
                               players
                             </span>
@@ -456,7 +396,7 @@ export default async function EventDetailPage({
                                     key={notice}
                                     className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900"
                                   >
-                                    <AlertCircle className="w-5 h-5 shrink-0 text-amber-600" />
+                                    <Banknote className="w-5 h-5 shrink-0 text-amber-600" />
                                     <p className="text-sm font-semibold leading-relaxed">
                                       {notice}
                                     </p>
@@ -476,6 +416,146 @@ export default async function EventDetailPage({
                   </div>
                 ) : null}
 
+                {event.type === "individual_free" || isGoGoaGone || isBoxCricket ? (
+                  <div className="mt-6 text-left">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                      <ScrollText className="w-5 h-5 text-indigo-600" /> How to Register
+                    </h3>
+                    {isGoGoaGone ? (
+                      <ol className="space-y-3">
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            1
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Follow our WhatsApp channel & Instagram.
+                            </span>{" "}
+                            It&apos;s mandatory to join both — we&apos;ll share
+                            important updates there.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            2
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Fill the registration form correctly.
+                            </span>{" "}
+                            Your name, WhatsApp number and college.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            3
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Get your Game Certificate & Unique Code.
+                            </span>{" "}
+                            Your Unique Code is mandatory for playing the
+                            games and verification.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            4
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Participate in all games for special benefits.
+                            </span>{" "}
+                            Every registered participant must take part in
+                            every designated challenge/game to unlock
+                            eligibility for the Special Goa Travel Coupon —
+                            starting at ₹2,499/person.
+                          </p>
+                        </li>
+                      </ol>
+                    ) : isBoxCricket ? (
+                      <ol className="space-y-3">
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            1
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Follow our WhatsApp channel & Instagram.
+                            </span>{" "}
+                            It&apos;s mandatory to join both — we&apos;ll share
+                            important updates there.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            2
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Fill the team form correctly.
+                            </span>{" "}
+                            College, team name, captain details, plus your 6
+                            squad members&apos; names.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            3
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Get instant confirmation.
+                            </span>{" "}
+                            You have to pay entry fee in cash, the place
+                            will be decided by the YCC Team — your
+                            squad&apos;s invitation letter and team code download
+                            automatically the moment you submit.
+                          </p>
+                        </li>
+                      </ol>
+                    ) : (
+                      <ol className="space-y-3">
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            1
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Follow our WhatsApp channel & Instagram.
+                            </span>{" "}
+                            It&apos;s mandatory to join both — we&apos;ll share
+                            important updates there.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            2
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Fill the form correctly.
+                            </span>{" "}
+                            Tap &ldquo;Register for free&rdquo; and enter your real name, WhatsApp
+                            number, email, age and gender.
+                          </p>
+                        </li>
+                        <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                            3
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                              Get your personal code instantly.
+                            </span>{" "}
+                            Your certificate downloads automatically the moment you submit.
+                          </p>
+                        </li>
+                      </ol>
+                    )}
+                  </div>
+                ) : null}
+
                 {isBoxCricket ? (
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
@@ -484,7 +564,7 @@ export default async function EventDetailPage({
                     <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
                       <div className="flex flex-wrap items-end gap-2 mb-4">
                         <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
-                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per team</span>
+                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">Team Entry Fee</span>
                       </div>
                       {/* Separate from the ₹999 team fee — a flat ₹20/player
                           charge covering each player's digital ID card and
@@ -492,17 +572,11 @@ export default async function EventDetailPage({
                           the event row since it isn't collected through the
                           site's payment flow, so it's hardcoded here rather
                           than derived from fee_paise. */}
-                      <div className="mb-4 pt-5 border-t border-slate-100 flex items-start gap-2 text-xs sm:text-sm text-slate-600">
-                        <Users className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                        <span>
-                          <span className="font-semibold text-slate-900">₹20 Player Fee</span>
-                          <span className="text-slate-400"> · </span>
-                          Includes Registration Form &amp; ID Card
-                        </span>
+                      <div className="flex flex-wrap items-end gap-2 mb-4 pt-5 border-t border-slate-100">
+                        <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">₹20</span>
+                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">Player Fee</span>
                       </div>
-                      {event.gst_exempt ? (
-                        <p className="text-xs sm:text-sm text-slate-500">No GST applicable</p>
-                      ) : (
+                      {event.gst_exempt ? null : (
                         <>
                           <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
                           <div className="pt-5 sm:pt-6 border-t border-slate-100">
@@ -514,79 +588,21 @@ export default async function EventDetailPage({
                   </div>
                 ) : null}
 
-                {/* Go Goa Gone (individual) / Box Cricket (team) re-download
-                    via the generic unique-ID/mobile lookup at /receipt (same
-                    PDF they got on successful registration), rather than the
-                    school/individual_free single-field lookups. */}
-                <Button
-                  variant="outline"
-                  // buttonVariants' own base classes already give the
-                  // rendered <a> (via `render` below) inline-flex/items-
-                  // center/justify-center — putting gap-2 here too, rather
-                  // than as a second className on the Link itself, avoids
-                  // two independent className sources that base-ui's
-                  // render-prop merge was combining in a different order
-                  // between server and client (a real, harmless-but-noisy
-                  // hydration mismatch on this exact button).
-                  className="w-full rounded-full h-auto min-h-12 min-[320px]:min-h-14 sm:min-h-16 gap-2 border-slate-200 shadow-sm bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm min-[320px]:text-base sm:text-lg whitespace-normal leading-snug py-2 transition-all hover:scale-[1.02]"
-                  nativeButton={false}
-                  render={
-                    <Link
-                      href={
-                        event.type === "school"
-                          ? "/super-champs/certificate"
-                          : isGoGoaGone || isBoxCricket
-                            ? "/receipt"
-                            : "/jackpot-heist/certificate"
-                      }
-                    >
-                      <Download className="size-4 text-blue-600" />
-                      Download your certificate
-                    </Link>
-                  }
-                />
-
-                {isBoxCricket && event.is_partner_only ? (
-                  <div className="space-y-4 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 sm:p-6 text-sm text-left">
-                    <div className="flex items-center gap-2 text-indigo-700 mb-2 font-semibold text-sm sm:text-base">
-                      <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" /> Partner Exclusive
-                    </div>
-                    <p className="text-indigo-900/80 leading-relaxed text-xs sm:text-sm">
-                      Registration for this event is exclusively through the YCC
-                      Partner Program — a YCC Co-Partner registers their own team
-                      (themselves + 5 Squad Members). To join a team,
-                      ask your YCC Co-Partner for their team code and apply as a
-                      Squad Member.
-                    </p>
-                    <Button
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 sm:h-12 mt-2 shadow-[0_5px_15px_rgba(79,70,229,0.2)] transition-all text-xs sm:text-sm rounded-xl"
-                      nativeButton={false}
-                      render={<Link href="/partner-program">Go to Partner Program</Link>}
-                    />
-                  </div>
-                ) : !event.registration_open ? (
-                  <Button
-                    disabled
-                    variant="outline"
-                    className="w-full rounded-full h-auto min-h-12 min-[320px]:min-h-14 sm:min-h-16 text-sm min-[320px]:text-base sm:text-lg border-slate-200 text-slate-400 bg-transparent font-semibold whitespace-normal leading-snug py-2"
-                  >
-                    Coming Soon
-                  </Button>
+                {/* Box Cricket shows its register CTA above the download
+                    button (the opposite order of every other event here) —
+                    see downloadCertificateButton/registerCta above, pulled
+                    out to variables so this swap doesn't need duplicated
+                    markup. */}
+                {isBoxCricket ? (
+                  <>
+                    {registerCta}
+                    {downloadCertificateButton}
+                  </>
                 ) : (
-                  <EventRegisterCta
-                    eventSlug={event.slug}
-                    // The join-to-unlock gate used to live here too,
-                    // alongside the "How to Register" list above — meaning
-                    // visitors joined WhatsApp+Instagram on this page, then
-                    // had to do it again as Step 1 of RegistrationSteps on
-                    // /register/[eventSlug]. That page is now the one real
-                    // gate for every event in this branch (school,
-                    // individual_free, Go Goa Gone, Box Cricket) —
-                    // reachable directly too, unlike this marketing page —
-                    // so this CTA always just links straight through.
-                    requireCommunityGate={false}
-                    label={isBoxCricket ? "Register Now & Pay" : "Register for free"}
-                  />
+                  <>
+                    {downloadCertificateButton}
+                    {registerCta}
+                  </>
                 )}
               </div>
             </div>

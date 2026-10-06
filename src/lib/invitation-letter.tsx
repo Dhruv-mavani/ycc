@@ -171,11 +171,12 @@ const teamStyles = StyleSheet.create({
     color: TEAM_TEXT_DARK,
     marginBottom: tsy(36),
   },
-  // Captain/player names inline within the paragraph prose — same script
-  // family as "Dear," and the team name, scaled up from the surrounding
-  // "Cap:" label so the names themselves read clearly at a glance.
+  // Captain/player names in the roster line — same bold sans family as
+  // the "FELLOW TEAM MEMBERS" heading above it, scaled up from the
+  // surrounding "Cap:" label so the names themselves read clearly at a
+  // glance.
   inlineName: {
-    fontFamily: "Alex Brush",
+    fontFamily: "Helvetica-Bold",
     fontSize: ts(42),
     letterSpacing: ts(3),
     color: TEAM_NAVY,

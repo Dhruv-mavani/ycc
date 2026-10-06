@@ -9,6 +9,13 @@ import { Plus, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Card,
@@ -23,6 +30,7 @@ import {
 } from "@/lib/validations/registration";
 import { CashfreeCheckoutButton } from "@/components/registration/cashfree-checkout-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
+import { BoxCricketTermsContent } from "@/components/registration/box-cricket-terms-content";
 
 interface CollegeOption {
   id: string;
@@ -44,6 +52,7 @@ export function SelfTeamRegistrationForm({
   feePaise,
   payAtVenue = false,
   gstExempt = false,
+  requireTerms = false,
   colleges,
 }: {
   eventId: string;
@@ -56,6 +65,11 @@ export function SelfTeamRegistrationForm({
   /** No GST on top of feePaise — it's the flat total, so the "+ 18% GST"
    * copy is dropped. */
   gstExempt?: boolean;
+  /** Box Cricket-only T&C checkbox gate — a client-side-only requirement
+   * (like the WhatsApp/Instagram join gate), not part of the shared
+   * teamRegistrationSchema, so the other two events using this same form
+   * (Plastic Ball, Tennis Ball) are unaffected when this stays false. */
+  requireTerms?: boolean;
   colleges: CollegeOption[];
 }) {
   const router = useRouter();
@@ -81,6 +95,22 @@ export function SelfTeamRegistrationForm({
   const [captainNameTouched, setCaptainNameTouched] = useState(false);
   const [whatsappTouched, setWhatsappTouched] = useState(false);
   const [extraTouched, setExtraTouched] = useState<boolean[]>([]);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [notFromCollege, setNotFromCollege] = useState(false);
+  // Pre-existing catch-all college row (see the seed data) used for teams
+  // with no college affiliation — checking "Not from college?" just
+  // selects it for them instead of making them search it out by hand.
+  const individualCollege = colleges.find(
+    (c) => c.name.trim().toLowerCase() === "individual",
+  );
+
+  function toggleNotFromCollege(checked: boolean) {
+    setNotFromCollege(checked);
+    setValue("collegeId", checked ? (individualCollege?.id ?? "") : "", {
+      shouldValidate: true,
+    });
+  }
 
   const {
     control,
@@ -244,6 +274,7 @@ export function SelfTeamRegistrationForm({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {notFromCollege ? null : (
           <Field label="College" error={errors.collegeId?.message}>
             <Controller
               control={control}
@@ -259,6 +290,18 @@ export function SelfTeamRegistrationForm({
               )}
             />
           </Field>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="notFromCollege"
+              checked={notFromCollege}
+              onCheckedChange={(checked) => toggleNotFromCollege(checked === true)}
+            />
+            <Label htmlFor="notFromCollege" className="font-normal text-muted-foreground">
+              Not from college? click here
+            </Label>
+          </div>
 
           <Field
             label="Captain name"
@@ -307,7 +350,7 @@ export function SelfTeamRegistrationForm({
       <Card>
         <CardHeader>
           <CardTitle>
-            Squad ({extraPlayers.filter((n) => n.trim()).length + 1}/{maxTeamSize})
+            Team ({extraPlayers.filter((n) => n.trim()).length + 1}/{maxTeamSize})
           </CardTitle>
           <CardDescription>
             Add your {seatsAvailable} teammate{seatsAvailable === 1 ? "" : "s"} by name.
@@ -357,10 +400,36 @@ export function SelfTeamRegistrationForm({
       </Card>
 
 
+      {requireTerms ? (
+        <Card>
+          <CardContent>
+            <div className="flex items-start gap-2.5">
+              <Checkbox
+                id="agreedToTerms"
+                checked={agreedToTerms}
+                onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="agreedToTerms" className="font-normal">
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={() => setTermsOpen(true)}
+                  className="font-medium text-primary underline underline-offset-2"
+                >
+                  T&amp;C
+                </button>
+                <span className="text-destructive"> *</span>
+              </Label>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Button
         type="submit"
         className="w-full h-12 text-base font-semibold"
-        disabled={isSubmitting || redirecting}
+        disabled={isSubmitting || redirecting || (requireTerms && !agreedToTerms)}
       >
         {isSubmitting || redirecting ? (
           <>
@@ -372,6 +441,17 @@ export function SelfTeamRegistrationForm({
           "Continue to payment"
         )}
       </Button>
+
+      {requireTerms ? (
+        <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Box Cricket Tournament Terms &amp; Conditions</DialogTitle>
+            </DialogHeader>
+            <BoxCricketTermsContent />
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
     </form>
   );
