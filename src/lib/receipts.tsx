@@ -116,6 +116,8 @@ const styles = StyleSheet.create({
   dueNoticeTitle: { fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 2 },
   dueNoticeBody: { fontSize: 9, color: "#92400e" },
   section: { marginBottom: 14 },
+  // Single-participant layout (individual/school/quiz registrations) —
+  // one big QR card, unchanged from before.
   participantCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -128,6 +130,37 @@ const styles = StyleSheet.create({
   participantInfo: { flexDirection: "column" },
   participantName: { fontSize: 13, fontWeight: 700 },
   uniqueId: { fontSize: 16, fontWeight: 700, color: "#1d4ed8", marginTop: 4 },
+  // Team roster layout — a compact 3-column grid (vs. one big card per
+  // player) so a full squad's QR codes stay on this one page instead of
+  // spilling onto extra pages before the ID card pages that follow.
+  // Max team size across every cricket event is 7 today — verified this
+  // sizing keeps exactly 7 cards (3+3+1) on one page before the ID card
+  // pages start. If any event's max_team_size ever grows past 7, re-check
+  // this (8 already spills a lone card onto its own page).
+  rosterGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  rosterCard: {
+    flexDirection: "column",
+    alignItems: "center",
+    width: 165,
+    border: "1 solid #e5e7eb",
+    borderRadius: 4,
+    padding: 6,
+    marginBottom: 8,
+  },
+  rosterQr: { width: 75, height: 75 },
+  rosterInfo: { flexDirection: "column", alignItems: "center", marginTop: 4 },
+  rosterName: { fontSize: 9, fontWeight: 700, textAlign: "center" },
+  rosterUniqueId: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#1d4ed8",
+    marginTop: 2,
+    textAlign: "center",
+  },
   footer: {
     marginTop: 20,
     fontSize: 8,
@@ -389,16 +422,31 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
               ? "Team roster — entry QR codes"
               : "Entry QR code"}
           </Text>
-          {data.participants.map((p) => (
-            <View key={p.uniqueId} style={styles.participantCard} wrap={false}>
-              {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image; no alt concept in PDF */}
-              <Image src={p.qrDataUrl} style={styles.qr} />
-              <View style={styles.participantInfo}>
-                <Text style={styles.participantName}>{p.name}</Text>
-                <Text style={styles.uniqueId}>{p.uniqueId}</Text>
-              </View>
+          {data.type === "team" ? (
+            <View style={styles.rosterGrid}>
+              {data.participants.map((p) => (
+                <View key={p.uniqueId} style={styles.rosterCard} wrap={false}>
+                  {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image; no alt concept in PDF */}
+                  <Image src={p.qrDataUrl} style={styles.rosterQr} />
+                  <View style={styles.rosterInfo}>
+                    <Text style={styles.rosterName}>{p.name}</Text>
+                    <Text style={styles.rosterUniqueId}>{p.uniqueId}</Text>
+                  </View>
+                </View>
+              ))}
             </View>
-          ))}
+          ) : (
+            data.participants.map((p) => (
+              <View key={p.uniqueId} style={styles.participantCard} wrap={false}>
+                {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, not next/image; no alt concept in PDF */}
+                <Image src={p.qrDataUrl} style={styles.qr} />
+                <View style={styles.participantInfo}>
+                  <Text style={styles.participantName}>{p.name}</Text>
+                  <Text style={styles.uniqueId}>{p.uniqueId}</Text>
+                </View>
+              </View>
+            ))
+          )}
         </View>
 
         <Text style={styles.footer}>
