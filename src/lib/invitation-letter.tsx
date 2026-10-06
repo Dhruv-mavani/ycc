@@ -151,11 +151,14 @@ const teamStyles = StyleSheet.create({
     letterSpacing: ts(10),
     color: TEAM_LOGO_BLUE,
   },
+  // Team/individual name — same bold sans family (and uppercase) as the
+  // "OFFICIAL TEAM INVITATION PASS" title above it, not the cursive
+  // script dearLine still uses.
   nameLine: {
     textAlign: "center",
-    fontFamily: "Alex Brush",
+    fontFamily: "Helvetica-Bold",
     fontSize: ts(42),
-    letterSpacing: ts(10),
+    letterSpacing: ts(3),
     color: TEAM_NAVY,
   },
   underline: {
@@ -502,7 +505,7 @@ export function InvitationLetterPage(data: InvitationLetterData) {
           </Text>
 
           <Text style={teamStyles.dearLine}>Dear,</Text>
-          <Text style={teamStyles.nameLine}>{displayName}</Text>
+          <Text style={teamStyles.nameLine}>{displayName.toUpperCase()}</Text>
           <Svg
             style={[{ alignSelf: "center" }, teamStyles.underline]}
             width={ts(underlineNativeW)}
