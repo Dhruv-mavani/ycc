@@ -63,7 +63,13 @@ export async function EventsGrid() {
           <Card key={event.id} className="relative overflow-hidden flex flex-col group hover:border-blue-400/50 transition-colors bg-white shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.2)] border-blue-100 rounded-3xl">
             <CardHeader className="pb-4 pt-6 sm:pt-8 px-4 sm:px-8">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-                <CardTitle className="text-lg sm:text-2xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors break-words">{event.name}</CardTitle>
+                <CardTitle className="text-lg sm:text-2xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors break-words">
+                  {event.name}
+                  {/* Box Cricket-only "Season 1" suffix on the card title —
+                      not on event.name itself, which also feeds the page
+                      <title>, meta tags, and admin listings. */}
+                  {event.slug === "cricket-championship-2026" ? " Season 1" : ""}
+                </CardTitle>
                 <Badge
                   variant="secondary"
                   className="whitespace-nowrap w-fit bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 text-xs shadow-[0_0_15px_rgba(16,185,129,0.1)]"
@@ -93,7 +99,10 @@ export async function EventsGrid() {
           <Card key={event.id} className="overflow-hidden border-dashed border-slate-200 bg-white/60 flex flex-col opacity-80 hover:opacity-100 transition-opacity rounded-3xl shadow-sm">
             <CardHeader className="pb-4 pt-6 sm:pt-8 px-4 sm:px-8">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-                <CardTitle className="text-lg sm:text-2xl font-bold text-slate-500 break-words">{event.name}</CardTitle>
+                <CardTitle className="text-lg sm:text-2xl font-bold text-slate-500 break-words">
+                  {event.name}
+                  {event.slug === "cricket-championship-2026" ? " Season 1" : ""}
+                </CardTitle>
                 <Badge
                   variant="secondary"
                   className="whitespace-nowrap w-fit bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1 text-xs"
