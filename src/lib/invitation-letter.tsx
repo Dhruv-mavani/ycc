@@ -174,10 +174,10 @@ const teamStyles = StyleSheet.create({
   // Captain/player names in the roster line — same bold sans family as
   // the "FELLOW TEAM MEMBERS" heading above it, scaled up from the
   // surrounding "Cap:" label so the names themselves read clearly at a
-  // glance.
+  // glance, and sized to match passTitle ("OFFICIAL TEAM INVITATION PASS").
   inlineName: {
     fontFamily: "Helvetica-Bold",
-    fontSize: ts(42),
+    fontSize: ts(32),
     letterSpacing: ts(3),
     color: TEAM_NAVY,
   },
