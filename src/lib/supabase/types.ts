@@ -15,6 +15,7 @@ export type StaffStatus = "pending" | "approved" | "rejected";
 export type PartnerType = "campus" | "class" | "classmate";
 export type PartnerApplicationStatus = "pending" | "approved" | "rejected";
 export type PartnerTeam = "A" | "B";
+export type PaymentSubmissionStatus = "pending" | "verified" | "rejected";
 
 export interface Database {
   public: {
@@ -498,6 +499,56 @@ export interface Database {
         };
         Update: Partial<
           Database["public"]["Tables"]["ycc_club_applications"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      box_cricket_payment_submissions: {
+        Row: {
+          id: string;
+          registration_id: string;
+          transaction_id: string;
+          upi_note: string;
+          screenshot_path: string;
+          status: PaymentSubmissionStatus;
+          rejection_reason: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          registration_id: string;
+          transaction_id: string;
+          upi_note: string;
+          screenshot_path: string;
+          status?: PaymentSubmissionStatus;
+          rejection_reason?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["box_cricket_payment_submissions"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      bank_statement_uploads: {
+        Row: {
+          id: string;
+          file_path: string;
+          file_name: string;
+          uploaded_by: string;
+          uploaded_at: string;
+        };
+        Insert: {
+          id?: string;
+          file_path: string;
+          file_name: string;
+          uploaded_by: string;
+          uploaded_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["bank_statement_uploads"]["Insert"]
         >;
         Relationships: [];
       };
