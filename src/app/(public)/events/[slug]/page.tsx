@@ -501,7 +501,7 @@ export default async function EventDetailPage({
                               Fill the team form correctly.
                             </span>{" "}
                             College, team name, captain details, plus your 6
-                            squad members&apos; names.
+                            team members&apos; names.
                           </p>
                         </li>
                         <li className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -512,10 +512,13 @@ export default async function EventDetailPage({
                             <span className="font-semibold text-slate-900">
                               Get instant confirmation.
                             </span>{" "}
-                            You have to pay entry fee in cash, the place
-                            will be decided by the YCC Team — your
-                            squad&apos;s invitation letter and team code download
-                            automatically the moment you submit.
+                            Once you receive your Team Pass &amp; Player ID
+                            Cards, complete the Team Entry + Player Fee
+                            payment by 25 October 2026 to confirm your
+                            registration.
+                          </p>
+                          <p className="text-sm font-semibold text-slate-900 mt-2">
+                            Payment Deadline: 25th October 2026
                           </p>
                         </li>
                       </ol>
