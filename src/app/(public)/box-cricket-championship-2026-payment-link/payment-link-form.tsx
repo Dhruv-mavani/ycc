@@ -37,7 +37,6 @@ export function PaymentLinkForm() {
   const [team, setTeam] = useState<TeamLookupResult | null>(null);
 
   const [transactionId, setTransactionId] = useState("");
-  const [upiNote, setUpiNote] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [justSubmitted, setJustSubmitted] = useState(false);
@@ -78,7 +77,6 @@ export function PaymentLinkForm() {
       const formData = new FormData();
       formData.append("registrationId", team.registrationId);
       formData.append("transactionId", transactionId.trim());
-      formData.append("upiNote", upiNote.trim());
       formData.append("screenshot", screenshot);
 
       const res = await fetch("/api/box-cricket-payment/submit", {
@@ -212,20 +210,6 @@ export function PaymentLinkForm() {
                       placeholder="UPI transaction / reference number"
                       required
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>UPI payment note / remark you used</Label>
-                    <Input
-                      value={upiNote}
-                      onChange={(e) => setUpiNote(e.target.value)}
-                      placeholder={`e.g. "${team.teamName ?? code}"`}
-                      required
-                    />
-                    <p className="text-xs text-slate-500">
-                      Most UPI apps have an optional &ldquo;Add a note&rdquo;
-                      field when paying — if you used one, enter it here.
-                      If not, just write your team name again.
-                    </p>
                   </div>
                   <div className="space-y-1.5">
                     <Label>Payment screenshot</Label>

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
-import { getBankStatementFile } from "@/lib/box-cricket-payment-verification";
+import {
+  getBankStatementFile,
+  deleteBankStatement,
+} from "@/lib/box-cricket-payment-verification";
 
 // Admin-only, streamed through the server — same reasoning as the payment
 // screenshot route (bank statements are far more sensitive, so this
@@ -27,4 +30,18 @@ export async function GET(
       "Cache-Control": "private, no-store",
     },
   });
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  await deleteBankStatement(id);
+  return NextResponse.json({ ok: true });
 }

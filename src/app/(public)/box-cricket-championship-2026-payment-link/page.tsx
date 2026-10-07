@@ -23,7 +23,7 @@ export default function BoxCricketPaymentLinkPage() {
           </h1>
           <p className="mt-2 text-sm sm:text-base text-slate-600">
             Pay your ₹999 Team Entry Fee online and submit proof for
-            verification — no need to carry cash to the venue.
+            verification.
           </p>
         </div>
 

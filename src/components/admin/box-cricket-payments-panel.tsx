@@ -10,6 +10,7 @@ import {
   ZoomIn,
   Upload,
   FileText,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/site/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 interface Submission {
@@ -36,7 +38,6 @@ interface Submission {
   captainName: string | null;
   amountPaise: number;
   transactionId: string;
-  upiNote: string;
   status: "pending" | "verified" | "rejected";
   rejectionReason: string | null;
   createdAt: string;
@@ -84,6 +85,8 @@ export function BoxCricketPaymentsPanel({
 
   const [statements, setStatements] = useState<BankStatement[]>(initialStatements);
   const [uploadingStatement, setUploadingStatement] = useState(false);
+  const [deletingStatementId, setDeletingStatementId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const loadSubmissions = useCallback(async (status: Submission["status"]) => {
     setLoading(true);
@@ -189,15 +192,34 @@ export function BoxCricketPaymentsPanel({
     }
   }
 
+  async function handleStatementDelete(id: string) {
+    setDeletingStatementId(id);
+    try {
+      const res = await fetch(`/api/admin/bank-statements/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "Could not delete statement");
+        return;
+      }
+      toast.success("Deleted");
+      setStatements((prev) => prev.filter((s) => s.id !== id));
+      setConfirmDeleteId(null);
+    } catch {
+      toast.error("Network error — please check your connection and try again");
+    } finally {
+      setDeletingStatementId(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 border-b border-border">
+      <div className="flex border-b border-border">
         {TABS.map((t) => (
           <button
             key={t.value}
             onClick={() => handleTabChange(t.value)}
             className={cn(
-              "px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors",
+              "flex-1 min-w-0 px-1 py-2 text-[11px] min-[360px]:text-sm font-semibold border-b-2 -mb-px transition-colors text-center leading-tight",
               tab === t.value
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
@@ -234,19 +256,11 @@ export function BoxCricketPaymentsPanel({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wide">
-                      Transaction ID
-                    </p>
-                    <p className="font-mono font-medium break-all">{s.transactionId}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wide">
-                      UPI note
-                    </p>
-                    <p className="font-medium break-words">{s.upiNote}</p>
-                  </div>
+                <div className="text-sm">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                    Transaction ID
+                  </p>
+                  <p className="font-mono font-medium break-all">{s.transactionId}</p>
                 </div>
 
                 <button
@@ -274,10 +288,11 @@ export function BoxCricketPaymentsPanel({
                         placeholder="Why couldn't this be verified? (shown to the captain)"
                         className="text-sm"
                       />
-                      <div className="flex gap-2">
+                      <div className="flex flex-col min-[360px]:flex-row gap-2">
                         <Button
                           variant="destructive"
                           size="sm"
+                          className="w-full min-[360px]:w-auto"
                           disabled={busyId === s.id}
                           onClick={() => handleReject(s.id)}
                         >
@@ -291,6 +306,7 @@ export function BoxCricketPaymentsPanel({
                         <Button
                           variant="outline"
                           size="sm"
+                          className="w-full min-[360px]:w-auto"
                           onClick={() => {
                             setRejectingId(null);
                             setRejectReason("");
@@ -301,10 +317,10 @@ export function BoxCricketPaymentsPanel({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col min-[360px]:flex-row gap-2">
                       <Button
                         size="sm"
-                        className="bg-emerald-600 hover:bg-emerald-700"
+                        className="w-full min-[360px]:w-auto bg-emerald-600 hover:bg-emerald-700"
                         disabled={busyId === s.id}
                         onClick={() => handleVerify(s.id)}
                       >
@@ -318,7 +334,7 @@ export function BoxCricketPaymentsPanel({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        className="w-full min-[360px]:w-auto text-red-600 border-red-200 hover:bg-red-50"
                         onClick={() => setRejectingId(s.id)}
                       >
                         <XCircle className="size-4 shrink-0" />
@@ -423,6 +439,19 @@ export function BoxCricketPaymentsPanel({
                   <span className="text-muted-foreground text-xs shrink-0 flex items-center gap-1">
                     <Clock className="size-3" /> {formatDate(st.uploadedAt)}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteId(st.id)}
+                    disabled={deletingStatementId === st.id}
+                    aria-label={`Delete ${st.fileName}`}
+                    className="shrink-0 rounded-full p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
+                  >
+                    {deletingStatementId === st.id ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <X className="size-3.5" />
+                    )}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -433,6 +462,15 @@ export function BoxCricketPaymentsPanel({
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        onOpenChange={(open) => !open && setConfirmDeleteId(null)}
+        title="Delete this bank statement?"
+        description="This only removes it from this review list — it has no effect on any payment's verified/paid status."
+        loading={deletingStatementId === confirmDeleteId}
+        onConfirm={() => confirmDeleteId && handleStatementDelete(confirmDeleteId)}
+      />
     </div>
   );
 }

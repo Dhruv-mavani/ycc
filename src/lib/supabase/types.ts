@@ -507,7 +507,7 @@ export interface Database {
           id: string;
           registration_id: string;
           transaction_id: string;
-          upi_note: string;
+          upi_note: string | null;
           screenshot_path: string;
           status: PaymentSubmissionStatus;
           rejection_reason: string | null;
@@ -519,7 +519,7 @@ export interface Database {
           id?: string;
           registration_id: string;
           transaction_id: string;
-          upi_note: string;
+          upi_note?: string | null;
           screenshot_path: string;
           status?: PaymentSubmissionStatus;
           rejection_reason?: string | null;

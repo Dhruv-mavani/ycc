@@ -115,10 +115,9 @@ export class PaymentSubmissionError extends Error {}
 export async function submitBoxCricketPayment(input: {
   registrationId: string;
   transactionId: string;
-  upiNote: string;
   screenshot: File;
 }): Promise<void> {
-  const { registrationId, transactionId, upiNote, screenshot } = input;
+  const { registrationId, transactionId, screenshot } = input;
 
   if (!ALLOWED_SCREENSHOT_TYPES.has(screenshot.type)) {
     throw new PaymentSubmissionError("Screenshot must be a JPEG, PNG, or WebP image");
@@ -128,9 +127,6 @@ export async function submitBoxCricketPayment(input: {
   }
   if (!transactionId.trim()) {
     throw new PaymentSubmissionError("Transaction ID is required");
-  }
-  if (!upiNote.trim()) {
-    throw new PaymentSubmissionError("UPI payment note is required");
   }
 
   const admin = createAdminClient();
@@ -180,7 +176,6 @@ export async function submitBoxCricketPayment(input: {
     .insert({
       registration_id: registrationId,
       transaction_id: transactionId.trim(),
-      upi_note: upiNote.trim(),
       screenshot_path: path,
       status: "pending",
     });
@@ -205,7 +200,6 @@ export interface PaymentSubmissionRow {
   captainName: string | null;
   amountPaise: number;
   transactionId: string;
-  upiNote: string;
   status: "pending" | "verified" | "rejected";
   rejectionReason: string | null;
   createdAt: string;
@@ -241,7 +235,6 @@ export async function listBoxCricketPaymentSubmissions(
       captainName: reg?.captain_name ?? null,
       amountPaise: reg?.amount_paise ?? 0,
       transactionId: s.transaction_id,
-      upiNote: s.upi_note,
       status: s.status as "pending" | "verified" | "rejected",
       rejectionReason: s.rejection_reason,
       createdAt: s.created_at,
@@ -399,6 +392,19 @@ export async function getBankStatementFile(
   if (error || !data) return null;
 
   return { data, contentType: data.type || "application/octet-stream", fileName: statement.file_name };
+}
+
+export async function deleteBankStatement(statementId: string): Promise<void> {
+  const admin = createAdminClient();
+  const { data: statement } = await admin
+    .from("bank_statement_uploads")
+    .select("file_path")
+    .eq("id", statementId)
+    .maybeSingle();
+  if (!statement) return;
+
+  await admin.storage.from("bank-statements").remove([statement.file_path]);
+  await admin.from("bank_statement_uploads").delete().eq("id", statementId);
 }
 
 export async function rejectBoxCricketPayment(
