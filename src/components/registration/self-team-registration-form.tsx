@@ -53,6 +53,7 @@ export function SelfTeamRegistrationForm({
   payAtVenue = false,
   gstExempt = false,
   requireTerms = false,
+  hideEmailField = false,
   colleges,
 }: {
   eventId: string;
@@ -70,6 +71,10 @@ export function SelfTeamRegistrationForm({
    * teamRegistrationSchema, so the other two events using this same form
    * (Plastic Ball, Tennis Ball) are unaffected when this stays false. */
   requireTerms?: boolean;
+  /** Box Cricket-only: hides the Email ID field. captainEmail is already
+   * optional in teamRegistrationSchema (defaults to "" in RHF), so this
+   * is a pure UI change — no schema/submission changes needed. */
+  hideEmailField?: boolean;
   colleges: CollegeOption[];
 }) {
   const router = useRouter();
@@ -319,9 +324,11 @@ export function SelfTeamRegistrationForm({
             />
           </Field>
 
-          <Field label="Email ID" error={errors.captainEmail?.message}>
-            <Input {...register("captainEmail")} type="email" placeholder="you@example.com" />
-          </Field>
+          {hideEmailField ? null : (
+            <Field label="Email ID" error={errors.captainEmail?.message}>
+              <Input {...register("captainEmail")} type="email" placeholder="you@example.com" />
+            </Field>
+          )}
 
           <Field
             label="WhatsApp number"

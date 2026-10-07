@@ -226,6 +226,7 @@ export default async function RegisterPage({
                       payAtVenue={event.pay_at_venue}
                       gstExempt={event.gst_exempt}
                       requireTerms={event.slug === "cricket-championship-2026"}
+                      hideEmailField={event.slug === "cricket-championship-2026"}
                       colleges={colleges ?? []}
                     />
                   )
