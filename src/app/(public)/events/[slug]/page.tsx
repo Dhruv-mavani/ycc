@@ -314,7 +314,7 @@ export default async function EventDetailPage({
                             <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
                               Fee Payment Date
                             </p>
-                            <p className="text-lg font-bold text-slate-900">21st October 2026</p>
+                            <p className="text-lg font-bold text-slate-900">25th October 2026</p>
                             <p className="mt-1 text-sm leading-relaxed text-amber-900/80">
                               Team Entry Fee &amp; Player Fee must be paid in advance to
                               confirm your registration.
