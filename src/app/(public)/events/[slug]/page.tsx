@@ -508,18 +508,20 @@ export default async function EventDetailPage({
                           <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
                             3
                           </span>
-                          <p className="text-sm text-slate-600">
-                            <span className="font-semibold text-slate-900">
-                              Get instant confirmation.
-                            </span>{" "}
-                            Once you receive your Team Pass &amp; Player ID
-                            Cards, complete the Team Entry + Player Fee
-                            payment by 25 October 2026 to confirm your
-                            registration.
-                          </p>
-                          <p className="text-sm font-semibold text-slate-900 mt-2">
-                            Payment Deadline: 25th October 2026
-                          </p>
+                          <div className="min-w-0 space-y-2">
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-900">
+                                Get instant confirmation.
+                              </span>{" "}
+                              Once you receive your Team Pass &amp; Player ID
+                              Cards, complete the Team Entry + Player Fee
+                              payment by 25 October 2026 to confirm your
+                              registration.
+                            </p>
+                            <p className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                              Payment Deadline: 25th October 2026
+                            </p>
+                          </div>
                         </li>
                       </ol>
                     ) : (
