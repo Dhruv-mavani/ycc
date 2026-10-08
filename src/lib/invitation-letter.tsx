@@ -400,6 +400,9 @@ export type InvitationLetterData =
       eventName: string;
       collegeName: string;
       captainName: string | null;
+      /** Captain's own unique ID (participants[0], ordered captain-first —
+       * see receipts.tsx) — shown as "Team Code" above College. */
+      captainCode: string | null;
       /** Non-captain roster — woven into the congrats paragraph alongside the captain, not shown separately. */
       players: string[];
       /** False when this event's PDF has no ID card pages (see hideIdCards
@@ -562,7 +565,19 @@ export function InvitationLetterPage(data: InvitationLetterData) {
               : `Congratulations! Your team has been officially invited and registered to play in the ${eventDisplayName}. We're excited to have you with us! We truly believe that your team's participation will make the tournament more exciting, energetic, memorable, and full of masti and fun.`}
           </Text>
 
-          <Text style={[teamStyles.detailLine, { marginTop: tsy(14) }]}>
+          {data.kind === "team" && data.captainCode ? (
+            <Text style={[teamStyles.detailLine, { marginTop: tsy(14) }]}>
+              <Text style={teamStyles.detailLabel}>Team Code: </Text>
+              {data.captainCode}
+            </Text>
+          ) : null}
+          <Text
+            style={
+              data.kind === "team" && data.captainCode
+                ? teamStyles.detailLine
+                : [teamStyles.detailLine, { marginTop: tsy(14) }]
+            }
+          >
             <Text style={teamStyles.detailLabel}>College: </Text>
             {data.collegeName}
           </Text>
