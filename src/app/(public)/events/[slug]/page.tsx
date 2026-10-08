@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { BackButton } from "@/components/site/back-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
 import { Banknote, Users, ScrollText, AlertCircle, Trophy, Download, CalendarDays } from "lucide-react";
@@ -581,11 +582,43 @@ export default async function EventDetailPage({
                           registration form (see the poster). Not stored on
                           the event row since it isn't collected through the
                           site's payment flow, so it's hardcoded here rather
-                          than derived from fee_paise. */}
+                          than derived from fee_paise. Squad size comes from
+                          event.max_team_size so the breakdown/total below
+                          stay correct if that ever changes. */}
                       <div className="flex flex-wrap items-end gap-2 mb-4 pt-5 border-t border-slate-100">
                         <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">₹29</span>
                         <span className="text-slate-500 mb-0.5 text-sm sm:text-base">Player Fee</span>
                       </div>
+                      {(() => {
+                        const PLAYER_FEE_RUPEES = 29;
+                        const squadSize = event.max_team_size ?? 7;
+                        const teamEntryRupees = event.fee_paise / 100;
+                        const playerFeesTotal = PLAYER_FEE_RUPEES * squadSize;
+                        const grandTotal = teamEntryRupees + playerFeesTotal;
+                        return (
+                          <div className="space-y-1.5 text-sm mb-4 pt-5 border-t border-slate-100">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Team Entry Fee</span>
+                              <span className="text-slate-900">
+                                ₹{teamEntryRupees.toLocaleString("en-IN")}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">
+                                Player Fee (₹{PLAYER_FEE_RUPEES} × {squadSize} players)
+                              </span>
+                              <span className="text-slate-900">
+                                ₹{playerFeesTotal.toLocaleString("en-IN")}
+                              </span>
+                            </div>
+                            <Separator className="my-1" />
+                            <div className="flex justify-between font-bold text-base text-slate-900">
+                              <span>Total</span>
+                              <span>₹{grandTotal.toLocaleString("en-IN")}</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                       {event.gst_exempt ? null : (
                         <>
                           <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>

@@ -40,6 +40,7 @@ export function SiteHeader({ forcePill = false }: { forcePill?: boolean } = {}) 
     pathname === "/contact" ||
     pathname === "/receipt" ||
     pathname === "/games" ||
+    pathname === "/box-cricket-championship-2026-payment-link" ||
     pathname.startsWith("/events") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/partner-program") ||
