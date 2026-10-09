@@ -123,6 +123,7 @@ type Action =
   | { type: "START_FAILED" }
   | { type: "START_OK"; token: string; levelIndex: number; question: QuizQuestionView }
   | { type: "SELECT"; slot: number }
+  | { type: "TICK" }
   | { type: "TIMEOUT" }
   | { type: "ANSWER_FAILED" }
   | { type: "REVEAL"; outcome: PendingOutcome }
@@ -171,6 +172,10 @@ function reducer(state: GameState, action: Action): GameState {
       };
     case "SELECT":
       return state.stage === "idle" ? { ...state, selected: action.slot, stage: "selected" } : state;
+    case "TICK":
+      return state.phase === "playing" && state.timer > 0
+        ? { ...state, timer: state.timer - 1 }
+        : state;
     // Timing out with nothing selected goes through the same "selected"
     // stage (selected stays null) as an intentional pick — the effect
     // watching that stage submits it to the server the same way either way.
@@ -401,7 +406,7 @@ export function SoloQuizGame() {
       dispatch({ type: "TIMEOUT" });
       return;
     }
-    const id = setTimeout(() => dispatch({ type: "TICK" as never }), 1000);
+    const id = setTimeout(() => dispatch({ type: "TICK" }), 1000);
     return () => clearTimeout(id);
   }, [state.phase, state.timer, timerPaused]);
 
@@ -495,7 +500,7 @@ export function SoloQuizGame() {
         <TimerRing seconds={state.timer} running={!timerPaused} />
 
         <QuestionBox text={state.question.text} questionKey={state.levelIndex} />
-        <p className="mx-auto mt-3 max-w-xl text-center text-sm font-bold uppercase tracking-wide text-yellow-300 md:text-base">
+        <p className="mx-auto mt-3 max-w-xl text-center text-sm font-bold uppercase tracking-wide text-yellow-200 md:text-base">
           AI assistance is not allowed during this quiz — answer it yourself.
         </p>
 
@@ -540,7 +545,7 @@ export function SoloQuizGame() {
             );
           })}
         </div>
-        <p className="mt-4 text-center text-sm font-bold uppercase tracking-wide text-yellow-300 md:text-base">
+        <p className="mt-4 text-center text-sm font-bold uppercase tracking-wide text-yellow-200 md:text-base">
           Answer honestly — no AI, no outside help.
         </p>
 
