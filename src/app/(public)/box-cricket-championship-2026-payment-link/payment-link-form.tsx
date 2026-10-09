@@ -3,7 +3,17 @@
 import { useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Loader2, Search, CheckCircle2, Clock, AlertCircle, Upload } from "lucide-react";
+import {
+  Loader2,
+  Search,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Upload,
+  Users,
+  ChevronRight,
+  XCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +44,12 @@ function formatRupees(paise: number) {
 export function PaymentLinkForm() {
   const [code, setCode] = useState("");
   const [looking, setLooking] = useState(false);
+  // Found by the exact-code lookup, but not yet confirmed — shown as a
+  // single clickable option (styled like the college dropdown's items)
+  // rather than immediately jumping into the full card + payment form.
+  const [match, setMatch] = useState<TeamLookupResult | null>(null);
   const [team, setTeam] = useState<TeamLookupResult | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
   const [transactionId, setTransactionId] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
@@ -45,7 +60,9 @@ export function PaymentLinkForm() {
     e.preventDefault();
     if (!code.trim()) return;
     setLooking(true);
+    setMatch(null);
     setTeam(null);
+    setNotFound(false);
     setJustSubmitted(false);
     try {
       const res = await fetch(
@@ -53,10 +70,11 @@ export function PaymentLinkForm() {
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(data.error ?? "No team found for that code");
+        setNotFound(true);
+        toast.error(data.error ?? "Team/Person not found");
         return;
       }
-      setTeam(data.result);
+      setMatch(data.result);
     } catch {
       toast.error("Network error — please check your connection and try again");
     } finally {
@@ -141,6 +159,34 @@ export function PaymentLinkForm() {
               Find
             </Button>
           </form>
+
+          {notFound ? (
+            <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-red-800">
+              <XCircle className="size-4 shrink-0" />
+              <p className="text-sm font-medium">Team/Person not found.</p>
+            </div>
+          ) : null}
+
+          {match ? (
+            <button
+              type="button"
+              onClick={() => setTeam(match)}
+              className="mt-3 flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition-colors hover:border-primary/50 hover:bg-primary/5"
+            >
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Users className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-900">
+                  {match.teamName ?? match.captainName ?? "Your team"}
+                </p>
+                <p className="truncate text-xs text-slate-500">
+                  Captain: {match.captainName ?? "—"}
+                </p>
+              </div>
+              <ChevronRight className="size-4 shrink-0 text-slate-400" />
+            </button>
+          ) : null}
         </CardContent>
       </Card>
 

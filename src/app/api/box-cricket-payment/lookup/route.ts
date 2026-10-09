@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
   const result = await lookupBoxCricketTeam(code);
   if (!result) {
-    return NextResponse.json({ error: "No team found for that code" }, { status: 404 });
+    return NextResponse.json({ error: "Team/Person not found" }, { status: 404 });
   }
 
   return NextResponse.json({ result });
