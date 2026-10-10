@@ -1,6 +1,7 @@
 import "server-only";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { applyGst } from "@/lib/gst";
+import { boxCricketPlayerFeeTotalPaise } from "@/lib/box-cricket-fees";
 import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
 import { isRazorpayEnabled } from "@/lib/app-settings";
 
@@ -159,6 +160,10 @@ export async function createTeamRegistration(
     return { ok: false, status: 400, error: "Captain's phone number is required" };
   }
   const gst = applyGst(event.fee_paise, event.gst_exempt);
+  // Box Cricket's ₹29/player ID-card fee rides along in the same Razorpay
+  // charge as the team entry fee — see box-cricket-fees.ts.
+  const playerFeesPaise = boxCricketPlayerFeeTotalPaise(event.slug, input.players.length);
+  const amountPaise = gst.totalPaise + playerFeesPaise;
 
   const { data: registration, error: regError } = await admin
     .from("registrations")
@@ -171,7 +176,7 @@ export async function createTeamRegistration(
       captain_phone: primaryContact.phone,
       captain_email: input.captainEmail ?? null,
       referred_by_college_campus_partner_id: input.referredByCollegeCampusPartnerId || null,
-      amount_paise: gst.totalPaise,
+      amount_paise: amountPaise,
       status: "pending_payment",
     })
     .select("*")

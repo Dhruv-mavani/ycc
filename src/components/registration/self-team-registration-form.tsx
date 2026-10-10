@@ -250,12 +250,12 @@ export function SelfTeamRegistrationForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {gstExempt ? (
-            feePaise > 0 ? (
+            submitted.amountPaise > 0 ? (
               <div className="flex justify-between text-sm font-semibold">
                 <span>Total payable</span>
                 <span>
                   ₹
-                  {(feePaise / 100).toLocaleString("en-IN", {
+                  {(submitted.amountPaise / 100).toLocaleString("en-IN", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
