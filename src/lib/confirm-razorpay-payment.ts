@@ -3,9 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { finalizeRegistration } from "@/lib/finalize-registration";
 
 /**
- * Sibling to confirm-payment.ts (Cashfree) — same idempotent shape, keyed
- * on razorpay_order_id instead of a Cashfree link id since that's what's
- * known at order-creation time (see /api/razorpay/create-order).
+ * Idempotent payment-confirmation shape, keyed on razorpay_order_id since
+ * that's what's known at order-creation time (see /api/razorpay/create-order).
  * Idempotent on payments.status so a retried webhook delivery (Razorpay
  * retries on non-2xx, and can also just send duplicates) safely no-ops.
  */

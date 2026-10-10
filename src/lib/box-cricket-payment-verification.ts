@@ -24,7 +24,7 @@ export interface TeamLookupResult {
   teamName: string | null;
   captainName: string | null;
   amountPaise: number;
-  /** Already confirmed paid (cash, Cashfree, or a previously-verified screenshot). */
+  /** Already confirmed paid (cash, Razorpay, or a previously-verified screenshot). */
   paid: boolean;
   /** A submission from this team is sitting in the review queue. */
   pendingReview: boolean;

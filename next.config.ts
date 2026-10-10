@@ -18,8 +18,8 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           // No window.open()/window.opener usage anywhere in this app
-          // (Cashfree checkout and Supabase Google OAuth both use
-          // same-tab redirects) — safe to isolate the browsing context.
+          // (Razorpay checkout and Supabase Google OAuth both use
+          // same-tab redirects/modals) — safe to isolate the browsing context.
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           // Same intent as X-Frame-Options but the modern, CSP-based

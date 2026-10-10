@@ -143,7 +143,22 @@ export function GoGoaGoneIndividualForm({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {gstExempt ? null : <GstBreakdown basePaise={feePaise} />}
+          {gstExempt ? (
+            feePaise > 0 ? (
+              <div className="flex justify-between text-sm font-semibold">
+                <span>Total payable</span>
+                <span>
+                  ₹
+                  {(feePaise / 100).toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            ) : null
+          ) : (
+            <GstBreakdown basePaise={feePaise} />
+          )}
           <RazorpayCheckoutButton
             registrationId={submitted.registrationId}
             eventName={eventName}

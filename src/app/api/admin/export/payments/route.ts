@@ -8,9 +8,14 @@ function csvEscape(value: string) {
 }
 
 const CSV_HEADER = [
+  // cashfree_* only ever populated for registrations paid before the
+  // Razorpay switch — kept so old exports/scripts reading this column
+  // order still work.
   "cashfree_link_id",
   "cashfree_order_id",
   "cashfree_payment_id",
+  "razorpay_order_id",
+  "razorpay_payment_id",
   "amount_rupees",
   "paid_at",
   "event",
@@ -61,6 +66,8 @@ export async function GET() {
       p.cashfree_link_id ?? "",
       p.cashfree_order_id ?? "",
       p.cashfree_payment_id ?? "",
+      p.razorpay_order_id ?? "",
+      p.razorpay_payment_id ?? "",
       (p.amount_paise / 100).toFixed(2),
       p.updated_at,
       reg ? (eventNameById.get(reg.event_id) ?? "") : "",

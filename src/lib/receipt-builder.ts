@@ -59,7 +59,7 @@ export async function buildReceiptPdf(
         .order("created_at"),
       admin
         .from("payments")
-        .select("cashfree_payment_id, updated_at")
+        .select("cashfree_payment_id, razorpay_payment_id, updated_at")
         .eq("registration_id", registrationId)
         .eq("status", "paid")
         .order("updated_at", { ascending: false })
@@ -89,7 +89,7 @@ export async function buildReceiptPdf(
     })),
   );
 
-  // No online (Cashfree) payment on record for a fee-owing registration
+  // No online (Razorpay) payment on record for a fee-owing registration
   // means it's a pay_at_venue entry — cash is still due at the venue. This
   // is derived from actual data (not the event's pay_at_venue flag) so the
   // receipt always reflects reality even if that flag changes later.
@@ -105,7 +105,10 @@ export async function buildReceiptPdf(
     type: registration.type,
     basePaise: event.fee_paise,
     paidAt: payment?.updated_at ?? new Date().toISOString(),
-    cashfreePaymentId: payment?.cashfree_payment_id ?? null,
+    // razorpay_payment_id for every new transaction; cashfree_payment_id
+    // only ever populated for registrations paid before the Razorpay
+    // switch — both land in the same "Transaction ID" field on the receipt.
+    transactionId: payment?.razorpay_payment_id ?? payment?.cashfree_payment_id ?? null,
     captainName: registration.captain_name,
     participants: participantsWithQr,
     includeCongratsLetter:

@@ -44,8 +44,8 @@ export async function POST(request: Request) {
   const eventName = (registration as { events?: { name?: string } }).events?.name ?? "YCC event";
 
   // Razorpay receipt strings are capped at 40 chars and must be unique per
-  // order attempt (a retried/abandoned order shouldn't collide) — same
-  // reasoning as Cashfree's timestamp-suffixed link_id.
+  // order attempt — timestamp-suffixed so a retried/abandoned order never
+  // collides with a fresh one for the same registration.
   const receipt = `${registration.id}-${Date.now()}`.slice(0, 40);
 
   const order = await razorpay.orders.create({

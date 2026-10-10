@@ -28,7 +28,7 @@ export type TeamRegistrationResult =
       sgstPaise: number;
       igstPaise: number;
       /** True when the event is `pay_at_venue` — registration is already
-       * confirmed (no Cashfree checkout needed); the caller should send the
+       * confirmed (no Razorpay checkout needed); the caller should send the
        * player straight to the receipt/download step instead of payment. */
       confirmed: boolean;
     }
@@ -40,7 +40,7 @@ export type TeamRegistrationResult =
  * (src/app/api/registrations/route.ts) and the YCC Co-Partner team
  * registration route, which builds its player list from already-approved
  * Classmate Partner records instead of a fresh form — both need identical
- * downstream behavior (GST calc, pending_payment status, Cashfree flow).
+ * downstream behavior (GST calc, pending_payment status, Razorpay flow).
  */
 export async function createTeamRegistration(
   admin: ReturnType<typeof createAdminClient>,

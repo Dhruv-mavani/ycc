@@ -5,8 +5,8 @@ type AdminClient = ReturnType<typeof createAdminClient>;
 
 /**
  * Cash-collection tracking for pay_at_venue registrations. The `payments`
- * table otherwise only ever holds real Cashfree transactions (see its
- * cashfree_* columns) — a cash payment is recorded the same way (a row with
+ * table otherwise only ever holds real online-payment transactions (see its
+ * cashfree_* and razorpay_* columns) — a cash payment is recorded the same way (a row with
  * status "paid") but with those columns left null and a `raw_payload`
  * marker noting it was cash, so this stays distinguishable from an online
  * payment on inspection while reusing every "is this registration paid?"

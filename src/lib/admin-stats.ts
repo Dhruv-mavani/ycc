@@ -182,7 +182,7 @@ export async function getCashCollectionOverview(): Promise<
     .eq("is_active", true)
     // A pay_at_venue event with a real fee still owes cash at check-in; one
     // with fee_paise 0 (a free event that just uses pay_at_venue to skip
-    // Cashfree — see confirmPayAtVenueRegistration) owes nothing, so it
+    // Razorpay — see confirmPayAtVenueRegistration) owes nothing, so it
     // doesn't belong on a "cash to collect" page.
     .gt("fee_paise", 0);
 

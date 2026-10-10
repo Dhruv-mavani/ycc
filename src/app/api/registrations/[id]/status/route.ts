@@ -46,7 +46,7 @@ export async function GET(
       name: p.name,
       uniqueId: p.unique_id,
     }));
-    // No online (Cashfree) payment on record for a fee-owing registration
+    // No online (Razorpay) payment on record for a fee-owing registration
     // means it's a pay_at_venue entry — cash is still due at the venue.
     paymentDue = !paidPayment && registration.amount_paise > 0;
   }

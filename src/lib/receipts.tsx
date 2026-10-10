@@ -187,7 +187,7 @@ export interface ReceiptData {
   /** Base (pre-tax) price for this registration — GST is computed from this. */
   basePaise: number;
   paidAt: string;
-  cashfreePaymentId: string | null;
+  transactionId: string | null;
   captainName: string | null;
   participants: ReceiptParticipant[];
   /** Self-registered (non-partner-gated) team events get a congrats letter as the opening page. */
@@ -275,13 +275,13 @@ function ReceiptDocument({ data }: { data: ReceiptData }) {
           <View style={styles.metaBlock}>
             <Text style={styles.metaLabel}>Unique ID</Text>
             <Text style={styles.metaValue}>{referenceId}</Text>
-            {data.cashfreePaymentId ? (
+            {data.transactionId ? (
               <>
                 <Text style={[styles.metaLabel, { marginTop: 4 }]}>
                   Transaction ID
                 </Text>
                 <Text style={styles.metaValueSmall}>
-                  {data.cashfreePaymentId}
+                  {data.transactionId}
                 </Text>
               </>
             ) : null}

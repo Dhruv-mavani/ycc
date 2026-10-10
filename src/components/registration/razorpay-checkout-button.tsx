@@ -28,11 +28,10 @@ function loadRazorpayScript(): Promise<boolean> {
 }
 
 // Opens Razorpay's embedded Checkout.js modal (no redirect away from the
-// site, unlike CashfreeCheckoutButton's hosted-page redirect). Confirmation
-// itself happens via the "payment.captured" webhook (see
-// src/app/api/webhooks/razorpay/route.ts) — on success, this just sends the
-// visitor to /payment/success, same as Cashfree's return_url does, where
-// the existing PaymentStatusPoller waits for that webhook to land. No
+// site). Confirmation itself happens via the "payment.captured" webhook
+// (see src/app/api/webhooks/razorpay/route.ts) — on success, this just
+// sends the visitor to /payment/success, where the existing
+// PaymentStatusPoller waits for that webhook to land. No
 // client-side signature check here on purpose: the webhook is the one
 // authoritative confirmation path, so there's nothing to gain from also
 // trusting a value the browser handed back, only more code that could get
