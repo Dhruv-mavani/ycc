@@ -17,6 +17,14 @@ export type PartnerApplicationStatus = "pending" | "approved" | "rejected";
 export type PartnerTeam = "A" | "B";
 export type PaymentSubmissionStatus = "pending" | "verified" | "rejected";
 
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export interface Database {
   public: {
     Tables: {
@@ -243,6 +251,10 @@ export interface Database {
           cashfree_link_id: string | null;
           cashfree_order_id: string | null;
           cashfree_payment_id: string | null;
+          razorpay_payment_link_id: string | null;
+          razorpay_order_id: string | null;
+          razorpay_payment_id: string | null;
+          razorpay_signature: string | null;
           amount_paise: number;
           status: PaymentStatus;
           raw_payload: Record<string, unknown> | null;
@@ -255,6 +267,10 @@ export interface Database {
           cashfree_link_id?: string | null;
           cashfree_order_id?: string | null;
           cashfree_payment_id?: string | null;
+          razorpay_payment_link_id?: string | null;
+          razorpay_order_id?: string | null;
+          razorpay_payment_id?: string | null;
+          razorpay_signature?: string | null;
           amount_paise: number;
           status?: PaymentStatus;
           raw_payload?: Record<string, unknown> | null;
@@ -530,6 +546,22 @@ export interface Database {
         Update: Partial<
           Database["public"]["Tables"]["box_cricket_payment_submissions"]["Insert"]
         >;
+        Relationships: [];
+      };
+      app_settings: {
+        Row: {
+          key: string;
+          value: Json;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          key: string;
+          value: Json;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;
         Relationships: [];
       };
       bank_statement_uploads: {

@@ -2,6 +2,7 @@ import "server-only";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { applyGst } from "@/lib/gst";
 import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
+import { isRazorpayEnabled } from "@/lib/app-settings";
 import type { TeamRegistrationResult } from "@/lib/create-team-registration";
 
 // Events that take an open, one-person entry through this flow. Anything
@@ -130,7 +131,9 @@ export async function createSelfIndividualRegistration(
     return { ok: false, status: 500, error: "Could not save your details" };
   }
 
-  if (event.pay_at_venue) {
+  // Same kill-switch fallback as create-team-registration.ts.
+  const fallsBackToCash = event.pay_at_venue || !(await isRazorpayEnabled());
+  if (fallsBackToCash) {
     await confirmPayAtVenueRegistration(admin, registration.id);
   }
 
@@ -142,6 +145,6 @@ export async function createSelfIndividualRegistration(
     cgstPaise: gst.cgstPaise,
     sgstPaise: gst.sgstPaise,
     igstPaise: gst.igstPaise,
-    confirmed: event.pay_at_venue,
+    confirmed: fallsBackToCash,
   };
 }

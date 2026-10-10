@@ -15,6 +15,8 @@ import { CollegeRevenueChart } from "@/components/admin/college-revenue-chart";
 import { RegistrationsTrendChart } from "@/components/admin/registrations-trend-chart";
 import { PartnerOverviewTable } from "@/components/admin/partner-overview-table";
 import { AdminNavButtons } from "@/components/admin/admin-nav-buttons";
+import { RazorpayKillSwitch } from "@/components/admin/razorpay-kill-switch";
+import { isRazorpayEnabled } from "@/lib/app-settings";
 import { PageSpinner } from "@/components/site/page-spinner";
 import {
   Card,
@@ -80,11 +82,22 @@ export default async function AdminDashboardPage({
         <AdminNavButtons initialPendingStaffCount={pendingStaffCount ?? 0} />
       </div>
 
+      <Suspense
+        fallback={<div className="h-28 w-full rounded-xl bg-muted animate-pulse" />}
+      >
+        <RazorpaySwitchSection />
+      </Suspense>
+
       <Suspense key={`${eventId ?? "all"}-${range ?? "all"}`} fallback={<PageSpinner className="min-h-[50vh]" />}>
         <DashboardData eventId={eventId} range={range} />
       </Suspense>
     </div>
   );
+}
+
+async function RazorpaySwitchSection() {
+  const enabled = await isRazorpayEnabled();
+  return <RazorpayKillSwitch initialEnabled={enabled} />;
 }
 
 async function DashboardData({

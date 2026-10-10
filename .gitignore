@@ -36,6 +36,7 @@ yarn-error.log*
 
 # real credentials — never commit
 google Oauth secret/
+assets/rzp-key.csv
 
 # vercel
 .vercel

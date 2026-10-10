@@ -28,7 +28,7 @@ import {
   teamRegistrationSchema,
   type TeamRegistrationInput,
 } from "@/lib/validations/registration";
-import { CashfreeCheckoutButton } from "@/components/registration/cashfree-checkout-button";
+import { RazorpayCheckoutButton } from "@/components/registration/razorpay-checkout-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
 import { BoxCricketTermsContent } from "@/components/registration/box-cricket-terms-content";
 
@@ -60,8 +60,8 @@ export function SelfTeamRegistrationForm({
   eventName: string;
   maxTeamSize: number;
   feePaise: number;
-  /** Skips Cashfree entirely — registration confirms immediately and the
-   * entry fee is collected in cash at the venue instead. */
+  /** Skips online payment entirely — registration confirms immediately and
+   * the entry fee is collected in cash at the venue instead. */
   payAtVenue?: boolean;
   /** No GST on top of feePaise — it's the flat total, so the "+ 18% GST"
    * copy is dropped. */
@@ -208,9 +208,10 @@ export function SelfTeamRegistrationForm({
 
       const data = await res.json();
 
-      // pay_at_venue events skip Cashfree entirely — the registration is
-      // already "confirmed" server-side, so send the captain straight to
-      // the same success page a paid registration lands on after checkout.
+      // pay_at_venue events (or the Razorpay kill switch being off) skip
+      // online payment entirely — the registration is already "confirmed"
+      // server-side, so send the captain straight to the same success page
+      // a paid registration lands on after checkout.
       // That page polls status, finds it already confirmed, and
       // auto-downloads the receipt — no separate UI needed here.
       if (data.confirmed) {
@@ -249,7 +250,7 @@ export function SelfTeamRegistrationForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {gstExempt ? null : <GstBreakdown basePaise={feePaise} />}
-          <CashfreeCheckoutButton
+          <RazorpayCheckoutButton
             registrationId={submitted.registrationId}
             eventName={eventName}
             prefillName={submitted.captainName}

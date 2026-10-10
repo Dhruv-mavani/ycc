@@ -28,7 +28,7 @@ import {
   selfIndividualRegistrationSchema,
   type SelfIndividualRegistrationInput,
 } from "@/lib/validations/registration";
-import { CashfreeCheckoutButton } from "@/components/registration/cashfree-checkout-button";
+import { RazorpayCheckoutButton } from "@/components/registration/razorpay-checkout-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
 import { GoGoaGoneTermsContent } from "@/components/registration/go-goa-gone-terms-content";
 
@@ -61,7 +61,7 @@ export function GoGoaGoneIndividualForm({
   eventId: string;
   eventName: string;
   feePaise: number;
-  /** Skips Cashfree — the registration confirms immediately. */
+  /** Skips online payment — the registration confirms immediately. */
   payAtVenue?: boolean;
   gstExempt?: boolean;
   colleges: CollegeOption[];
@@ -144,7 +144,7 @@ export function GoGoaGoneIndividualForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {gstExempt ? null : <GstBreakdown basePaise={feePaise} />}
-          <CashfreeCheckoutButton
+          <RazorpayCheckoutButton
             registrationId={submitted.registrationId}
             eventName={eventName}
             prefillName={submitted.name}

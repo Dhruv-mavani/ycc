@@ -29,7 +29,7 @@ import {
   teamRegistrationSchema,
   type TeamRegistrationInput,
 } from "@/lib/validations/registration";
-import { CashfreeCheckoutButton } from "@/components/registration/cashfree-checkout-button";
+import { RazorpayCheckoutButton } from "@/components/registration/razorpay-checkout-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
 
 interface ReferrerOption {
@@ -221,7 +221,7 @@ export function TeamRegistrationForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <GstBreakdown basePaise={feePaise} />
-          <CashfreeCheckoutButton
+          <RazorpayCheckoutButton
             registrationId={submitted.registrationId}
             eventName={eventName}
             prefillName={submitted.captainName}

@@ -2,6 +2,7 @@ import "server-only";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { applyGst } from "@/lib/gst";
 import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
+import { isRazorpayEnabled } from "@/lib/app-settings";
 
 export interface CreateTeamRegistrationInput {
   eventId: string;
@@ -194,7 +195,12 @@ export async function createTeamRegistration(
     return { ok: false, status: 500, error: "Could not save participants" };
   }
 
-  if (event.pay_at_venue) {
+  // The Razorpay kill switch falls back to exactly the same immediate-
+  // cash-confirmation path pay_at_venue already uses — see app-settings.ts
+  // for why this fails safe (OFF) rather than silently enabling live
+  // payments on a settings-read error.
+  const fallsBackToCash = event.pay_at_venue || !(await isRazorpayEnabled());
+  if (fallsBackToCash) {
     await confirmPayAtVenueRegistration(admin, registration.id);
   }
 
@@ -206,6 +212,6 @@ export async function createTeamRegistration(
     cgstPaise: gst.cgstPaise,
     sgstPaise: gst.sgstPaise,
     igstPaise: gst.igstPaise,
-    confirmed: event.pay_at_venue,
+    confirmed: fallsBackToCash,
   };
 }

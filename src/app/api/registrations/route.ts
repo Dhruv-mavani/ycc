@@ -5,6 +5,7 @@ import { applyGst } from "@/lib/gst";
 import { createTeamRegistration } from "@/lib/create-team-registration";
 import { createSelfIndividualRegistration } from "@/lib/create-self-individual-registration";
 import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
+import { isRazorpayEnabled } from "@/lib/app-settings";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -160,7 +161,11 @@ export async function POST(request: Request) {
     );
   }
 
-  if (event.pay_at_venue) {
+  // Same kill-switch fallback as create-team-registration.ts — see
+  // app-settings.ts for why a settings-read failure falls to cash (OFF),
+  // not to live payments.
+  const fallsBackToCash = event.pay_at_venue || !(await isRazorpayEnabled());
+  if (fallsBackToCash) {
     await confirmPayAtVenueRegistration(admin, registration.id);
   }
 
@@ -171,6 +176,6 @@ export async function POST(request: Request) {
     cgstPaise: gst.cgstPaise,
     sgstPaise: gst.sgstPaise,
     igstPaise: gst.igstPaise,
-    confirmed: event.pay_at_venue,
+    confirmed: fallsBackToCash,
   });
 }

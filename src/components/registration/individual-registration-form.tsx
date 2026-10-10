@@ -27,7 +27,7 @@ import {
   individualRegistrationSchema,
   type IndividualRegistrationInput,
 } from "@/lib/validations/registration";
-import { CashfreeCheckoutButton } from "@/components/registration/cashfree-checkout-button";
+import { RazorpayCheckoutButton } from "@/components/registration/razorpay-checkout-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
 
 interface PartnerOption {
@@ -119,7 +119,7 @@ export function IndividualRegistrationForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <GstBreakdown basePaise={feePaise} />
-          <CashfreeCheckoutButton
+          <RazorpayCheckoutButton
             registrationId={submitted.registrationId}
             eventName={eventName}
             prefillName={submitted.name}
