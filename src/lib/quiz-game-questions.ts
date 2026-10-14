@@ -20,7 +20,7 @@ import "server-only";
 //
 // 913 questions across 5 difficulty tiers (176-195 per tier), mixing cricket
 // trivia, general knowledge, and riddles, escalating in difficulty tier by
-// tier. A single game only plays 10 questions (2 randomly drawn per tier)
+// tier. A single game only plays 15 questions (3 randomly drawn per tier)
 // so the same playthrough never repeats a question — and with 5000+
 // people expected to play this pool, a bigger bank directly reduces (but,
 // by the math, can never fully eliminate) how often the same question
@@ -76,8 +76,8 @@ export interface QuestionTier {
   questions: QuizQuestion[]; // 176-195 candidates per tier
 }
 
-export const LEVELS_PER_TIER = 2;
-export const TOTAL_LEVELS = 10;
+export const LEVELS_PER_TIER = 3;
+export const TOTAL_LEVELS = 15;
 
 export const QUESTION_TIERS: QuestionTier[] = [
   {

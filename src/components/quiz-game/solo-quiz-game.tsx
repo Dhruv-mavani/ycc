@@ -49,8 +49,8 @@ import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-
 // ---------------------------------------------------------------------------
 
 const OPTION_LABELS = ["A", "B", "C", "D"] as const;
-const TIMER_SECONDS = 30;
-const TOTAL_LEVELS = 10; // mirrors the server's own TOTAL_LEVELS (quiz-game-questions.ts) — just a display fact, not a secret, so it's simplest to keep this one small constant duplicated here rather than import anything from the now server-only question bank.
+const TIMER_SECONDS = 45;
+const TOTAL_LEVELS = 15; // mirrors the server's own TOTAL_LEVELS (quiz-game-questions.ts) — just a display fact, not a secret, so it's simplest to keep this one small constant duplicated here rather than import anything from the now server-only question bank.
 
 const GENIUS_PHRASES = [
   "Haha, I don't know... but try option {answer}!",
