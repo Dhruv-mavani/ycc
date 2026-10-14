@@ -4676,3 +4676,102 @@ export const QUESTION_TIERS: QuestionTier[] = [
     ],
   },
 ];
+
+// A separate pool, used only for the last few questions of a run (see
+// TRAP_LEVELS_FROM in quiz-session.ts) instead of QUESTION_TIERS — classic
+// lateral-thinking/wordplay/arithmetic-trick questions, deliberately picked
+// because they bait a confident but WRONG first-glance answer (an AI asked
+// cold, same as a person asked cold, tends to pattern-match to the trap)
+// rather than because the fact itself is obscure. Not a guarantee — a
+// careful reasoning model can still work through most of these correctly —
+// just a meaningfully higher bar than general trivia, which any model
+// answers from training data with near-total reliability. Every entry here
+// is a well-established classic with one unambiguous correct answer (not
+// an invented or debatable "gotcha"), individually checked against the
+// rest of this file for duplicates before being added (a few classics in
+// this exact style already existed in tier 5 — see e.g. "13 hearts but no
+// other organs", "two fathers and two sons", "shoots her husband" — this
+// pool deliberately doesn't repeat any of those).
+export const AI_TRAP_QUESTIONS: QuizQuestion[] = [
+  {
+    question:
+      "A man buys a horse for ₹60, sells it for ₹70, then buys it back for ₹80, and sells it again for ₹90. What is his total profit?",
+    options: ["₹0", "₹10", "₹20", "₹30"],
+    correctIndex: 2,
+  },
+  {
+    question: "You're running a race and you overtake the person in 2nd place. What place are you in now?",
+    options: ["1st place", "2nd place", "3rd place", "It's a tie for 2nd"],
+    correctIndex: 1,
+  },
+  {
+    question:
+      "A doctor tells you to take 3 pills, one every 30 minutes. How long does it take to take all 3 pills?",
+    options: ["30 minutes", "1 hour", "1 hour 30 minutes", "2 hours"],
+    correctIndex: 1,
+  },
+  {
+    question: "Riddle: I have branches, but no fruit, no trunk, and no leaves. What am I?",
+    options: ["A bank", "A river", "A family tree", "A library"],
+    correctIndex: 0,
+  },
+  {
+    question: "Before Mount Everest was discovered to be the tallest mountain in the world, what was the tallest mountain in the world?",
+    options: ["K2", "Kangchenjunga", "Mount Everest", "No mountain had been measured yet"],
+    correctIndex: 2,
+  },
+  {
+    question: "A farmer has 15 cows in a field. All but 8 run away. How many cows are left in the field?",
+    options: ["7", "8", "15", "0"],
+    correctIndex: 1,
+  },
+  {
+    question: "Which weighs more: a kilogram of feathers or a kilogram of steel?",
+    options: ["The steel", "The feathers", "They weigh exactly the same", "Depends on the room's altitude"],
+    correctIndex: 2,
+  },
+  {
+    question:
+      "A plane crashes exactly on the border between the USA and Canada, and there are several survivors. In which country are the survivors buried?",
+    options: ["The USA", "Canada", "Survivors aren't buried — they're alive", "Whichever side has more wreckage"],
+    correctIndex: 2,
+  },
+  {
+    question:
+      "You're in a dark room with exactly one match, a candle, a wood stove, and a gas lamp. What do you light first?",
+    options: ["The candle", "The wood stove", "The gas lamp", "The match"],
+    correctIndex: 3,
+  },
+  {
+    question: "A hole is dug 3 feet wide, 3 feet long, and 3 feet deep. How much dirt is in the hole?",
+    options: ["27 cubic feet", "9 cubic feet", "None — a hole is empty", "3 cubic feet"],
+    correctIndex: 2,
+  },
+  {
+    question: "A rooster lays an egg right on the very peak of a barn's roof. Which way does the egg roll — left or right?",
+    options: ["Left", "Right", "Straight down the middle", "Neither — roosters don't lay eggs"],
+    correctIndex: 3,
+  },
+  {
+    question:
+      "A man is pushing his car down the road. He stops outside a hotel and tells the owner he's bankrupt — and the owner instantly understands exactly why. What's going on?",
+    options: ["They're playing Monopoly", "The man works there", "It's an insurance scam", "The car ran out of fuel nearby"],
+    correctIndex: 0,
+  },
+  {
+    question: "If you have 6 apples and you take away 4, how many apples do you have?",
+    options: ["2", "4", "6", "0"],
+    correctIndex: 1,
+  },
+  {
+    question:
+      "A man lives on the 10th floor. Every morning he rides the lift down to the ground floor. Every evening, he rides it back up — but only to the 7th floor, walking the rest — except on rainy days, when he rides it straight to the 10th. Why?",
+    options: [
+      "He's too short to reach the 10th-floor button, except when his umbrella can reach it for him",
+      "The lift breaks down past the 7th floor on dry days",
+      "He's getting exercise, except when it's raining outside",
+      "The 10th-floor button only works when the lift carries extra weight",
+    ],
+    correctIndex: 0,
+  },
+];

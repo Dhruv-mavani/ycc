@@ -2,7 +2,21 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { lookupGameTeamById, hasAlreadyPlayed, type GameTeamSource } from "@/lib/game-plays";
-import { QUESTION_TIERS, LEVELS_PER_TIER, TOTAL_LEVELS } from "@/lib/quiz-game-questions";
+import {
+  QUESTION_TIERS,
+  AI_TRAP_QUESTIONS,
+  LEVELS_PER_TIER,
+  TOTAL_LEVELS,
+  type QuizQuestion,
+} from "@/lib/quiz-game-questions";
+
+// The last 3 questions of every run (levels 12-14 of 15) are drawn from
+// AI_TRAP_QUESTIONS instead of the normal escalating tiers — see that
+// pool's own doc comment in quiz-game-questions.ts for why. Tier 5 (the
+// hardest general-trivia tier, which these 3 slots would otherwise have
+// come from) is simply not drawn from for now; its content is untouched
+// and ready to use again if the question count or slot count changes.
+const TRAP_LEVELS_FROM = TOTAL_LEVELS - 3;
 
 // ---------------------------------------------------------------------------
 // Server-authoritative counterpart to Quiz Champion's former fully
@@ -90,6 +104,14 @@ function tierForLevel(levelIndex: number): number {
   return Math.floor(levelIndex / LEVELS_PER_TIER);
 }
 
+// Which pool a given level's question comes from — the normal escalating
+// tier, or AI_TRAP_QUESTIONS for the last 3 levels. See TRAP_LEVELS_FROM.
+function questionPoolFor(levelIndex: number): QuizQuestion[] {
+  return levelIndex >= TRAP_LEVELS_FROM
+    ? AI_TRAP_QUESTIONS
+    : QUESTION_TIERS[tierForLevel(levelIndex)].questions;
+}
+
 function pickIndexExcluding(poolLength: number, exclude: number[]): number {
   const candidates = Array.from({ length: poolLength }, (_, i) => i).filter((i) => !exclude.includes(i));
   const pool = candidates.length > 0 ? candidates : Array.from({ length: poolLength }, (_, i) => i);
@@ -101,9 +123,15 @@ function assignAllLevels(): Record<number, number> {
   QUESTION_TIERS.forEach((tier, tierIdx) => {
     const shuffled = Array.from({ length: tier.questions.length }, (_, i) => i).sort(() => Math.random() - 0.5);
     for (let slot = 0; slot < LEVELS_PER_TIER; slot++) {
-      assigned[tierIdx * LEVELS_PER_TIER + slot] = shuffled[slot % shuffled.length];
+      const levelIndex = tierIdx * LEVELS_PER_TIER + slot;
+      if (levelIndex >= TRAP_LEVELS_FROM) continue; // assigned from AI_TRAP_QUESTIONS below instead
+      assigned[levelIndex] = shuffled[slot % shuffled.length];
     }
   });
+  const trapShuffled = Array.from({ length: AI_TRAP_QUESTIONS.length }, (_, i) => i).sort(() => Math.random() - 0.5);
+  for (let levelIndex = TRAP_LEVELS_FROM; levelIndex < TOTAL_LEVELS; levelIndex++) {
+    assigned[levelIndex] = trapShuffled[(levelIndex - TRAP_LEVELS_FROM) % trapShuffled.length];
+  }
   return assigned;
 }
 
@@ -113,8 +141,7 @@ function assignAllLevels(): Record<number, number> {
 // version, which shuffled once for the whole game) since there's no
 // downside to it now that the server controls it.
 function buildQuestion(levelIndex: number, poolIndex: number): { view: QuizQuestionView; correctSlot: number } {
-  const tier = QUESTION_TIERS[tierForLevel(levelIndex)];
-  const q = tier.questions[poolIndex];
+  const q = questionPoolFor(levelIndex)[poolIndex];
   const slotOrder = [0, 1, 2, 3].sort(() => Math.random() - 0.5); // slotOrder[slot] = true option index shown at that slot
   const options = slotOrder.map((trueIndex) => q.options[trueIndex]) as [string, string, string, string];
   const correctSlot = slotOrder.indexOf(q.correctIndex);
@@ -122,8 +149,7 @@ function buildQuestion(levelIndex: number, poolIndex: number): { view: QuizQuest
 }
 
 function correctAnswerTextFor(levelIndex: number, poolIndex: number): string {
-  const tier = QUESTION_TIERS[tierForLevel(levelIndex)];
-  const q = tier.questions[poolIndex];
+  const q = questionPoolFor(levelIndex)[poolIndex];
   return q.options[q.correctIndex];
 }
 
@@ -305,13 +331,22 @@ export async function applyQuizLifeline(input: { token: string; lifeline: Lifeli
   }
 
   // flip — swaps the current level's question for a different one from the
-  // same tier, excluding every pool index already assigned elsewhere in
-  // this tier (so it can't flip into a question another level will ask).
-  const tier = tierForLevel(payload.levelIndex);
-  const tierStart = tier * LEVELS_PER_TIER;
-  const usedInTier = Array.from({ length: LEVELS_PER_TIER }, (_, i) => payload.assignedIndexByLevel[tierStart + i]);
-  const newPoolIndex = pickIndexExcluding(QUESTION_TIERS[tier].questions.length, usedInTier);
-  const { view, correctSlot } = buildQuestion(payload.levelIndex, newPoolIndex);
+  // same pool (the normal tier, or AI_TRAP_QUESTIONS for the last 3
+  // levels), excluding every pool index already assigned elsewhere among
+  // the levels sharing that same pool (so it can't flip into a question
+  // another level in this run will ask).
+  const levelIndex = payload.levelIndex;
+  const pool = questionPoolFor(levelIndex);
+  const sameSourceLevels =
+    levelIndex >= TRAP_LEVELS_FROM
+      ? Array.from({ length: TOTAL_LEVELS - TRAP_LEVELS_FROM }, (_, i) => TRAP_LEVELS_FROM + i)
+      : (() => {
+          const tierStart = tierForLevel(levelIndex) * LEVELS_PER_TIER;
+          return Array.from({ length: LEVELS_PER_TIER }, (_, i) => tierStart + i);
+        })();
+  const usedInPool = sameSourceLevels.map((lvl) => payload.assignedIndexByLevel[lvl]);
+  const newPoolIndex = pickIndexExcluding(pool.length, usedInPool);
+  const { view, correctSlot } = buildQuestion(levelIndex, newPoolIndex);
   const newPayload: QuizTokenPayload = {
     ...payload,
     assignedIndexByLevel: { ...payload.assignedIndexByLevel, [payload.levelIndex]: newPoolIndex },
