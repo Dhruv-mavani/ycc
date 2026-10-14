@@ -289,7 +289,7 @@ export function MysteryBoxGame() {
           </ol>
         </div>
 
-        <TeamPlayerGate onSelectionChange={setSelection} />
+        <TeamPlayerGate game="mystry-box" onSelectionChange={setSelection} />
 
         <button
           type="button"

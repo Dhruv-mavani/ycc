@@ -15,6 +15,18 @@ function sanitizeForOrFilter(value: string): string {
 export const GAME_SLUGS = ["spin-wheel", "mystry-box", "roll-a-dice", "quiz-champion"] as const;
 export type GameSlug = (typeof GAME_SLUGS)[number];
 
+// One entry per code per game. Level Up's two legs (spin-wheel, roll-a-dice)
+// are grouped together here — a run always writes one row of each, so
+// checking either slug catches "already ran Level Up," while the two
+// individual game_slugs stay separate in game_plays itself (unchanged,
+// still paired back together by levelUpSessionId for admin insights).
+export const LEVEL_UP_SLUGS = ["spin-wheel", "roll-a-dice"] as const satisfies readonly GameSlug[];
+
+// Enforced here (app-level, check-then-insert — same pattern as the
+// duplicate-team-name/phone checks in create-team-registration.ts), not as
+// a DB unique constraint: game_plays already holds real pre-existing plays
+// from before this restriction existed, and a retroactive constraint can't
+// be added without deleting that real history. New plays only, from here on.
 export type GameTeamSource = "registration" | "partner" | "school" | "individual_free";
 
 export interface GamePlayer {
@@ -239,6 +251,46 @@ export function lookupGameTeamById(
   return individualFreeRoster(teamRefId);
 }
 
+/** True if this exact code (source + player) already has a recorded play
+ * for any of the given game_slugs — the one-entry-per-code-per-game check,
+ * called right before a round is drawn/a quiz session is started. */
+export async function hasAlreadyPlayed(
+  gameSlugs: readonly GameSlug[],
+  source: GameTeamSource,
+  playerRefId: string,
+): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("game_plays")
+    .select("id")
+    .in("game_slug", gameSlugs)
+    .eq("source", source)
+    .eq("player_ref_id", playerRefId)
+    .limit(1)
+    .maybeSingle();
+  return !!data;
+}
+
+/** Same check as hasAlreadyPlayed, batched across a whole roster — used by
+ * the team-lookup route to flag already-played teammates up front, before
+ * anyone picks a number/spins/starts a quiz, rather than only failing once
+ * they try to play. */
+export async function alreadyPlayedPlayerIds(
+  gameSlugs: readonly GameSlug[],
+  source: GameTeamSource,
+  playerRefIds: string[],
+): Promise<Set<string>> {
+  if (playerRefIds.length === 0) return new Set();
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("game_plays")
+    .select("player_ref_id")
+    .in("game_slug", gameSlugs)
+    .eq("source", source)
+    .in("player_ref_id", playerRefIds);
+  return new Set((data ?? []).map((r) => r.player_ref_id));
+}
+
 /**
  * Re-resolves teamRefId/playerRefId server-side (never trusts the client's
  * name/team strings) before writing a game_plays row, so a play can only
@@ -257,6 +309,10 @@ export async function recordGamePlay(input: {
 
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
+
+  if (await hasAlreadyPlayed([input.gameSlug], input.source, player.id)) {
+    return { ok: false, error: "You've already played this game with this code — one entry per code." };
+  }
 
   const admin = createAdminClient();
   const { error } = await admin.from("game_plays").insert({
@@ -327,6 +383,20 @@ export async function rollAndRecordLevelUpPlay(input: {
 
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
+
+  // Only gated at Level 1 (spin-wheel) — a run always starts there, so
+  // blocking a second run there is enough; Level 2 (roll-a-dice) of the
+  // *current* run must never be blocked just because it's about to write
+  // its own first-ever row for this player.
+  if (
+    input.level === "spin-wheel" &&
+    (await hasAlreadyPlayed(LEVEL_UP_SLUGS, input.source, player.id))
+  ) {
+    return {
+      ok: false,
+      error: "You've already played Level Up with this code — one entry per code.",
+    };
+  }
 
   let result: "won" | "lost";
   let detail: Record<string, unknown>;
@@ -406,6 +476,13 @@ export async function rollAndRecordMysteryBoxPlay(input: {
 
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
+
+  if (await hasAlreadyPlayed(["mystry-box"], input.source, player.id)) {
+    return {
+      ok: false,
+      error: "You've already played Mystery Box with this code — one entry per code.",
+    };
+  }
 
   const drawn = drawNumber(input.picked);
   const result: "won" | "lost" = drawn === input.picked ? "won" : "lost";

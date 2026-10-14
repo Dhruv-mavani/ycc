@@ -334,7 +334,7 @@ export function LevelUpGame() {
         />
       </div>
 
-      <TeamPlayerGate onSelectionChange={setSelection} />
+      <TeamPlayerGate game="level-up" onSelectionChange={setSelection} />
 
       <button
         type="button"

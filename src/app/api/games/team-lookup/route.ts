@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
-import { lookupGameTeamByCode } from "@/lib/game-plays";
+import { lookupGameTeamByCode, alreadyPlayedPlayerIds, LEVEL_UP_SLUGS, type GameSlug } from "@/lib/game-plays";
 import { isRateLimited } from "@/lib/rate-limit";
+
+// Maps the public game identifier (sent by TeamPlayerGate's `game` prop) to
+// the game_slug(s) that count as "already played" for it — Level Up's two
+// legs count as one game here (see LEVEL_UP_SLUGS).
+const GAME_SLUG_GROUPS: Record<string, readonly GameSlug[]> = {
+  "level-up": LEVEL_UP_SLUGS,
+  "mystry-box": ["mystry-box"],
+  "quiz-champion": ["quiz-champion"],
+};
 
 function getClientIp(request: Request) {
   return (
@@ -37,5 +46,19 @@ export async function GET(request: Request) {
       { status: 404 },
     );
   }
-  return NextResponse.json({ team });
+
+  const slugGroup = GAME_SLUG_GROUPS[searchParams.get("game") ?? ""];
+  if (!slugGroup) return NextResponse.json({ team });
+
+  const played = await alreadyPlayedPlayerIds(
+    slugGroup,
+    team.source,
+    team.players.map((p) => p.id),
+  );
+  return NextResponse.json({
+    team: {
+      ...team,
+      players: team.players.map((p) => ({ ...p, alreadyPlayed: played.has(p.id) })),
+    },
+  });
 }

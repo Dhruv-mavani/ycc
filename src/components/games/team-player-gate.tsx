@@ -14,8 +14,17 @@ import { Crown, Loader2, Search } from "lucide-react";
 // selection is handed to the parent game via onSelectionChange so it can
 // gate its own Play button, pick audience-specific copy/prizes, and report
 // the eventual win/loss.
+//
+// `game` tells /api/games/team-lookup which game this gate is for, so it
+// can flag teammates who've already used their one entry — purely a UX
+// head start (so a code that's already played doesn't even get as far as
+// picking a number); the real, unbypassable enforcement is server-side at
+// the actual play/start endpoint (see hasAlreadyPlayed in
+// src/lib/game-plays.ts), which this flag can never substitute for.
 
 export type GameTeamSource = "registration" | "partner" | "school" | "individual_free";
+
+export type GameIdentifier = "level-up" | "mystry-box" | "quiz-champion";
 
 export interface GameTeamSelection {
   source: GameTeamSource;
@@ -31,6 +40,7 @@ interface RosterPlayer {
   id: string;
   name: string;
   isCaptain: boolean;
+  alreadyPlayed?: boolean;
 }
 
 interface Roster {
@@ -44,8 +54,10 @@ interface Roster {
 type Status = "idle" | "loading" | "found" | "error";
 
 export function TeamPlayerGate({
+  game,
   onSelectionChange,
 }: {
+  game: GameIdentifier;
   onSelectionChange: (selection: GameTeamSelection | null) => void;
 }) {
   const [code, setCode] = useState("");
@@ -73,7 +85,7 @@ export function TeamPlayerGate({
 
     try {
       const res = await fetch(
-        `/api/games/team-lookup?code=${encodeURIComponent(trimmed)}`,
+        `/api/games/team-lookup?code=${encodeURIComponent(trimmed)}&game=${game}`,
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -86,7 +98,10 @@ export function TeamPlayerGate({
       setRoster(team);
       setStatus("found");
 
-      if (team.players.length === 1) {
+      // Single-player rosters normally auto-select straight into Play —
+      // skipped here if that one player already used their entry, so
+      // they land on the "already played" message below instead.
+      if (team.players.length === 1 && !team.players[0].alreadyPlayed) {
         const only = team.players[0];
         setPlayerId(only.id);
         onSelectionChange({
@@ -105,18 +120,17 @@ export function TeamPlayerGate({
   }
 
   function selectPlayer(id: string) {
-    setPlayerId(id);
     const player = roster?.players.find((p) => p.id === id);
-    if (roster && player) {
-      onSelectionChange({
-        source: roster.source,
-        teamRefId: roster.teamRefId,
-        teamLabel: roster.teamLabel,
-        playerRefId: player.id,
-        playerName: player.name,
-        eventSlug: roster.eventSlug,
-      });
-    }
+    if (!roster || !player || player.alreadyPlayed) return;
+    setPlayerId(id);
+    onSelectionChange({
+      source: roster.source,
+      teamRefId: roster.teamRefId,
+      teamLabel: roster.teamLabel,
+      playerRefId: player.id,
+      playerName: player.name,
+      eventSlug: roster.eventSlug,
+    });
   }
 
   return (
@@ -162,21 +176,32 @@ export function TeamPlayerGate({
             {roster.teamLabel}
           </p>
           {roster.players.length > 1 ? (
-            <select
-              value={playerId}
-              onChange={(e) => selectPlayer(e.target.value)}
-              className="h-11 w-full rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white outline-none focus:border-amber-300/60 [&>option]:bg-[#111]"
-            >
-              <option value="" disabled>
-                Who&apos;s playing?
-              </option>
-              {roster.players.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                  {p.isCaptain ? " (Captain)" : ""}
+            roster.players.every((p) => p.alreadyPlayed) ? (
+              <p className="text-sm font-medium text-rose-300">
+                Everyone on this team has already played — one entry per code.
+              </p>
+            ) : (
+              <select
+                value={playerId}
+                onChange={(e) => selectPlayer(e.target.value)}
+                className="h-11 w-full rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white outline-none focus:border-amber-300/60 [&>option]:bg-[#111]"
+              >
+                <option value="" disabled>
+                  Who&apos;s playing?
                 </option>
-              ))}
-            </select>
+                {roster.players.map((p) => (
+                  <option key={p.id} value={p.id} disabled={p.alreadyPlayed}>
+                    {p.name}
+                    {p.isCaptain ? " (Captain)" : ""}
+                    {p.alreadyPlayed ? " — already played" : ""}
+                  </option>
+                ))}
+              </select>
+            )
+          ) : roster.players[0]?.alreadyPlayed ? (
+            <p className="text-sm font-medium text-rose-300">
+              {roster.players[0].name} has already played — one entry per code.
+            </p>
           ) : (
             <p className="flex items-center gap-1.5 text-sm font-semibold text-white">
               {roster.players[0]?.isCaptain ? (

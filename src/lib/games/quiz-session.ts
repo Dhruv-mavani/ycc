@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { lookupGameTeamById, type GameTeamSource } from "@/lib/game-plays";
+import { lookupGameTeamById, hasAlreadyPlayed, type GameTeamSource } from "@/lib/game-plays";
 import { QUESTION_TIERS, LEVELS_PER_TIER, TOTAL_LEVELS } from "@/lib/quiz-game-questions";
 
 // ---------------------------------------------------------------------------
@@ -182,6 +182,13 @@ export async function startQuizSession(input: {
   if (!roster) return { ok: false, error: "Team not found" };
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
+
+  if (await hasAlreadyPlayed(["quiz-champion"], input.source, player.id)) {
+    return {
+      ok: false,
+      error: "You've already played Quiz Champion with this code — one entry per code.",
+    };
+  }
 
   const assignedIndexByLevel = assignAllLevels();
   const { view, correctSlot } = buildQuestion(0, assignedIndexByLevel[0]);

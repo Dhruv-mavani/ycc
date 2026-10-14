@@ -731,7 +731,7 @@ function StartScreen({
         </li>
       </ol>
 
-      <TeamPlayerGate onSelectionChange={onSelectionChange} />
+      <TeamPlayerGate game="quiz-champion" onSelectionChange={onSelectionChange} />
 
       <button
         type="button"
