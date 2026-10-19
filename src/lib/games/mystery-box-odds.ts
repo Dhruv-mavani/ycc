@@ -6,7 +6,13 @@
 // just pure odds, so it's safe to import from either side.
 
 export const MAX_NUMBER = 50;
-export const PICKED_WIN_CHANCE = 0.000000000001; // 0.0000000001% — box lands on the player's own number
+// 25 in 10,000 = 0.25% — tuned so that out of every 10,000 real plays,
+// about 25 land on the player's own number. Since each code only gets one
+// play (see the one-entry-per-code rule in game-plays.ts), this scales
+// naturally with actual turnout: ~25 winners if 10,000 people play, ~1-2
+// if only 500 do — a fixed probability already gives that proportional
+// result, no live headcount tracking needed.
+export const PICKED_WIN_CHANCE = 0.0025;
 
 // Draws the number the box lands on. `picked` is the player's chosen
 // number; matching it is an explicit PICKED_WIN_CHANCE draw, not the

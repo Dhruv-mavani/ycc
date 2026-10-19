@@ -137,7 +137,7 @@ export default async function LeaderboardPage() {
           <WinnersCard
             title="Mystery Box"
             icon={<Gift className="size-5 text-amber-500" />}
-            emptyCopy="No one's landed their number yet — the odds are real (1 in 50 billion), so maybe you'll be the first."
+            emptyCopy="No one's landed their number yet — a real 0.25% shot, so maybe you'll be the first."
             winners={mysteryBoxWinners}
           />
 

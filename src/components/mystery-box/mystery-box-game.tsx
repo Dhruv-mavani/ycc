@@ -15,12 +15,13 @@ import { MAX_NUMBER } from "@/lib/games/mystery-box-odds";
 // off, and a slot-machine reel spins through numbers and decelerates onto the
 // drawn one. Match = win, otherwise lose.
 //
-// Win odds are deliberately real, if vanishingly tiny: landing on the
-// player's own number is an explicit 0.0000000001% (1-in-1,000,000,000,000)
-// draw — set exactly, same approach as Spin the Wheel and Roll a Dice (see
-// src/components/level-up/), not simulated to look small while secretly
-// being zero. The remaining ~100% is spread evenly across the other 49
-// (losing) numbers. The actual draw (drawNumber) now lives server-side in
+// Win odds are deliberately real and exactly set, not simulated to look
+// small while secretly being zero: landing on the player's own number is
+// a 0.25% (25-in-10,000) draw — tuned so real turnout naturally produces
+// about that many winners (see PICKED_WIN_CHANCE's own comment in
+// mystery-box-odds.ts), same flat-probability approach Roll a Dice uses.
+// The remaining ~99.75% is spread evenly across the other 49 (losing)
+// numbers. The actual draw (drawNumber) now lives server-side in
 // src/lib/games/mystery-box-odds.ts, called only from rollAndRecordMysteryBoxPlay
 // (src/lib/game-plays.ts) — this component never decides or asserts a
 // result itself; see requestRoll below for why.

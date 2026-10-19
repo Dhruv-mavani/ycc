@@ -47,10 +47,15 @@ export const SURPRISE_GIFT: PrizeSection = {
   emoji: "🎁",
   wheelLines: ["SURPRISE", "GIFT"],
   name: "Surprise Gift",
-  winChance: 0.0005, // 5 in 10,000 = 0.05%
+  winChance: 0.0005, // 5 in 10,000 = 0.05% — unchanged, already real/budgeted
 };
 
-export const PICKED_WIN_CHANCE = 0.000000000001;
+// Direct number match, tuned so this plus Surprise Gift (above, left as
+// it was) sum to 25 in 10,000 = 0.25% total — same target rate as Mystery
+// Box/Roll a Dice. The jackpot prizes (CASH_PRIZE, GOA_TRIP,
+// SUPERCHAMPS_PRIZES below) are deliberately left at their existing
+// near-zero rate — real cash/physical prizes, out of scope for this.
+export const PICKED_WIN_CHANCE = 0.002; // 20 in 10,000 = 0.2%
 
 // Audience is source-driven (school -> Super Champs' three real items,
 // everyone else -> the single Cash Prize slice) except Go Goa Gone, which

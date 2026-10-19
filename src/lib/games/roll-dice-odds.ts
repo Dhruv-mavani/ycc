@@ -9,7 +9,10 @@ export const MIN_SUM = 2;
 export const MAX_SUM = 12;
 export const SUM_COUNT = MAX_SUM - MIN_SUM + 1;
 
-export const PICKED_WIN_CHANCE = 0.000000000001;
+// 25 in 10,000 = 0.25% — same tuning and rationale as Mystery Box's
+// PICKED_WIN_CHANCE (mystery-box-odds.ts): scales naturally with real
+// turnout since each code only gets one play.
+export const PICKED_WIN_CHANCE = 0.0025;
 
 /** Only ever called server-side now (level-up-roll route). */
 export function drawSum(picked: number): number {
