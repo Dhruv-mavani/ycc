@@ -8,6 +8,8 @@ import {
   Brain,
   Volume2,
   VolumeX,
+  Trophy,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -481,6 +483,7 @@ export function SoloQuizGame() {
     <div className="relative min-h-screen overflow-hidden px-4 pb-10 pt-16">
       <CheatDisclaimerWatermark />
       <MuteButton muted={muted} onToggle={() => setMuted((m) => !m)} />
+      <QuizLeaderboardWidget />
 
       <AudiencePollDialog
         poll={state.audiencePoll}
@@ -677,6 +680,95 @@ function MuteButton({ muted, onToggle }: { muted: boolean; onToggle: () => void 
   );
 }
 
+interface LeaderboardRow {
+  rank: number;
+  playerName: string;
+  teamLabel: string;
+  questionsCorrect: number;
+  totalQuestions: number;
+}
+
+// Self-contained button + dialog, mounted independently on all three quiz
+// screens (start, playing, end) so the live leaderboard is reachable at
+// every point in a run, not just after finishing. Fetches its own data
+// from /api/games/quiz-leaderboard (a thin public wrapper around the same
+// cached getQuizLeaderboard() that backs the full /games/leaderboard page)
+// each time it's opened — cheap, since that's already cached server-side
+// for 15s, and simpler than threading shared state through three
+// otherwise-independent screens for something that doesn't need to be.
+function QuizLeaderboardWidget() {
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState<LeaderboardRow[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function openLeaderboard() {
+    setOpen(true);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/games/quiz-leaderboard");
+      const data = await res.json().catch(() => null);
+      setRows(Array.isArray(data?.rows) ? data.rows : []);
+    } catch {
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openLeaderboard}
+        aria-label="View leaderboard"
+        className="absolute left-4 top-4 z-10 text-white/80 hover:text-white"
+      >
+        <Trophy className="size-7 md:size-9" />
+      </button>
+
+      <DialogShell open={open} onClose={() => setOpen(false)} title="Quiz Champion Leaderboard">
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="size-6 animate-spin text-white/70" />
+          </div>
+        ) : !rows || rows.length === 0 ? (
+          <p className="py-6 text-center text-sm text-white/70">
+            No one&apos;s cracked the top of the leaderboard yet — be the first!
+          </p>
+        ) : (
+          <div className="max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
+            {rows.map((r) => (
+              <div
+                key={r.rank}
+                className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
+              >
+                <span className="flex items-center gap-2 truncate">
+                  <span className="w-5 shrink-0 text-right font-bold text-amber-300">{r.rank}</span>
+                  <span className="truncate">
+                    {r.playerName}{" "}
+                    <span className="text-white/50">— {r.teamLabel}</span>
+                  </span>
+                </span>
+                <span className="shrink-0 font-semibold text-white/90">
+                  {r.questionsCorrect}/{r.totalQuestions}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+        <a
+          href="/games/leaderboard"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 block text-center text-xs font-semibold text-violet-300 underline-offset-2 hover:underline"
+        >
+          View full leaderboard (+ Mystery Box &amp; Kismat Ke Khiladi winners) ↗
+        </a>
+      </DialogShell>
+    </>
+  );
+}
+
 function StartScreen({
   onStart,
   muted,
@@ -695,6 +787,7 @@ function StartScreen({
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       <MuteButton muted={muted} onToggle={onToggleMute} />
+      <QuizLeaderboardWidget />
       <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-violet-400/30 blur-3xl sm:size-72" />
       <span className="text-5xl sm:text-6xl">🧠</span>
       <h1 className="mt-6 tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000 text-4xl font-black md:text-6xl">
@@ -790,6 +883,7 @@ function EndScreen({
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       <MuteButton muted={muted} onToggle={onToggleMute} />
+      <QuizLeaderboardWidget />
       {phase === "won" && dimensions ? (
         <Confetti width={dimensions.width} height={dimensions.height} numberOfPieces={250} recycle={false} />
       ) : null}
