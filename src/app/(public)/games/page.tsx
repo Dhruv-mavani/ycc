@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BackButton } from "@/components/site/back-button";
 import { GAMES } from "@/lib/games";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Trophy } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Games | YCC",
@@ -36,6 +36,13 @@ export default function GamesPage() {
           <p className="max-w-2xl text-muted-foreground text-xs sm:text-base md:text-lg leading-relaxed">
             Quick, no-login mini-games to play while you wait. Choose a game below and start playing instantly. Compete, win, and have fun!
           </p>
+          <Link
+            href="/games/leaderboard"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-amber-100/60 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-amber-800 shadow-sm backdrop-blur-md transition-colors hover:bg-amber-100 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300 dark:hover:bg-amber-400/15"
+          >
+            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            See the leaderboard
+          </Link>
         </div>
 
         <div className="grid gap-4 sm:gap-6 lg:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">

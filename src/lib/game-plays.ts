@@ -267,7 +267,9 @@ const UNLIMITED_TEST_PLAYERS: ReadonlySet<string> = new Set([
   "partner:e897e102-ad8f-440e-beaa-8a22965b7e2d", // Abhishek Chaudhari (founder) — ABHISHEK2801
 ]);
 
-function isUnlimitedTestPlayer(source: GameTeamSource, playerRefId: string): boolean {
+// Exported for public-leaderboard.ts — a test play recorded under this
+// exemption must never show up on the public leaderboard either.
+export function isUnlimitedTestPlayer(source: GameTeamSource, playerRefId: string): boolean {
   return UNLIMITED_TEST_PLAYERS.has(`${source}:${playerRefId}`);
 }
 
