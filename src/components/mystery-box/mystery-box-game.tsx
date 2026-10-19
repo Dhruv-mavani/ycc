@@ -272,6 +272,8 @@ export function MysteryBoxGame() {
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
         {muteButton}
         <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-amber-400/40 blur-3xl sm:size-72" />
+        <div className="absolute -z-10 size-40 -translate-x-24 rounded-full bg-red-500/20 blur-3xl sm:size-56 sm:-translate-x-32" />
+        <div className="absolute -z-10 size-40 translate-x-24 rounded-full bg-blue-500/20 blur-3xl sm:size-56 sm:translate-x-32" />
         <Gift className="size-14 text-amber-300 sm:size-16 md:size-20" />
         <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
           Mystery Box
@@ -476,22 +478,48 @@ function SpinningBox({
 
   return (
     <div className={cn("relative", !reelMoving && "animate-mystery-box-shake")}>
+      {/* Ambient glow — gold, with a red/blue tint bleeding in from each
+          side, echoing the box's own panel colors below. */}
       <div className="animate-mystery-box-glow absolute inset-0 -z-10 rounded-full bg-amber-400/50 blur-2xl" />
+      <div className="absolute -left-6 inset-y-0 -z-10 w-1/2 rounded-full bg-red-500/20 blur-2xl" />
+      <div className="absolute -right-6 inset-y-0 -z-10 w-1/2 rounded-full bg-blue-500/20 blur-2xl" />
 
-      {/* Lid — flies off once the reel starts moving. */}
+      {/* Lid — flies off once the reel starts moving. Glossy gold, same
+          treatment as the body below. */}
       <div
         className={cn(
-          "absolute -top-3 left-1/2 z-20 h-12 w-56 -translate-x-1/2 rounded-lg border-4 border-amber-800/50 bg-gradient-to-b from-amber-300 to-amber-500 shadow-lg sm:h-14 sm:w-[17rem]",
+          "absolute -top-3 left-1/2 z-20 h-12 w-56 -translate-x-1/2 overflow-hidden rounded-lg border-4 border-amber-900 bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 shadow-lg sm:h-14 sm:w-[17rem]",
           reelMoving && "animate-mystery-box-lid",
         )}
       >
-        <div className="absolute left-1/2 top-1/2 h-3 w-24 -translate-x-1/2 -translate-y-1/2 rounded bg-amber-800/30" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent" />
+        <div className="absolute left-1/2 top-1/2 h-3 w-24 -translate-x-1/2 -translate-y-1/2 rounded bg-amber-900/40" />
       </div>
 
-      {/* Box body with the reel window cut into it. */}
-      <div className="relative h-44 w-52 overflow-hidden rounded-xl border-4 border-amber-800/50 bg-gradient-to-b from-amber-500 to-amber-700 shadow-2xl sm:h-56 sm:w-64">
-        <div className="absolute left-1/2 top-0 h-full w-6 -translate-x-1/2 bg-amber-800/25 sm:w-8" />
-        <div className="absolute left-0 top-1/2 h-6 w-full -translate-y-1/2 bg-amber-800/25 sm:h-8" />
+      {/* Box body — a glossy gold-trimmed cube with a red "?" panel on the
+          left and a blue "?" panel on the right (the classic loot-box
+          look), the reel window sitting centered on top of both. */}
+      <div className="relative h-44 w-52 overflow-hidden rounded-2xl border-[6px] border-amber-900 shadow-2xl sm:h-56 sm:w-64">
+        {/* Left panel — red, bold white "?". The reel window dominates the
+            vertical center, so the mark sits in the clear strip below it,
+            not dead-center (which the reel window would hide entirely). */}
+        <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-br from-red-400 via-red-500 to-red-700">
+          <span className="absolute bottom-2 left-1/2 -translate-x-1/2 select-none text-3xl font-black text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.35)] sm:bottom-3 sm:text-4xl">
+            ?
+          </span>
+        </div>
+        {/* Right panel — blue, white circle with a blue "?". */}
+        <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-bl from-sky-400 via-blue-500 to-blue-700">
+          <span className="absolute bottom-2 left-1/2 flex size-9 -translate-x-1/2 items-center justify-center rounded-full bg-white text-xl font-black text-blue-600 shadow-md sm:bottom-3 sm:size-11 sm:text-2xl">
+            ?
+          </span>
+        </div>
+
+        {/* Center gold bevel, dividing the two panels. */}
+        <div className="absolute left-1/2 top-0 h-full w-7 -translate-x-1/2 border-x-2 border-amber-900 bg-gradient-to-b from-amber-200 via-amber-400 to-amber-700 sm:w-9" />
+
+        {/* Glossy sheen over the whole body. */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-black/10" />
 
         <div className="absolute left-1/2 top-1/2 h-[88px] w-40 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md border-2 border-amber-200/80 bg-[#100a22] shadow-inner">
           <div
