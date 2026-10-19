@@ -251,6 +251,26 @@ export function lookupGameTeamById(
   return individualFreeRoster(teamRefId);
 }
 
+// Hardcoded exemption from the one-entry-per-code rule, for standing
+// test/demo identities only — not anything a player can self-serve into.
+// Currently just the founder's own real Partner code (ABHISHEK2801 /
+// YCCPP041, an approved, standing application — not a one-off test row),
+// so live-testing a game doesn't burn its one real entry. Applies across
+// every game uniformly (whatever gameSlugs a caller checks against), since
+// hasAlreadyPlayed/alreadyPlayedPlayerIds are the single shared choke
+// point every game's play/start call and the team-lookup route go through.
+// Add more "source:playerRefId" pairs here if another standing tester
+// identity is ever needed — never add a player's own event-registration
+// code here, since that id gets reused for its real result once their
+// actual registration is checked in.
+const UNLIMITED_TEST_PLAYERS: ReadonlySet<string> = new Set([
+  "partner:e897e102-ad8f-440e-beaa-8a22965b7e2d", // Abhishek Chaudhari (founder) — ABHISHEK2801
+]);
+
+function isUnlimitedTestPlayer(source: GameTeamSource, playerRefId: string): boolean {
+  return UNLIMITED_TEST_PLAYERS.has(`${source}:${playerRefId}`);
+}
+
 /** True if this exact code (source + player) already has a recorded play
  * for any of the given game_slugs — the one-entry-per-code-per-game check,
  * called right before a round is drawn/a quiz session is started. */
@@ -259,6 +279,7 @@ export async function hasAlreadyPlayed(
   source: GameTeamSource,
   playerRefId: string,
 ): Promise<boolean> {
+  if (isUnlimitedTestPlayer(source, playerRefId)) return false;
   const admin = createAdminClient();
   const { data } = await admin
     .from("game_plays")
@@ -288,7 +309,11 @@ export async function alreadyPlayedPlayerIds(
     .in("game_slug", gameSlugs)
     .eq("source", source)
     .in("player_ref_id", playerRefIds);
-  return new Set((data ?? []).map((r) => r.player_ref_id));
+  const played = new Set((data ?? []).map((r) => r.player_ref_id));
+  for (const id of playerRefIds) {
+    if (isUnlimitedTestPlayer(source, id)) played.delete(id);
+  }
+  return played;
 }
 
 /**
