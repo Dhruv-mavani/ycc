@@ -12,6 +12,7 @@ import {
   prizesFor,
   type PrizeSection,
 } from "@/lib/games/spin-wheel-odds";
+import { LevelUpLeaderboardWidget } from "./level-up-leaderboard-widget";
 
 // ---------------------------------------------------------------------------
 // Level 1 of Level Up (/level-upp) — Spin the Wheel, adapted from the former
@@ -321,6 +322,7 @@ export function SpinWheelLevel({
     return (
       <div className="relative flex min-h-screen flex-col items-center px-4 py-10 sm:py-14">
         {muteButton}
+        <LevelUpLeaderboardWidget />
         <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-amber-300 sm:mt-0">
           Level 1 of 2
         </p>
@@ -395,6 +397,7 @@ export function SpinWheelLevel({
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       {muteButton}
+      <LevelUpLeaderboardWidget />
       {won ? <ResultConfetti /> : null}
 
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-300">

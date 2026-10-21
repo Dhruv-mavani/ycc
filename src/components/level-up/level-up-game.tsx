@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
 import { SpinWheelLevel, type SpinWheelResultDetail } from "./spin-wheel-level";
 import { RollDiceLevel, type RollDiceResultDetail } from "./roll-dice-level";
+import { LevelUpLeaderboardWidget } from "./level-up-leaderboard-widget";
 
 // ---------------------------------------------------------------------------
 // Level Up (/level-upp) — a two-level run through Spin the Wheel (Level 1)
@@ -143,6 +144,7 @@ export function LevelUpGame() {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
         {muteButton}
+        <LevelUpLeaderboardWidget />
         {anyWon ? <ResultConfetti /> : null}
 
         <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
@@ -278,6 +280,7 @@ export function LevelUpGame() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       {muteButton}
+      <LevelUpLeaderboardWidget />
       <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-violet-400/30 blur-3xl sm:size-72" />
       <span className="text-5xl sm:text-6xl">🏆</span>
       <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">

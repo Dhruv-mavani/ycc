@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 import type { GameTeamSelection } from "@/components/games/team-player-gate";
 import { MIN_SUM, MAX_SUM, SUM_COUNT } from "@/lib/games/roll-dice-odds";
+import { LevelUpLeaderboardWidget } from "./level-up-leaderboard-widget";
 
 // ---------------------------------------------------------------------------
 // Level 2 of Level Up (/level-upp) — Roll a Dice, adapted from the former
@@ -279,6 +280,7 @@ export function RollDiceLevel({
     return (
       <div className="relative flex min-h-screen flex-col items-center px-4 py-10 sm:py-14">
         {muteButton}
+        <LevelUpLeaderboardWidget />
         <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-emerald-300 sm:mt-0">
           Level 2 of 2
         </p>
@@ -353,6 +355,7 @@ export function RollDiceLevel({
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       {muteButton}
+      <LevelUpLeaderboardWidget />
       {won ? <ResultConfetti /> : null}
 
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-emerald-300">

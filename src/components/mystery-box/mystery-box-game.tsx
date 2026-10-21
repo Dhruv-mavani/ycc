@@ -2,8 +2,14 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Confetti from "react-confetti";
-import { Gift, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Gift, Loader2, RotateCcw, Sparkles, Trophy, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { playClickTrain, playNotes, type ActiveSound } from "@/lib/synth-sfx";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
@@ -271,6 +277,7 @@ export function MysteryBoxGame() {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
         {muteButton}
+        <MysteryBoxLeaderboardWidget />
         <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-amber-400/40 blur-3xl sm:size-72" />
         <div className="absolute -z-10 size-40 -translate-x-24 rounded-full bg-red-500/20 blur-3xl sm:size-56 sm:-translate-x-32" />
         <div className="absolute -z-10 size-40 translate-x-24 rounded-full bg-blue-500/20 blur-3xl sm:size-56 sm:translate-x-32" />
@@ -316,6 +323,7 @@ export function MysteryBoxGame() {
     return (
       <div className="relative flex min-h-screen flex-col items-center px-4 py-14">
         {muteButton}
+        <MysteryBoxLeaderboardWidget />
         <h1 className="mt-8 text-center text-xl font-black sm:mt-0 sm:text-2xl md:text-4xl">
           Pick your number
         </h1>
@@ -368,6 +376,7 @@ export function MysteryBoxGame() {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
         {muteButton}
+        <MysteryBoxLeaderboardWidget />
         <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-amber-300">
           Your number: {state.picked}
         </p>
@@ -388,6 +397,7 @@ export function MysteryBoxGame() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       {muteButton}
+      <MysteryBoxLeaderboardWidget />
       {won ? <ResultConfetti /> : null}
 
       <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
@@ -421,6 +431,93 @@ export function MysteryBoxGame() {
         Play again
       </button>
     </div>
+  );
+}
+
+interface MysteryBoxWinnerRow {
+  playerName: string;
+  teamLabel: string;
+  createdAt: string;
+}
+
+// Self-contained button + dialog, mounted independently on all four game
+// screens (start, pick, spinning, result) so the live winners list is
+// reachable at every point in a round, not just after finishing — same
+// pattern as QuizLeaderboardWidget in solo-quiz-game.tsx. No ranking here
+// (unlike Quiz Champion): Mystery Box is win/lose only, so this is just
+// who's landed their number so far, not a score table. Fetches from
+// /api/games/mystery-box-winners (a thin public wrapper around the same
+// cached getMysteryBoxWinners() that backs /games/leaderboard) each time
+// it's opened.
+function MysteryBoxLeaderboardWidget() {
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState<MysteryBoxWinnerRow[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function openLeaderboard() {
+    setOpen(true);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/games/mystery-box-winners");
+      const data = await res.json().catch(() => null);
+      setRows(Array.isArray(data?.rows) ? data.rows : []);
+    } catch {
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openLeaderboard}
+        aria-label="View winners"
+        className="absolute left-4 top-4 z-10 text-white/70 hover:text-white"
+      >
+        <Trophy className="size-7 md:size-8" />
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="border-2 border-amber-500 bg-[#1a0b3d] text-white sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-center text-white">Mystery Box Winners</DialogTitle>
+          </DialogHeader>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="size-6 animate-spin text-white/70" />
+            </div>
+          ) : !rows || rows.length === 0 ? (
+            <p className="py-6 text-center text-sm text-white/70">
+              No one&apos;s landed their number yet — a real 0.25% shot, so
+              maybe you&apos;ll be the first.
+            </p>
+          ) : (
+            <div className="max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
+              {rows.map((w, i) => (
+                <div
+                  key={`${w.playerName}-${w.createdAt}-${i}`}
+                  className="flex flex-col gap-0.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                >
+                  <span className="truncate font-medium">
+                    {w.playerName} <span className="text-white/50">— {w.teamLabel}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          <a
+            href="/games/leaderboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 block text-center text-xs font-semibold text-amber-300 underline-offset-2 hover:underline"
+          >
+            View full leaderboard (+ Quiz Champion &amp; Kismat Ke Khiladi) ↗
+          </a>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
