@@ -11,7 +11,6 @@ import { GstBreakdown } from "@/components/registration/gst-breakdown";
 import { Banknote, Users, ScrollText, AlertCircle, Trophy, Download, CalendarDays } from "lucide-react";
 import { EventRegisterCta } from "@/components/registration/event-register-cta";
 import { isKismatKeKhiladiEvent } from "@/lib/kismat-ke-khiladi";
-import { cn } from "@/lib/utils";
 
 function formatRupees(paise: number) {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
@@ -188,7 +187,20 @@ export default async function EventDetailPage({
 
       <div className="mx-auto max-w-4xl px-4 pt-32 relative z-10">
         <BackButton className="mb-8 text-slate-500 hover:text-slate-900 transition-colors" />
-        
+
+        {isGoGoaGone && (
+          <div className="mb-8 flex items-center justify-center">
+            <Image
+              src="/go-goa-gone/golden-emblem.png"
+              alt={`${event.name} logo`}
+              width={1944}
+              height={809}
+              className="w-full max-w-md h-auto"
+              priority
+            />
+          </div>
+        )}
+
         <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl shadow-slate-200/50">
           
           {/* Banner Image for Quiz */}
@@ -248,17 +260,38 @@ export default async function EventDetailPage({
             </p>
             {isGoGoaGone && (
               <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 relative z-10 text-sm font-semibold text-slate-700 sm:text-base">
-                <span>10 Colleges</span>
-                <span className="text-slate-300">|</span>
-                <span>25K Participants</span>
+                <span>2 Games</span>
                 <span className="text-slate-300">|</span>
                 <span>100 Lucky Winners</span>
               </div>
             )}
+            {isGoGoaGone && event.fee_paise > 0 ? (
+              <div className="mt-4 max-w-2xl text-left">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                  <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
+                </h3>
+                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
+                  <div className="flex flex-wrap items-end gap-2 mb-4">
+                    <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
+                    <span className="text-slate-500 mb-0.5 text-sm sm:text-base">Entry Fee</span>
+                  </div>
+                  {event.gst_exempt ? (
+                    <p className="text-xs sm:text-sm text-slate-500">No GST on this event — the amount above is the total.</p>
+                  ) : (
+                    <>
+                      <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
+                      <div className="pt-5 sm:pt-6 border-t border-slate-100">
+                        <GstBreakdown basePaise={event.fee_paise} />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : null}
             {isGoGoaGone && (
               <div className="mt-4 max-w-2xl rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700 relative z-10 sm:text-base">
-                You get 2 chances to play — we can see every game played on
-                our end, so please play fair. Thanks for keeping it clean!
+                You get only 2 chances to play — no 3rd chance, so please
+                play fair and best of luck!
               </div>
             )}
           </div>
@@ -282,27 +315,21 @@ export default async function EventDetailPage({
                   // Box Cricket isn't free, so it keeps its own Registration
                   // Details card further down, after these steps.
                   <div>
-                    <div
-                      className={cn(
-                        isGoGoaGone
-                          ? "flex items-center justify-center p-4"
-                          : "rounded-2xl overflow-hidden border border-slate-200 shadow-sm",
-                      )}
-                    >
-                      <Image
-                        src={
-                          isGoGoaGone
-                            ? "/go-goa-gone/golden-emblem.png"
-                            : isBoxCricket
-                              ? "/box-cricket/poster-999.png"
-                              : "/jackpot-heist/poster.png"
-                        }
-                        alt={isGoGoaGone ? `${event.name} logo` : `${event.name} poster`}
-                        width={isGoGoaGone ? 1944 : 1024}
-                        height={isGoGoaGone ? 809 : 1536}
-                        className="w-full h-auto"
-                      />
-                    </div>
+                    {/* The golden emblem now renders up top, between the
+                        back button and this card (see below) — not
+                        duplicated here for Go Goa Gone / Kismat Ke
+                        Khiladi. */}
+                    {!isGoGoaGone ? (
+                      <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                        <Image
+                          src={isBoxCricket ? "/box-cricket/poster-999.png" : "/jackpot-heist/poster.png"}
+                          alt={`${event.name} poster`}
+                          width={1024}
+                          height={1536}
+                          className="w-full h-auto"
+                        />
+                      </div>
+                    ) : null}
 
                     {isBoxCricket && (
                       <div className="mt-6 text-left">
@@ -624,35 +651,6 @@ export default async function EventDetailPage({
                         );
                       })()}
                       {event.gst_exempt ? null : (
-                        <>
-                          <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
-                          <div className="pt-5 sm:pt-6 border-t border-slate-100">
-                            <GstBreakdown basePaise={event.fee_paise} />
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-
-                {/* Kismat Ke Khiladi's old free run (gst_exempt, fee_paise
-                    0) skips this entirely via the "dead weight" check
-                    above — this only fires for the new, paid run. Simple
-                    flat fee, no player-fee breakdown (that's Box Cricket's
-                    team-specific thing above) — it's a one-person entry. */}
-                {isGoGoaGone && event.fee_paise > 0 ? (
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
-                      <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
-                    </h3>
-                    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
-                      <div className="flex flex-wrap items-end gap-2 mb-4">
-                        <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
-                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">Entry Fee</span>
-                      </div>
-                      {event.gst_exempt ? (
-                        <p className="text-xs sm:text-sm text-slate-500">No GST on this event — the amount above is the total.</p>
-                      ) : (
                         <>
                           <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
                           <div className="pt-5 sm:pt-6 border-t border-slate-100">

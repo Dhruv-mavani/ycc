@@ -100,9 +100,30 @@ export default function RootLayout({
             navigation — in this app that meant refreshing (or navigating
             back to) a page you'd scrolled down on would land you back near
             the bottom instead of the top. beforeInteractive so it takes
-            effect before the browser has a chance to restore anything. */}
+            effect before the browser has a chance to restore anything.
+
+            Setting scrollRestoration alone isn't enough on mobile: iOS
+            Safari (and some Android WebViews) can still repaint a page from
+            its back/forward cache (bfcache) at its old scroll offset
+            without re-running this script — the page is a frozen snapshot,
+            not a fresh load. The 'pageshow' listener below is what
+            actually fires on that bfcache restore (event.persisted is
+            true), so it's the one that forces the jump back to top there.
+            It also runs on every normal load as a second line of defense,
+            in case some mobile browser chrome (URL bar collapsing, a
+            streamed-in image) re-applies a stale offset before this
+            script's first scrollTo has "stuck". Skips the reset only if
+            the URL has a real #hash to scroll to (none currently exist on
+            this site, but harmless to respect if one ever does). */}
         <Script id="disable-scroll-restoration" strategy="beforeInteractive">
-          {`if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }`}
+          {`
+            if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+            function __yccResetScroll() {
+              if (!window.location.hash) { window.scrollTo(0, 0); }
+            }
+            __yccResetScroll();
+            window.addEventListener('pageshow', __yccResetScroll);
+          `}
         </Script>
         <script
           type="application/ld+json"
