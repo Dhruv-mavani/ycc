@@ -1,0 +1,634 @@
+// Hand-written to match supabase/migrations/0001_init.sql through 0007_rename_volunteer_to_partner_program.sql.
+// Once the project is linked to a live Supabase instance, regenerate with:
+//   npx supabase gen types typescript --project-id <id> > src/lib/supabase/types.ts
+
+export type EventType = "cricket" | "quiz" | "school" | "individual_free";
+export type RegistrationType = "team" | "individual";
+export type RegistrationStatus =
+  | "pending_payment"
+  | "confirmed"
+  | "failed"
+  | "cancelled";
+export type PaymentStatus = "created" | "paid" | "failed";
+export type AttendanceStatus = "present" | "absent";
+export type StaffStatus = "pending" | "approved" | "rejected";
+export type PartnerType = "campus" | "class" | "classmate";
+export type PartnerApplicationStatus = "pending" | "approved" | "rejected";
+export type PartnerTeam = "A" | "B";
+export type PaymentSubmissionStatus = "pending" | "verified" | "rejected";
+
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
+export interface Database {
+  public: {
+    Tables: {
+      colleges: {
+        Row: {
+          id: string;
+          name: string;
+          initials: string;
+          city: string | null;
+          is_public: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          initials: string;
+          city?: string | null;
+          is_public?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["colleges"]["Insert"]>;
+        Relationships: [];
+      };
+      schools: {
+        Row: {
+          id: string;
+          name: string;
+          is_public: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          is_public?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["schools"]["Insert"]>;
+        Relationships: [];
+      };
+      school_tournament_registrations: {
+        Row: {
+          id: string;
+          event_id: string;
+          name: string;
+          email: string | null;
+          whatsapp: string;
+          instagram_handle: string | null;
+          age: number;
+          gender: "male" | "female" | "other";
+          school_id: string | null;
+          code: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          name: string;
+          email?: string | null;
+          whatsapp: string;
+          instagram_handle?: string | null;
+          age: number;
+          gender: "male" | "female" | "other";
+          school_id?: string | null;
+          code: string;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["school_tournament_registrations"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      individual_free_registrations: {
+        Row: {
+          id: string;
+          event_id: string;
+          college_id: string | null;
+          name: string;
+          whatsapp: string;
+          email: string | null;
+          age: number | null;
+          gender: "male" | "female" | "other" | null;
+          code: string;
+          attendance_status: AttendanceStatus;
+          attendance_marked_by: string | null;
+          attendance_marked_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          college_id?: string | null;
+          name: string;
+          whatsapp: string;
+          email?: string | null;
+          age?: number | null;
+          gender?: "male" | "female" | "other" | null;
+          code: string;
+          attendance_status?: AttendanceStatus;
+          attendance_marked_by?: string | null;
+          attendance_marked_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["individual_free_registrations"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      events: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          type: EventType;
+          description: string | null;
+          rules: string | null;
+          fee_paise: number;
+          group_capacity: number;
+          min_team_size: number | null;
+          max_team_size: number | null;
+          is_active: boolean;
+          registration_open: boolean;
+          is_partner_only: boolean;
+          requires_referral: boolean;
+          pay_at_venue: boolean;
+          hide_receipt_page: boolean;
+          gst_exempt: boolean;
+          top_tier_chance: number | null;
+          mid_tier_chance: number | null;
+          mid_tier_prize_label: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          type: EventType;
+          description?: string | null;
+          rules?: string | null;
+          fee_paise: number;
+          group_capacity?: number;
+          min_team_size?: number | null;
+          max_team_size?: number | null;
+          is_active?: boolean;
+          registration_open?: boolean;
+          is_partner_only?: boolean;
+          requires_referral?: boolean;
+          pay_at_venue?: boolean;
+          hide_receipt_page?: boolean;
+          gst_exempt?: boolean;
+          top_tier_chance?: number | null;
+          mid_tier_chance?: number | null;
+          mid_tier_prize_label?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
+        Relationships: [];
+      };
+      registrations: {
+        Row: {
+          id: string;
+          event_id: string;
+          college_id: string;
+          type: RegistrationType;
+          team_name: string | null;
+          captain_name: string | null;
+          captain_phone: string;
+          captain_email: string | null;
+          amount_paise: number;
+          status: RegistrationStatus;
+          referred_by_partner_id: string | null;
+          referred_by_college_campus_partner_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          college_id: string;
+          type: RegistrationType;
+          team_name?: string | null;
+          captain_name?: string | null;
+          captain_phone: string;
+          captain_email?: string | null;
+          amount_paise: number;
+          status?: RegistrationStatus;
+          referred_by_partner_id?: string | null;
+          referred_by_college_campus_partner_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["registrations"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      participants: {
+        Row: {
+          id: string;
+          registration_id: string;
+          name: string;
+          phone: string | null;
+          email: string | null;
+          is_captain: boolean;
+          age: number | null;
+          gender: string | null;
+          unique_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          registration_id: string;
+          name: string;
+          phone?: string | null;
+          email?: string | null;
+          is_captain?: boolean;
+          age?: number | null;
+          gender?: string | null;
+          unique_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["participants"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      payments: {
+        Row: {
+          id: string;
+          registration_id: string;
+          cashfree_link_id: string | null;
+          cashfree_order_id: string | null;
+          cashfree_payment_id: string | null;
+          razorpay_payment_link_id: string | null;
+          razorpay_order_id: string | null;
+          razorpay_payment_id: string | null;
+          razorpay_signature: string | null;
+          amount_paise: number;
+          status: PaymentStatus;
+          raw_payload: Record<string, unknown> | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          registration_id: string;
+          cashfree_link_id?: string | null;
+          cashfree_order_id?: string | null;
+          cashfree_payment_id?: string | null;
+          razorpay_payment_link_id?: string | null;
+          razorpay_order_id?: string | null;
+          razorpay_payment_id?: string | null;
+          razorpay_signature?: string | null;
+          amount_paise: number;
+          status?: PaymentStatus;
+          raw_payload?: Record<string, unknown> | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["payments"]["Insert"]>;
+        Relationships: [];
+      };
+      id_counters: {
+        Row: {
+          college_id: string;
+          group_number: number;
+          serial: number;
+        };
+        Insert: {
+          college_id: string;
+          group_number?: number;
+          serial?: number;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["id_counters"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      attendance: {
+        Row: {
+          id: string;
+          participant_id: string;
+          status: AttendanceStatus;
+          marked_by: string | null;
+          marked_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          participant_id: string;
+          status?: AttendanceStatus;
+          marked_by?: string | null;
+          marked_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["attendance"]["Insert"]>;
+        Relationships: [];
+      };
+      game_plays: {
+        Row: {
+          id: string;
+          game_slug: string;
+          source: string;
+          team_ref_id: string;
+          player_ref_id: string;
+          player_name: string;
+          team_label: string;
+          is_captain: boolean;
+          result: string;
+          detail: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          game_slug: string;
+          source: string;
+          team_ref_id: string;
+          player_ref_id: string;
+          player_name: string;
+          team_label: string;
+          is_captain?: boolean;
+          result: string;
+          detail?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["game_plays"]["Insert"]>;
+        Relationships: [];
+      };
+      event_prize_slots: {
+        Row: {
+          id: string;
+          event_id: string;
+          slot_number: number;
+          prize_name: string;
+          claimed_by_registration_id: string | null;
+          claimed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          slot_number: number;
+          prize_name: string;
+          claimed_by_registration_id?: string | null;
+          claimed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["event_prize_slots"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      staff: {
+        Row: {
+          user_id: string;
+          name: string | null;
+          email: string;
+          status: StaffStatus;
+          created_at: string;
+          requested_at: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+        };
+        Insert: {
+          user_id: string;
+          name?: string | null;
+          email: string;
+          status?: StaffStatus;
+          created_at?: string;
+          requested_at?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["staff"]["Insert"]>;
+        Relationships: [];
+      };
+      admins: {
+        Row: {
+          user_id: string;
+          name: string | null;
+          email: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          name?: string | null;
+          email: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admins"]["Insert"]>;
+        Relationships: [];
+      };
+      partner_program_applications: {
+        Row: {
+          id: string;
+          name: string;
+          email: string | null;
+          mobile: string;
+          age: number | null;
+          gender: string | null;
+          instagram_handle: string | null;
+          user_id: string | null;
+          partner_type: PartnerType;
+          status: PartnerApplicationStatus;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          referred_by: string | null;
+          referred_by_id: string | null;
+          college_id: string | null;
+          team: PartnerTeam | null;
+          team_code: string | null;
+          unique_id: string | null;
+          attendance_status: AttendanceStatus | null;
+          attendance_marked_by: string | null;
+          attendance_marked_at: string | null;
+          whatsapp_joined_at: string | null;
+          instagram_joined_at: string | null;
+          team_a_registration_id: string | null;
+          team_b_registration_id: string | null;
+          dues_paid: boolean;
+          agreed_to_terms: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          email?: string | null;
+          mobile: string;
+          age?: number | null;
+          gender?: string | null;
+          instagram_handle?: string | null;
+          user_id?: string | null;
+          partner_type?: PartnerType;
+          status?: PartnerApplicationStatus;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          referred_by?: string | null;
+          referred_by_id?: string | null;
+          college_id?: string | null;
+          team?: PartnerTeam | null;
+          team_code?: string | null;
+          unique_id?: string | null;
+          attendance_status?: AttendanceStatus | null;
+          attendance_marked_by?: string | null;
+          attendance_marked_at?: string | null;
+          whatsapp_joined_at?: string | null;
+          instagram_joined_at?: string | null;
+          team_a_registration_id?: string | null;
+          team_b_registration_id?: string | null;
+          dues_paid?: boolean;
+          agreed_to_terms: boolean;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["partner_program_applications"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      college_campus_partner_applications: {
+        Row: {
+          id: string;
+          college_id: string;
+          stream: string;
+          year: number;
+          semester: number;
+          name: string;
+          mobile: string;
+          email: string | null;
+          instagram_handle: string | null;
+          age: number;
+          gender: string;
+          agreed_to_terms: boolean;
+          whatsapp_joined_at: string | null;
+          instagram_joined_at: string | null;
+          code: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          college_id: string;
+          stream: string;
+          year: number;
+          semester: number;
+          name: string;
+          mobile: string;
+          email?: string | null;
+          instagram_handle?: string | null;
+          age: number;
+          gender: string;
+          agreed_to_terms?: boolean;
+          whatsapp_joined_at?: string | null;
+          instagram_joined_at?: string | null;
+          code?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["college_campus_partner_applications"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      ycc_club_applications: {
+        Row: {
+          id: string;
+          name: string;
+          mobile: string;
+          gender: string;
+          whatsapp_joined_at: string | null;
+          instagram_joined_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          mobile: string;
+          gender: string;
+          whatsapp_joined_at?: string | null;
+          instagram_joined_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["ycc_club_applications"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      box_cricket_payment_submissions: {
+        Row: {
+          id: string;
+          registration_id: string;
+          transaction_id: string;
+          upi_note: string | null;
+          screenshot_path: string;
+          status: PaymentSubmissionStatus;
+          rejection_reason: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          registration_id: string;
+          transaction_id: string;
+          upi_note?: string | null;
+          screenshot_path: string;
+          status?: PaymentSubmissionStatus;
+          rejection_reason?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["box_cricket_payment_submissions"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      app_settings: {
+        Row: {
+          key: string;
+          value: Json;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          key: string;
+          value: Json;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;
+        Relationships: [];
+      };
+      bank_statement_uploads: {
+        Row: {
+          id: string;
+          file_path: string;
+          file_name: string;
+          uploaded_by: string;
+          uploaded_at: string;
+        };
+        Insert: {
+          id?: string;
+          file_path: string;
+          file_name: string;
+          uploaded_by: string;
+          uploaded_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["bank_statement_uploads"]["Insert"]
+        >;
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      allocate_unique_ids: {
+        Args: { p_registration_id: string };
+        Returns: void;
+      };
+      allocate_partner_unique_id: {
+        Args: { p_application_id: string };
+        Returns: string;
+      };
+      resolve_registration_roster: {
+        Args: { p_registration_id: string };
+        Returns: unknown;
+      };
+    };
+  };
+}

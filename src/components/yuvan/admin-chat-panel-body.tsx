@@ -1,0 +1,190 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { toast } from "sonner";
+import { Send, Mic } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ChatMessage } from "./chat-message";
+import { ThinkingLabel } from "./thinking-label";
+
+export function AdminChatPanelBody() {
+  const [input, setInput] = useState("");
+  const { messages, sendMessage, status, error } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/yuvan/admin" }),
+  });
+
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    // Initialize Web Speech API for voice input
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput((prev) => prev + (prev ? " " : "") + transcript);
+          setIsListening(false);
+          navigator.vibrate?.(50);
+        };
+
+        recognition.onerror = (event: any) => {
+          setIsListening(false);
+          const err = event.error as string;
+          // "no-speech" (nothing said) and "aborted" (clicked stop) are
+          // routine, not worth logging or alarming about. console.error
+          // here trips Next.js's dev error overlay for what's really
+          // just an expected outcome of an optional mic button.
+          if (err === "no-speech" || err === "aborted") return;
+          console.warn("Speech recognition error:", err);
+          if (err === "not-allowed" || err === "service-not-allowed") {
+            toast.error("Mic access is blocked — allow it in your browser to use voice input.");
+          } else {
+            // Chrome's speech recognition can fail with "network" (and
+            // other codes) for reasons that have nothing to do with the
+            // visitor's actual internet connection — the underlying
+            // cause isn't something we can reliably determine here, so
+            // don't guess at one.
+            toast.error("Voice input isn't working right now — please type instead.");
+          }
+        };
+        recognition.onend = () => setIsListening(false);
+        recognitionRef.current = recognition;
+        setSpeechSupported(true);
+      }
+    }
+  }, []);
+
+  // Haptic feedback when the assistant replies
+  useEffect(() => {
+    if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
+      navigator.vibrate?.([10, 30, 10]);
+    }
+  }, [messages.length]);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, status]);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (input.trim() && status === "ready") {
+      sendMessage({ text: input.trim() });
+      setInput("");
+      navigator.vibrate?.(50); // Haptic on send
+    }
+  }
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current?.start();
+      setIsListening(true);
+      navigator.vibrate?.(50);
+    }
+  };
+
+  return (
+    <Card className="mb-3 flex h-[70dvh] max-h-[600px] w-[calc(100vw-2rem)] max-w-md flex-col gap-0 overflow-hidden p-0 shadow-2xl ring-1 ring-border/50 font-sans border-0 rounded-2xl bg-background/95 backdrop-blur-md">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border/50 bg-muted/30 px-4 py-3">
+        <Image
+          src="/yuvan/avatar.jpg"
+          alt="YUVAN"
+          width={40}
+          height={40}
+          className="size-10 shrink-0 rounded-full object-cover ring-2 ring-blue-500/20"
+        />
+        <div>
+          <p className="text-sm font-bold text-foreground tracking-tight">YUVAN — Insights</p>
+          <p className="text-[11px] font-medium text-muted-foreground">
+            Ask about registrations, revenue, partners, or game stats
+          </p>
+        </div>
+      </div>
+
+      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 bg-gradient-to-b from-background to-muted/20">
+        {messages.length === 0 ? (
+          <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="max-w-[90%] space-y-1.5 rounded-2xl rounded-tl-sm bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 px-4 py-3 text-sm text-foreground shadow-sm">
+              <p className="whitespace-pre-wrap leading-relaxed">
+                Try: &ldquo;How many teams registered for Box Cricket?&rdquo; or &ldquo;What&apos;s our cash collection status?&rdquo;
+              </p>
+            </div>
+          </div>
+        ) : (
+          messages.map((m) => <ChatMessage key={m.id} message={m} />)
+        )}
+        {/* Only while "submitted" — once the reply starts "streaming", its
+            own message bubble already exists in `messages` below (text or
+            a tool-call skeleton), so showing the orb at the same time
+            produced a redundant second bubble that then vanished abruptly
+            the instant streaming finished, reading as a jump/glitch. */}
+        {status === "submitted" ? (
+          <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 shadow-sm flex items-center gap-2 min-h-[44px]">
+              <span className="yuvan-thinking-orb" aria-hidden="true" />
+              <ThinkingLabel />
+            </div>
+          </div>
+        ) : null}
+        {error ? (
+          <div className="flex justify-center mt-2">
+            <p className="text-[11px] font-medium text-destructive bg-destructive/10 px-2.5 py-1 rounded-full">
+              Something went wrong — please try again.
+            </p>
+          </div>
+        ) : null}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex shrink-0 gap-2 border-t border-border/50 bg-background p-3">
+        <div className="relative flex-1">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={status !== "ready"}
+            placeholder={isListening ? "Listening..." : "Ask about your dashboard data..."}
+            className={`h-10 w-full rounded-full border border-input bg-muted/50 pl-4 pr-10 text-base outline-none transition-colors placeholder:text-muted-foreground focus:bg-background focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:opacity-50 ${isListening ? "ring-2 ring-red-500/50" : ""}`}
+          />
+          {speechSupported && (
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-2 transition-colors ${
+                isListening 
+                  ? "text-red-500 bg-red-100 dark:bg-red-900/30 animate-pulse" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+              aria-label={isListening ? "Stop listening" : "Start voice input"}
+            >
+              <Mic className="size-4" />
+            </button>
+          )}
+        </div>
+        <Button
+          type="submit"
+          size="icon"
+          className="size-10 shrink-0 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+          disabled={status !== "ready" || !input.trim()}
+          aria-label="Send"
+        >
+          <Send className="size-4 ml-0.5" />
+        </Button>
+      </form>
+    </Card>
+  );
+}

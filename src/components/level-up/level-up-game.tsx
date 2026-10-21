@@ -1,0 +1,577 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import Confetti from "react-confetti";
+import { Gift, Loader2, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
+import { SpinWheelLevel, type SpinWheelResultDetail } from "./spin-wheel-level";
+import { RollDiceLevel, type RollDiceResultDetail } from "./roll-dice-level";
+import { LevelUpLeaderboardWidget } from "./level-up-leaderboard-widget";
+
+// ---------------------------------------------------------------------------
+// Level Up (/level-upp) — a two-level run through Spin the Wheel (Level 1)
+// and Roll a Dice (Level 2), one code, one continuous session. Replaces the
+// former standalone /spin-wheel and /roll-a-dice games: TeamPlayerGate now
+// only runs once, here, up front — see spin-wheel-level.tsx /
+// roll-dice-level.tsx for the two levels themselves (each is that former
+// game's own mechanics/odds/animation, unchanged, just without its own
+// gate or mute state).
+//
+// Level 1's result doesn't gate Level 2 — win or lose, `onDone` always
+// advances the stage. Both levels are still recorded independently in
+// game_plays (gameSlug "spin-wheel" / "roll-a-dice", same as before), but
+// each recording now carries a shared `levelUpSessionId` (a fresh UUID
+// minted here every time Level 1 starts — including on "Play again") in
+// its `detail` JSON, so the admin Games insights page can pair a run's two
+// rows back into the one combined box it presents them as. See
+// getGameInsights in admin-stats.ts for that grouping.
+// ---------------------------------------------------------------------------
+
+type Stage = "gate" | "level1" | "level2" | "summary";
+type LevelResult = "won" | "lost" | null;
+
+export function LevelUpGame() {
+  const [stage, setStage] = useState<Stage>("gate");
+  const [selection, setSelection] = useState<GameTeamSelection | null>(null);
+  const [muted, setMuted] = useState(false);
+  const [level1Result, setLevel1Result] = useState<LevelResult>(null);
+  const [level1Detail, setLevel1Detail] = useState<SpinWheelResultDetail | null>(null);
+  const [level2Result, setLevel2Result] = useState<LevelResult>(null);
+  const [level2Detail, setLevel2Detail] = useState<RollDiceResultDetail | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  function toggleMute() {
+    setMuted((m) => !m);
+  }
+
+  function startRun() {
+    setSessionId(crypto.randomUUID());
+    setStage("level1");
+  }
+
+  function restart() {
+    setLevel1Result(null);
+    setLevel1Detail(null);
+    setLevel2Result(null);
+    setLevel2Detail(null);
+    setSessionId(null);
+    // Back to the gate, not straight into Level 1 — this screen is often
+    // shared at a booth, so the next player needs to find their own code
+    // rather than replay as whoever went before them. Clearing selection
+    // also drops us into the "gate" branch below, which mounts a fresh
+    // TeamPlayerGate (its own code/roster state resets for free since the
+    // previous instance was already unmounted while playing).
+    setSelection(null);
+    setStage("gate");
+  }
+
+  // Leaving the tab mid-run ends it outright — switching apps, opening
+  // another tab, minimizing, even a brief glance away all fire this the
+  // same way (the Page Visibility API can't tell them apart, and isn't
+  // meant to). No persistence exists either (see the module comment —
+  // plain useState/useReducer, nothing in localStorage/sessionStorage),
+  // so a full browser close-and-reopen already lands back on a fresh
+  // gate screen for free; this covers the remaining case, switching away
+  // without closing anything. Scoped to level1/level2 — nothing to
+  // protect on the gate screen (no run started) or the summary screen
+  // (already finished and recorded).
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState !== "hidden") return;
+      if (stage !== "level1" && stage !== "level2") return;
+      toast.error("You left the game, so this run has ended — enter your code again to start a new one.");
+      restart();
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [stage]);
+
+  const muteButton = (
+    <button
+      type="button"
+      onClick={toggleMute}
+      aria-label={muted ? "Unmute" : "Mute"}
+      className="absolute right-4 top-4 z-10 text-white/70 hover:text-white"
+    >
+      {muted ? (
+        <VolumeX className="size-7 md:size-8" />
+      ) : (
+        <Volume2 className="size-7 md:size-8" />
+      )}
+    </button>
+  );
+
+  if (stage === "level1" && selection && sessionId) {
+    return (
+      <SpinWheelLevel
+        key="level1"
+        selection={selection}
+        muted={muted}
+        onToggleMute={toggleMute}
+        levelUpSessionId={sessionId}
+        onDone={(result, detail) => {
+          setLevel1Result(result);
+          setLevel1Detail(detail);
+          // Server-authoritative — syncs away any staleness from the
+          // code lookup, so Level 2 and the summary screen show the
+          // real attempt number for this run, not whatever team-lookup
+          // last reported.
+          if (typeof detail.attemptNumber === "number") {
+            setSelection((s) => (s ? { ...s, attemptNumber: detail.attemptNumber as number } : s));
+          }
+          setStage("level2");
+        }}
+      />
+    );
+  }
+
+  if (stage === "level2" && selection && sessionId) {
+    return (
+      <RollDiceLevel
+        key="level2"
+        selection={selection}
+        muted={muted}
+        onToggleMute={toggleMute}
+        levelUpSessionId={sessionId}
+        onDone={(result, detail) => {
+          setLevel2Result(result);
+          setLevel2Detail(detail);
+          setStage("summary");
+        }}
+      />
+    );
+  }
+
+  if (stage === "summary") {
+    const anyWon = level1Result === "won" || level2Result === "won";
+    return (
+      <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
+        {muteButton}
+        <LevelUpLeaderboardWidget />
+        {anyWon ? <ResultConfetti /> : null}
+
+        <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
+          🏁
+        </div>
+        <h1 className="mt-4 text-3xl font-black sm:text-4xl md:text-6xl">
+          Game Over
+        </h1>
+        <p className="mt-3 text-sm text-white/70 sm:text-base">
+          Here&apos;s how both levels went.
+        </p>
+        {selection ? (
+          <p className="mt-1 text-xs font-bold uppercase tracking-widest text-violet-300/70">
+            Chance {selection.attemptNumber} of 2
+          </p>
+        ) : null}
+
+        <div className="mt-8 w-full max-w-sm space-y-3">
+          <LevelRow
+            n={1}
+            label="Spin the Wheel"
+            result={level1Result}
+            detail={
+              level1Detail
+                ? `You picked ${level1Detail.picked} — wheel landed on ${level1Detail.landedLabel}`
+                : null
+            }
+          />
+          <LevelRow
+            n={2}
+            label="Roll a Dice"
+            result={level2Result}
+            detail={
+              level2Detail
+                ? `You picked ${level2Detail.picked} — dice rolled ${level2Detail.die1} + ${level2Detail.die2} = ${level2Detail.drawnSum}`
+                : null
+            }
+          />
+        </div>
+
+        {selection && sessionId ? (
+          <PrizeTierPanel
+            prizeTier={level2Detail?.prizeTier}
+            midTierPrizeLabel={level2Detail?.midTierPrizeLabel}
+            selection={selection}
+            levelUpSessionId={sessionId}
+          />
+        ) : null}
+
+        {/* Cross-promo: Box Cricket is a separate, paid team event; the
+            Captain Benefits poster sits beside it promoting the extra
+            rewards a Box Cricket team captain unlocks by also completing
+            Spin the Wheel + Dice Challenge — both link to the same
+            registration page. On mobile (stacked) only the Box Cricket
+            card carries a QR footer, since that's the actual registration
+            flow both posters point to. On desktop (side-by-side) neither
+            card has its own footer — instead one shared QR block sits
+            below the pair, since scanning either poster leads to the same
+            place and two identical QR codes side by side would be
+            redundant. The whole card is still a real Link either way, for
+            anyone viewing this on the same device they'd register from. */}
+        <div className="mt-10 w-full max-w-3xl">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/50">
+            Also Open Now
+          </p>
+          <div className="flex flex-col items-center justify-center gap-6 md:flex-row md:items-start">
+            <Link
+              href="/events/cricket-championship-2026"
+              className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
+            >
+              {/* Both posters sit in a shared aspect-ratio frame (matching
+                  this one's real 941x1672 — close to 9:16) with
+                  object-contain, so the two cards always render at the
+                  same height side by side despite the source posters
+                  having different native aspect ratios — without ever
+                  cropping either poster's own content. */}
+              <div className="relative aspect-[9/16] w-full bg-black/20">
+                <Image
+                  src="/box-cricket/poster-999.png"
+                  alt="YCC Box Cricket Tournament poster"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <div className="flex items-center gap-3 border-t border-white/10 bg-black/40 p-3 md:hidden">
+                <Image
+                  src="/box-cricket/qr.png"
+                  alt="QR code to register for YCC Box Cricket Tournament"
+                  width={96}
+                  height={96}
+                  className="size-20 shrink-0 rounded-md bg-white p-1.5 sm:size-24"
+                />
+                <p className="text-left text-xs text-white/70 sm:text-sm">
+                  <span className="font-bold text-white">Scan to register</span>{" "}
+                  for the YCC Box Cricket Tournament — or tap this poster.
+                </p>
+              </div>
+            </Link>
+
+            <Link
+              href="/events/cricket-championship-2026"
+              className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
+            >
+              <div className="relative aspect-[9/16] w-full bg-black/20">
+                <Image
+                  src="/go-goa-gone/captain-benefits-poster.png"
+                  alt="YCC Kismat Ke Khiladi — Exclusive Captain Benefits poster"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            </Link>
+          </div>
+
+          <Link
+            href="/events/cricket-championship-2026"
+            className="mx-auto mt-6 hidden max-w-md items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 shadow-xl transition-transform duration-300 hover:scale-[1.02] md:flex"
+          >
+            <Image
+              src="/box-cricket/qr.png"
+              alt="QR code to register for YCC Box Cricket Tournament"
+              width={96}
+              height={96}
+              className="size-20 shrink-0 rounded-md bg-white p-1.5 sm:size-24"
+            />
+            <p className="text-left text-xs text-white/70 sm:text-sm">
+              <span className="font-bold text-white">Scan to register</span>{" "}
+              for the YCC Box Cricket Tournament — both posters lead here.
+            </p>
+          </Link>
+        </div>
+
+        <button
+          type="button"
+          onClick={restart}
+          className="mt-8 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-400 to-violet-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-violet-500/20 transition-all duration-300 hover:scale-105 hover:from-violet-300 hover:to-violet-400 hover:shadow-violet-500/40 sm:px-8 sm:py-3 sm:text-xl"
+        >
+          <RotateCcw className="size-5" />
+          Play again
+        </button>
+      </div>
+    );
+  }
+
+  // stage === "gate" (or selection somehow missing for level1/level2 —
+  // falls through here too, back to the gate rather than crashing).
+  return (
+    <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
+      {muteButton}
+      <LevelUpLeaderboardWidget />
+      <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-violet-400/30 blur-3xl sm:size-72" />
+      <span className="text-5xl sm:text-6xl">🏆</span>
+      <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
+        Kismat Ke Khiladi
+      </h1>
+      <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
+        <p className="mb-1 text-center text-base font-bold text-white sm:text-lg">
+          Game &amp; Rules
+        </p>
+        <p className="mb-3 text-center text-xs font-bold uppercase tracking-widest text-violet-300 sm:text-sm">
+          2 Games • Only 2 Chances to Play
+        </p>
+        <p className="mb-3">Enter your code &amp; start the game.</p>
+        <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-violet-300">
+          <li>
+            <span className="font-bold text-white">Level 1: Spin the Wheel —</span>{" "}
+            Pick a number. If the arrow lands on your number, you win!
+          </li>
+          <li>
+            <span className="font-bold text-white">Level 2: Roll the Dice —</span>{" "}
+            Pick a number. If the dice lands on your number, you win!
+          </li>
+        </ol>
+        <p className="mt-3">
+          After winning the game, a Letter Box will appear on your screen.
+          Tap to open it and receive your YCC Kismat Ke Khiladi
+          Winners&apos; Congratulations &amp; Invitation Pass.
+        </p>
+        <p className="mt-2">Visit our venue in person to collect your surprise gift.</p>
+        <p className="mt-4 border-l-2 border-violet-300/60 pl-3 italic text-white/80">
+          &quot;Best wishes for the game!&quot;
+        </p>
+      </div>
+
+      <div className="mt-6 w-full max-w-xs sm:max-w-sm">
+        {/* Real gameplay recording (not a synthetic demo) — the full run
+            through both levels to a win, screen-recorded and handed off as
+            an mp4, re-encoded here for web delivery (h264, ~1MB, faststart).
+            autoPlay+loop+muted+playsInline: starts and loops on its own, no
+            controls, no sound, no iOS fullscreen takeover on tap. */}
+        <video
+          src="/level-up/win-demo.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-label="Gameplay demo of winning a round in Kismat Ke Khiladi"
+          className="w-full rounded-2xl border border-white/10 shadow-xl"
+        />
+      </div>
+
+      <TeamPlayerGate game="level-up" onSelectionChange={setSelection} />
+
+      <button
+        type="button"
+        disabled={!selection}
+        onClick={startRun}
+        className={cn(
+          "mt-8 rounded-xl px-8 py-2.5 text-lg font-bold shadow-xl transition-all duration-300 sm:px-10 sm:py-3 sm:text-xl md:text-2xl",
+          selection
+            ? "bg-gradient-to-r from-violet-400 to-violet-500 text-black shadow-violet-500/20 hover:scale-105 hover:from-violet-300 hover:to-violet-400 hover:shadow-violet-500/40"
+            : "cursor-not-allowed border border-white/10 bg-white/5 text-white/40",
+        )}
+      >
+        Start Level 1
+      </button>
+    </div>
+  );
+}
+
+// Only rendered when the event has a prize-tier system configured (Kismat
+// Ke Khiladi) and this run actually landed a tier — level2Detail.prizeTier
+// is undefined for every other event. "mid" is awarded automatically (no
+// extra action); "top" opens the numbered picker below.
+function PrizeTierPanel({
+  prizeTier,
+  midTierPrizeLabel,
+  selection,
+  levelUpSessionId,
+}: {
+  prizeTier: "top" | "mid" | "none" | undefined;
+  midTierPrizeLabel: string | undefined;
+  selection: GameTeamSelection;
+  levelUpSessionId: string;
+}) {
+  if (prizeTier === "mid") {
+    return (
+      <div className="mt-8 w-full max-w-sm rounded-2xl border border-amber-300/40 bg-amber-400/10 p-5 text-center">
+        <p className="text-2xl">🎟️</p>
+        <p className="mt-2 text-lg font-bold text-amber-200">
+          You&apos;ve won a {midTierPrizeLabel ?? "prize"}!
+        </p>
+        <p className="mt-1 text-sm text-white/70">
+          Show this screen to our staff at the venue to claim it.
+        </p>
+      </div>
+    );
+  }
+
+  if (prizeTier === "top") {
+    return <PrizePicker selection={selection} levelUpSessionId={levelUpSessionId} />;
+  }
+
+  return null;
+}
+
+interface PrizeSlotView {
+  slotNumber: number;
+  available: boolean;
+}
+
+// Fetches real slot availability on mount (so an already-claimed number
+// shows disabled immediately) and re-verifies the claim server-side on
+// every pick — see kismat-prize-claim.ts. A losing race on a simultaneous
+// claim just disables that number and lets them pick again, not an error
+// state.
+function PrizePicker({
+  selection,
+  levelUpSessionId,
+}: {
+  selection: GameTeamSelection;
+  levelUpSessionId: string;
+}) {
+  const [slots, setSlots] = useState<PrizeSlotView[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState(false);
+  const [wonPrize, setWonPrize] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const params = new URLSearchParams({
+          source: selection.source,
+          playerRefId: selection.playerRefId,
+          levelUpSessionId,
+        });
+        const res = await fetch(`/api/games/kismat-prize-claim?${params}`);
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (!res.ok) {
+          toast.error(data?.error ?? "Could not load prizes.");
+          return;
+        }
+        setSlots(data.slots ?? []);
+        if (data.alreadyClaimed) setWonPrize(data.alreadyClaimed);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [selection.source, selection.playerRefId, levelUpSessionId]);
+
+  async function pick(slotNumber: number) {
+    if (claiming || wonPrize) return;
+    setClaiming(true);
+    try {
+      const res = await fetch("/api/games/kismat-prize-claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: selection.source,
+          playerRefId: selection.playerRefId,
+          levelUpSessionId,
+          slotNumber,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(data?.error ?? "That number was already taken — pick another.");
+        setSlots((prev) =>
+          prev ? prev.map((s) => (s.slotNumber === slotNumber ? { ...s, available: false } : s)) : prev,
+        );
+        return;
+      }
+      setWonPrize(data.prizeName);
+    } catch {
+      toast.error("Network error — please try again.");
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  return (
+    <div className="mt-8 w-full max-w-sm rounded-2xl border border-violet-300/40 bg-violet-400/10 p-5 text-center">
+      <Gift className="mx-auto size-8 text-violet-200" />
+      <p className="mt-2 text-lg font-bold text-violet-100">
+        You won both levels — pick a number for your prize!
+      </p>
+
+      {loading ? (
+        <div className="mt-4 flex justify-center">
+          <Loader2 className="size-6 animate-spin text-white/70" />
+        </div>
+      ) : wonPrize ? (
+        <p className="mt-4 text-xl font-black text-emerald-300">🎉 {wonPrize}</p>
+      ) : (
+        <div className="mt-4 grid grid-cols-5 gap-2">
+          {(slots ?? []).map((s) => (
+            <button
+              key={s.slotNumber}
+              type="button"
+              disabled={!s.available || claiming}
+              onClick={() => pick(s.slotNumber)}
+              className={cn(
+                "flex aspect-square items-center justify-center rounded-lg border text-base font-bold transition-all",
+                s.available
+                  ? "border-violet-300/50 bg-white/5 text-white hover:scale-110 hover:bg-violet-400/20"
+                  : "cursor-not-allowed border-white/5 bg-white/5 text-white/20",
+              )}
+            >
+              {s.slotNumber}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LevelRow({
+  n,
+  label,
+  result,
+  detail,
+}: {
+  n: number;
+  label: string;
+  result: LevelResult;
+  detail: string | null;
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="text-left">
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/50">
+            Level {n}
+          </p>
+          <p className="font-bold text-white">{label}</p>
+        </div>
+        <span
+          className={cn(
+            "rounded-full px-3 py-1 text-sm font-bold",
+            result === "won"
+              ? "bg-emerald-500/20 text-emerald-300"
+              : "bg-white/10 text-white/60",
+          )}
+        >
+          {result === "won" ? "Won 🎉" : "Lost"}
+        </span>
+      </div>
+      {detail ? <p className="mt-2 text-left text-xs text-white/60">{detail}</p> : null}
+    </div>
+  );
+}
+
+function ResultConfetti() {
+  const [dimensions] = useState(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
+  return (
+    <Confetti
+      width={dimensions.width}
+      height={dimensions.height}
+      numberOfPieces={260}
+      recycle={false}
+    />
+  );
+}

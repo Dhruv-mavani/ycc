@@ -1,0 +1,38 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  images: {
+    // AVIF first (much smaller than WebP for the hero photos). Next 16 only
+    // honours a `quality` prop that appears in this list — anything else is
+    // silently coerced to 75.
+    formats: ["image/avif", "image/webp"],
+    qualities: [55, 75],
+  },
+  // /level-up was renamed to /level-upp — deliberately no redirect from
+  // the old path. Anyone still holding the old link/QR code is meant to
+  // hit a plain 404, not get waved through to the game; see the commit
+  // this reverted for the (rejected) alternative that did redirect.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // No window.open()/window.opener usage anywhere in this app
+          // (Razorpay checkout and Supabase Google OAuth both use
+          // same-tab redirects/modals) — safe to isolate the browsing context.
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Same intent as X-Frame-Options but the modern, CSP-based
+          // mechanism — blocks this site from being framed elsewhere.
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
