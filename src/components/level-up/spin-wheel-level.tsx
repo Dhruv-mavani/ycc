@@ -173,6 +173,10 @@ export interface SpinWheelResultDetail {
   /** What the wheel actually landed on — a number, or a prize name. */
   landedLabel: string;
   wonPrizeName: string | null;
+  /** Server-authoritative — the parent syncs its own `selection` with
+   * this, since the attemptNumber it already had (from the last code
+   * lookup) goes stale the moment a second run starts on the same code. */
+  attemptNumber?: number;
 }
 
 export function SpinWheelLevel({
@@ -197,6 +201,10 @@ export function SpinWheelLevel({
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
+  // Doesn't drive the reducer's animation state, but IS read directly in
+  // render (the "Chance X of 2" line below), so — unlike a ref — it has
+  // to be real state to ever re-render when the server's answer updates it.
+  const [attemptNumber, setAttemptNumber] = useState(selection.attemptNumber);
 
   const sfxRef = useRef<ActiveSound | null>(null);
   const stopSfx = useCallback(() => {
@@ -252,6 +260,7 @@ export function SpinWheelLevel({
         dispatch({ type: "REQUEST_FAILED" });
         return;
       }
+      if (typeof data.attemptNumber === "number") setAttemptNumber(data.attemptNumber);
       dispatch({ type: "OPEN", landedIndex: data.landedIndex });
     } catch {
       toast.error("Network error — please try again.");
@@ -295,6 +304,7 @@ export function SpinWheelLevel({
         picked: state.picked as number,
         landedLabel,
         wonPrizeName: wonPrize?.name ?? null,
+        attemptNumber,
       });
     }, RESULT_HOLD_MS);
     return () => window.clearTimeout(timer);
@@ -324,7 +334,7 @@ export function SpinWheelLevel({
         {muteButton}
         <LevelUpLeaderboardWidget />
         <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-amber-300 sm:mt-0">
-          Level 1 of 2
+          Level 1 of 2 · Chance {attemptNumber} of 2
         </p>
 
         {/* The wheel sits up top from the very start (idle, unspun) so
@@ -401,7 +411,7 @@ export function SpinWheelLevel({
       {won ? <ResultConfetti /> : null}
 
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-300">
-        Level 1 of 2
+        Level 1 of 2 · Chance {attemptNumber} of 2
       </p>
       <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
         {won ? (wonPrize?.emoji ?? "🎉") : "🎡"}

@@ -293,7 +293,7 @@ export function RollDiceLevel({
         {muteButton}
         <LevelUpLeaderboardWidget />
         <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-emerald-300 sm:mt-0">
-          Level 2 of 2
+          Level 2 of 2 · Chance {selection.attemptNumber} of 2
         </p>
 
         {/* The dice sit up top from the very start (idle, unrolled) so
@@ -370,7 +370,7 @@ export function RollDiceLevel({
       {won ? <ResultConfetti /> : null}
 
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-emerald-300">
-        Level 2 of 2
+        Level 2 of 2 · Chance {selection.attemptNumber} of 2
       </p>
       <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
         {won ? "🎉" : "🎲"}

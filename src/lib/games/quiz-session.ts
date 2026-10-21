@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { lookupGameTeamById, hasAlreadyPlayed, type GameTeamSource } from "@/lib/game-plays";
+import { lookupGameTeamById, getPlayStatus, MAX_PLAYS_PER_CODE, type GameTeamSource } from "@/lib/game-plays";
 import {
   QUESTION_TIERS,
   AI_TRAP_QUESTIONS,
@@ -196,7 +196,7 @@ async function recordQuizResult(
 }
 
 export type StartQuizResult =
-  | { ok: true; token: string; levelIndex: number; question: QuizQuestionView }
+  | { ok: true; token: string; levelIndex: number; question: QuizQuestionView; attemptNumber: number }
   | { ok: false; error: string };
 
 export async function startQuizSession(input: {
@@ -209,10 +209,11 @@ export async function startQuizSession(input: {
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
 
-  if (await hasAlreadyPlayed(["quiz-champion"], input.source, player.id)) {
+  const status = await getPlayStatus(["quiz-champion"], input.source, player.id);
+  if (!status.allowed) {
     return {
       ok: false,
-      error: "You've already played Quiz Champion with this code — one entry per code.",
+      error: `You've already used both your chances with this code — ${MAX_PLAYS_PER_CODE} plays per code.`,
     };
   }
 
@@ -232,7 +233,7 @@ export async function startQuizSession(input: {
     lifelinesUsed: { fiftyFifty: false, audiencePoll: false, askGenius: false, flip: false },
   };
 
-  return { ok: true, token: signToken(payload), levelIndex: 0, question: view };
+  return { ok: true, token: signToken(payload), levelIndex: 0, question: view, attemptNumber: status.attemptNumber };
 }
 
 export type AnswerQuizResult =

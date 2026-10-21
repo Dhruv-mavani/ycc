@@ -309,37 +309,55 @@ export function isAlwaysWinPlayer(source: GameTeamSource, playerRefId: string): 
   return !!TEST_PLAYER_FLAGS[`${source}:${playerRefId}`]?.alwaysWin;
 }
 
-/** True if this exact code (source + player) already has a recorded play
- * for any of the given game_slugs — the one-entry-per-code-per-game check,
- * called right before a round is drawn/a quiz session is started. */
-export async function hasAlreadyPlayed(
+// Two plays per code per game (was one — see the session this bumped it,
+// "they will get an alert that they can play only twice"). Level Up's two
+// legs (spin-wheel, roll-a-dice) share one count — a run always writes
+// exactly one spin-wheel row, so counting that slug alone counts *runs*,
+// not legs; counting both slugs would double every run's real count.
+export const MAX_PLAYS_PER_CODE = 2;
+
+/** How many of the given game_slugs this exact code (source + player) has
+ * already played — pass a single run-counting slug for Level Up (just
+ * "spin-wheel", never both legs) so a completed run counts as 1, not 2. */
+export async function getPlayCount(
   gameSlugs: readonly GameSlug[],
   source: GameTeamSource,
   playerRefId: string,
-): Promise<boolean> {
-  if (isUnlimitedTestPlayer(source, playerRefId)) return false;
+): Promise<number> {
+  if (isUnlimitedTestPlayer(source, playerRefId)) return 0;
   const admin = createAdminClient();
-  const { data } = await admin
+  const { count } = await admin
     .from("game_plays")
-    .select("id")
+    .select("id", { count: "exact", head: true })
     .in("game_slug", gameSlugs)
     .eq("source", source)
-    .eq("player_ref_id", playerRefId)
-    .limit(1)
-    .maybeSingle();
-  return !!data;
+    .eq("player_ref_id", playerRefId);
+  return count ?? 0;
 }
 
-/** Same check as hasAlreadyPlayed, batched across a whole roster — used by
- * the team-lookup route to flag already-played teammates up front, before
+/** The one-entry(-ish)-per-code-per-game gate, called right before a round
+ * is drawn/a quiz session is started. attemptNumber is 1-based — 1 for a
+ * fresh code, 2 for its second (and final) play. */
+export async function getPlayStatus(
+  gameSlugs: readonly GameSlug[],
+  source: GameTeamSource,
+  playerRefId: string,
+): Promise<{ allowed: boolean; attemptNumber: number; playCount: number }> {
+  const playCount = await getPlayCount(gameSlugs, source, playerRefId);
+  return { allowed: playCount < MAX_PLAYS_PER_CODE, attemptNumber: playCount + 1, playCount };
+}
+
+/** Same count as getPlayCount, batched across a whole roster — used by the
+ * team-lookup route to flag teammates' remaining chances up front, before
  * anyone picks a number/spins/starts a quiz, rather than only failing once
  * they try to play. */
-export async function alreadyPlayedPlayerIds(
+export async function playCountsByPlayerId(
   gameSlugs: readonly GameSlug[],
   source: GameTeamSource,
   playerRefIds: string[],
-): Promise<Set<string>> {
-  if (playerRefIds.length === 0) return new Set();
+): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  if (playerRefIds.length === 0) return counts;
   const admin = createAdminClient();
   const { data } = await admin
     .from("game_plays")
@@ -347,11 +365,13 @@ export async function alreadyPlayedPlayerIds(
     .in("game_slug", gameSlugs)
     .eq("source", source)
     .in("player_ref_id", playerRefIds);
-  const played = new Set((data ?? []).map((r) => r.player_ref_id));
-  for (const id of playerRefIds) {
-    if (isUnlimitedTestPlayer(source, id)) played.delete(id);
+  for (const row of data ?? []) {
+    counts.set(row.player_ref_id, (counts.get(row.player_ref_id) ?? 0) + 1);
   }
-  return played;
+  for (const id of playerRefIds) {
+    if (isUnlimitedTestPlayer(source, id)) counts.set(id, 0);
+  }
+  return counts;
 }
 
 /**
@@ -373,8 +393,11 @@ export async function recordGamePlay(input: {
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
 
-  if (await hasAlreadyPlayed([input.gameSlug], input.source, player.id)) {
-    return { ok: false, error: "You've already played this game with this code — one entry per code." };
+  if (!(await getPlayStatus([input.gameSlug], input.source, player.id)).allowed) {
+    return {
+      ok: false,
+      error: `You've already used both your chances with this code — ${MAX_PLAYS_PER_CODE} plays per code.`,
+    };
   }
 
   const admin = createAdminClient();
@@ -414,6 +437,9 @@ export type LevelUpRollResult =
       // Khiladi today).
       prizeTier?: "top" | "mid" | "none";
       midTierPrizeLabel?: string;
+      // Spin the Wheel only — which of the code's MAX_PLAYS_PER_CODE
+      // chances this run is (1 or 2), for the client to display.
+      attemptNumber?: number;
     }
   | { ok: false; error: string };
 
@@ -456,17 +482,21 @@ export async function rollAndRecordLevelUpPlay(input: {
   if (!player) return { ok: false, error: "Player not found on this team" };
 
   // Only gated at Level 1 (spin-wheel) — a run always starts there, so
-  // blocking a second run there is enough; Level 2 (roll-a-dice) of the
+  // blocking a third run there is enough; Level 2 (roll-a-dice) of the
   // *current* run must never be blocked just because it's about to write
-  // its own first-ever row for this player.
-  if (
-    input.level === "spin-wheel" &&
-    (await hasAlreadyPlayed(LEVEL_UP_SLUGS, input.source, player.id))
-  ) {
-    return {
-      ok: false,
-      error: "You've already played Level Up with this code — one entry per code.",
-    };
+  // its own first-ever row for this player. Counts only "spin-wheel" (not
+  // both legs via LEVEL_UP_SLUGS) — a run always writes exactly one
+  // spin-wheel row, so that alone counts runs, not legs.
+  let attemptNumber: number | undefined;
+  if (input.level === "spin-wheel") {
+    const status = await getPlayStatus(["spin-wheel"], input.source, player.id);
+    if (!status.allowed) {
+      return {
+        ok: false,
+        error: `You've already used both your chances with this code — ${MAX_PLAYS_PER_CODE} plays per code.`,
+      };
+    }
+    attemptNumber = status.attemptNumber;
   }
 
   let result: "won" | "lost";
@@ -491,7 +521,7 @@ export async function rollAndRecordLevelUpPlay(input: {
       prizeId: prize?.id ?? null,
       levelUpSessionId: input.levelUpSessionId,
     };
-    response = { ok: true, result, landedIndex };
+    response = { ok: true, result, landedIndex, attemptNumber };
   } else {
     const drawnSum = isAlwaysWinPlayer(input.source, player.id) ? input.picked : drawSum(input.picked);
     const dieFaces = facesForSum(drawnSum);
@@ -545,7 +575,7 @@ export async function rollAndRecordLevelUpPlay(input: {
 }
 
 export type MysteryBoxRollResult =
-  | { ok: true; result: "won" | "lost"; drawn: number }
+  | { ok: true; result: "won" | "lost"; drawn: number; attemptNumber: number }
   | { ok: false; error: string };
 
 /**
@@ -574,10 +604,11 @@ export async function rollAndRecordMysteryBoxPlay(input: {
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
 
-  if (await hasAlreadyPlayed(["mystry-box"], input.source, player.id)) {
+  const status = await getPlayStatus(["mystry-box"], input.source, player.id);
+  if (!status.allowed) {
     return {
       ok: false,
-      error: "You've already played Mystery Box with this code — one entry per code.",
+      error: `You've already used both your chances with this code — ${MAX_PLAYS_PER_CODE} plays per code.`,
     };
   }
 
@@ -598,5 +629,5 @@ export async function rollAndRecordMysteryBoxPlay(input: {
   });
 
   if (error) return { ok: false, error: "Could not record play" };
-  return { ok: true, result, drawn };
+  return { ok: true, result, drawn, attemptNumber: status.attemptNumber };
 }

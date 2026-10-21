@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Crown, Loader2, Search } from "lucide-react";
 
 // Sits above the Play button on every self-serve game's start screen.
@@ -16,11 +17,12 @@ import { Crown, Loader2, Search } from "lucide-react";
 // the eventual win/loss.
 //
 // `game` tells /api/games/team-lookup which game this gate is for, so it
-// can flag teammates who've already used their one entry — purely a UX
-// head start (so a code that's already played doesn't even get as far as
-// picking a number); the real, unbypassable enforcement is server-side at
-// the actual play/start endpoint (see hasAlreadyPlayed in
-// src/lib/game-plays.ts), which this flag can never substitute for.
+// can flag teammates who've used up both their chances and show each
+// player's remaining-chances count — purely a UX head start (so a code
+// that's maxed out doesn't even get as far as picking a number); the
+// real, unbypassable enforcement is server-side at the actual play/start
+// endpoint (see getPlayStatus in src/lib/game-plays.ts), which this flag
+// can never substitute for.
 
 export type GameTeamSource = "registration" | "partner" | "school" | "individual_free";
 
@@ -34,6 +36,8 @@ export interface GameTeamSelection {
   playerName: string;
   /** Only set for "registration" source — see GameTeamLookup.eventSlug. */
   eventSlug?: string;
+  /** Which of this code's MAX_PLAYS_PER_CODE (2) chances this run is. */
+  attemptNumber: number;
 }
 
 interface RosterPlayer {
@@ -41,6 +45,8 @@ interface RosterPlayer {
   name: string;
   isCaptain: boolean;
   alreadyPlayed?: boolean;
+  playCount?: number;
+  attemptNumber?: number;
 }
 
 interface Roster {
@@ -98,8 +104,15 @@ export function TeamPlayerGate({
       setRoster(team);
       setStatus("found");
 
+      // The headline "alert" the one-entry-per-code rule needs — fires
+      // once per successful lookup, before anyone picks a number, so it's
+      // seen regardless of whether this roster auto-selects below.
+      if (!team.players.every((p) => p.alreadyPlayed)) {
+        toast.info("You can play this game up to 2 times with this code.");
+      }
+
       // Single-player rosters normally auto-select straight into Play —
-      // skipped here if that one player already used their entry, so
+      // skipped here if that one player already used both chances, so
       // they land on the "already played" message below instead.
       if (team.players.length === 1 && !team.players[0].alreadyPlayed) {
         const only = team.players[0];
@@ -111,6 +124,7 @@ export function TeamPlayerGate({
           playerRefId: only.id,
           playerName: only.name,
           eventSlug: team.eventSlug,
+          attemptNumber: only.attemptNumber ?? 1,
         });
       }
     } catch {
@@ -130,6 +144,7 @@ export function TeamPlayerGate({
       playerRefId: player.id,
       playerName: player.name,
       eventSlug: roster.eventSlug,
+      attemptNumber: player.attemptNumber ?? 1,
     });
   }
 
@@ -178,7 +193,7 @@ export function TeamPlayerGate({
           {roster.players.length > 1 ? (
             roster.players.every((p) => p.alreadyPlayed) ? (
               <p className="text-sm font-medium text-rose-300">
-                Everyone on this team has already played — one entry per code.
+                Everyone on this team has used both their chances — 2 plays per code.
               </p>
             ) : (
               <select
@@ -193,14 +208,18 @@ export function TeamPlayerGate({
                   <option key={p.id} value={p.id} disabled={p.alreadyPlayed}>
                     {p.name}
                     {p.isCaptain ? " (Captain)" : ""}
-                    {p.alreadyPlayed ? " — already played" : ""}
+                    {p.alreadyPlayed
+                      ? " — both chances used"
+                      : p.playCount
+                        ? " — 1 chance used, 1 left"
+                        : ""}
                   </option>
                 ))}
               </select>
             )
           ) : roster.players[0]?.alreadyPlayed ? (
             <p className="text-sm font-medium text-rose-300">
-              {roster.players[0].name} has already played — one entry per code.
+              {roster.players[0].name} has used both chances — 2 plays per code.
             </p>
           ) : (
             <p className="flex items-center gap-1.5 text-sm font-semibold text-white">
@@ -208,6 +227,9 @@ export function TeamPlayerGate({
                 <Crown className="size-3.5 text-amber-300" />
               ) : null}
               {roster.players[0]?.name}
+              {roster.players[0]?.playCount ? (
+                <span className="text-xs font-normal text-white/50">(1 chance used, 1 left)</span>
+              ) : null}
             </p>
           )}
         </div>

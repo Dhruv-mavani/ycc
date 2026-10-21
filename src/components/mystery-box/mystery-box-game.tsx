@@ -223,6 +223,12 @@ export function MysteryBoxGame() {
         dispatch({ type: "REQUEST_FAILED" });
         return;
       }
+      // The server's attemptNumber is authoritative — this client only
+      // knew the count as of the last code lookup, which goes stale the
+      // moment "Play again" starts a second round on the same code.
+      if (typeof data.attemptNumber === "number") {
+        setSelection((s) => (s ? { ...s, attemptNumber: data.attemptNumber } : s));
+      }
       dispatch({ type: "OPEN", drawn: data.drawn });
     } catch {
       toast.error("Network error — please try again.");
@@ -324,7 +330,12 @@ export function MysteryBoxGame() {
       <div className="relative flex min-h-screen flex-col items-center px-4 py-14">
         {muteButton}
         <MysteryBoxLeaderboardWidget />
-        <h1 className="mt-8 text-center text-xl font-black sm:mt-0 sm:text-2xl md:text-4xl">
+        {selection ? (
+          <p className="mt-8 text-center text-xs font-bold uppercase tracking-widest text-amber-300 sm:mt-0">
+            Chance {selection.attemptNumber} of 2
+          </p>
+        ) : null}
+        <h1 className="mt-2 text-center text-xl font-black sm:text-2xl md:text-4xl">
           Pick your number
         </h1>
         <p className="mt-2 text-center text-xs text-white/70 sm:text-sm md:text-base">
@@ -377,6 +388,11 @@ export function MysteryBoxGame() {
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
         {muteButton}
         <MysteryBoxLeaderboardWidget />
+        {selection ? (
+          <p className="text-xs font-bold uppercase tracking-widest text-amber-300/70">
+            Chance {selection.attemptNumber} of 2
+          </p>
+        ) : null}
         <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-amber-300">
           Your number: {state.picked}
         </p>
@@ -406,6 +422,11 @@ export function MysteryBoxGame() {
       <h1 className="mt-4 text-3xl font-black sm:text-4xl md:text-6xl">
         {won ? "You nailed it!" : "Not this time"}
       </h1>
+      {selection ? (
+        <p className="mt-1 text-xs font-bold uppercase tracking-widest text-amber-300/70">
+          Chance {selection.attemptNumber} of 2
+        </p>
+      ) : null}
       <p className="mt-4 max-w-sm text-sm text-white/80 sm:text-base md:text-lg">
         {won ? (
           <>
@@ -422,14 +443,21 @@ export function MysteryBoxGame() {
         )}
       </p>
 
-      <button
-        type="button"
-        onClick={() => dispatch({ type: "RESTART" })}
-        className="mt-10 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-amber-500/20 transition-all duration-300 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 sm:px-8 sm:py-3 sm:text-xl"
-      >
-        <RotateCcw className="size-5" />
-        Play again
-      </button>
+      {selection && selection.attemptNumber >= 2 ? (
+        <p className="mt-10 max-w-xs text-sm text-white/60">
+          That was your last chance with this code — a different code can
+          still play.
+        </p>
+      ) : (
+        <button
+          type="button"
+          onClick={() => dispatch({ type: "RESTART" })}
+          className="mt-10 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-amber-500/20 transition-all duration-300 hover:scale-105 hover:from-amber-300 hover:to-amber-400 hover:shadow-amber-500/40 sm:px-8 sm:py-3 sm:text-xl"
+        >
+          <RotateCcw className="size-5" />
+          Play again (1 chance left)
+        </button>
+      )}
     </div>
   );
 }

@@ -45,7 +45,7 @@ ${faqBlock}
 
 ## Key terms visitors should know
 - Registration fees are generally non-refundable once payment is confirmed.
-- Kismat Ke Khiladi: each participant gets ONE official attempt per challenge (Spin the Wheel, Cube Challenge) — no extra attempts, no manipulating results. Fake/edited screenshots, manipulated videos, or fake certificates can get a participant disqualified.
+- Kismat Ke Khiladi: each participant gets up to TWO official chances to play (one code, two attempts max, tracked by the system) — no manipulating results. Fake/edited screenshots, manipulated videos, or fake certificates can get a participant disqualified.
 - Full Box Cricket League benefits (e.g. the Goa Travel Coupon) require registering an eligible squad for the YCC Box Cricket League separately — Box Cricket has its own entry fee, which is not covered just by playing the promo challenges. The Goa Travel Coupon's price is based on prevailing train fares and can change if those fares change; YCC will communicate any revised amount before it becomes payable.
 - Most events require joining YCC's WhatsApp channel and Instagram before registering.
 - Full legal text: /terms (Partner Program) and the Terms & Conditions shown during Kismat Ke Khiladi registration.

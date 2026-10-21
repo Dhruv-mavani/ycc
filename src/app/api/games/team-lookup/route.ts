@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
-import { lookupGameTeamByCode, alreadyPlayedPlayerIds, LEVEL_UP_SLUGS, type GameSlug } from "@/lib/game-plays";
+import { lookupGameTeamByCode, playCountsByPlayerId, MAX_PLAYS_PER_CODE, type GameSlug } from "@/lib/game-plays";
 import { isRateLimited } from "@/lib/rate-limit";
 
 // Maps the public game identifier (sent by TeamPlayerGate's `game` prop) to
-// the game_slug(s) that count as "already played" for it — Level Up's two
-// legs count as one game here (see LEVEL_UP_SLUGS).
+// the game_slug used to COUNT plays for it. Level Up deliberately counts
+// only "spin-wheel", not both legs (LEVEL_UP_SLUGS) — a run always writes
+// exactly one spin-wheel row, so that alone counts runs; counting both
+// legs would double every run's real count.
 const GAME_SLUG_GROUPS: Record<string, readonly GameSlug[]> = {
-  "level-up": LEVEL_UP_SLUGS,
+  "level-up": ["spin-wheel"],
   "mystry-box": ["mystry-box"],
   "quiz-champion": ["quiz-champion"],
 };
@@ -50,7 +52,7 @@ export async function GET(request: Request) {
   const slugGroup = GAME_SLUG_GROUPS[searchParams.get("game") ?? ""];
   if (!slugGroup) return NextResponse.json({ team });
 
-  const played = await alreadyPlayedPlayerIds(
+  const counts = await playCountsByPlayerId(
     slugGroup,
     team.source,
     team.players.map((p) => p.id),
@@ -58,7 +60,15 @@ export async function GET(request: Request) {
   return NextResponse.json({
     team: {
       ...team,
-      players: team.players.map((p) => ({ ...p, alreadyPlayed: played.has(p.id) })),
+      players: team.players.map((p) => {
+        const playCount = counts.get(p.id) ?? 0;
+        return {
+          ...p,
+          alreadyPlayed: playCount >= MAX_PLAYS_PER_CODE,
+          playCount,
+          attemptNumber: Math.min(playCount + 1, MAX_PLAYS_PER_CODE),
+        };
+      }),
     },
   });
 }

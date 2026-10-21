@@ -116,6 +116,13 @@ export function LevelUpGame() {
         onDone={(result, detail) => {
           setLevel1Result(result);
           setLevel1Detail(detail);
+          // Server-authoritative — syncs away any staleness from the
+          // code lookup, so Level 2 and the summary screen show the
+          // real attempt number for this run, not whatever team-lookup
+          // last reported.
+          if (typeof detail.attemptNumber === "number") {
+            setSelection((s) => (s ? { ...s, attemptNumber: detail.attemptNumber as number } : s));
+          }
           setStage("level2");
         }}
       />
@@ -156,6 +163,11 @@ export function LevelUpGame() {
         <p className="mt-3 text-sm text-white/70 sm:text-base">
           Here&apos;s how both levels went.
         </p>
+        {selection ? (
+          <p className="mt-1 text-xs font-bold uppercase tracking-widest text-violet-300/70">
+            Chance {selection.attemptNumber} of 2
+          </p>
+        ) : null}
 
         <div className="mt-8 w-full max-w-sm space-y-3">
           <LevelRow
@@ -296,31 +308,31 @@ export function LevelUpGame() {
         Kismat Ke Khiladi
       </h1>
       <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
-        <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
+        <p className="mb-1 text-center text-base font-bold text-white sm:text-lg">
           Game &amp; Rules
         </p>
+        <p className="mb-3 text-center text-xs font-bold uppercase tracking-widest text-violet-300 sm:text-sm">
+          2 Games • Only 2 Chances to Play
+        </p>
+        <p className="mb-3">Enter your code &amp; start the game.</p>
         <ol className="list-decimal space-y-2 pl-5 marker:font-bold marker:text-violet-300">
           <li>
-            <span className="font-bold text-white">Level 1 — Spin the Wheel:</span>{" "}
-            Pick a number. If the wheel lands on your number, you win!
+            <span className="font-bold text-white">Level 1: Spin the Wheel —</span>{" "}
+            Pick a number. If the arrow lands on your number, you win!
           </li>
           <li>
-            <span className="font-bold text-white">Level 2 — Roll the Dice:</span>{" "}
-            Roll the dice. If you roll the winning number, you win!
-          </li>
-          <li>
-            <span className="font-bold text-white">Level 3 — Box Cricket:</span> If
-            you participate in the Box Cricket Tournament, you will get a
-            special Goa travel coupon starting at ₹2,499.
-          </li>
-          <li>You must participate in all 3 games to complete the challenge.</li>
-          <li>
-            You can play only one time. If you play more than once, we can
-            disqualify you. We can track your games and number of plays.
+            <span className="font-bold text-white">Level 2: Roll the Dice —</span>{" "}
+            Pick a number. If the dice lands on your number, you win!
           </li>
         </ol>
+        <p className="mt-3">
+          After winning the game, a Letter Box will appear on your screen.
+          Tap to open it and receive your YCC Kismat Ke Khiladi
+          Winners&apos; Congratulations &amp; Invitation Pass.
+        </p>
+        <p className="mt-2">Visit our venue in person to collect your surprise gift.</p>
         <p className="mt-4 border-l-2 border-violet-300/60 pl-3 italic text-white/80">
-          &quot;Please play fair. Thank you!&quot;
+          &quot;Best wishes for the game!&quot;
         </p>
       </div>
 

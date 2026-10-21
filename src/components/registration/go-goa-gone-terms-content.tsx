@@ -71,11 +71,11 @@ const SECTIONS: TermsSection[] = [
     ],
   },
   {
-    title: "One-Attempt / One-Chance Policy",
+    title: "Two-Attempt / Two-Chance Policy",
     blocks: [
       {
         type: "p",
-        text: "Each Participant is entitled to one official attempt only for each applicable challenge.",
+        text: "Each Participant is entitled to up to two official attempts for each applicable challenge.",
       },
       {
         type: "p",
@@ -88,7 +88,7 @@ const SECTIONS: TermsSection[] = [
       {
         type: "ul",
         items: [
-          "Demand an additional attempt;",
+          "Demand more attempts than the two officially allotted;",
           "Replay a challenge because they did not obtain the desired result;",
           "Request a result change after completion;",
           "Repeat a challenge through another person, device, account or method; or",
@@ -137,11 +137,11 @@ const SECTIONS: TermsSection[] = [
     blocks: [
       {
         type: "p",
-        text: "The YCC Kismat Ke Khiladi challenge is intended to be a one-time participation opportunity for each eligible Participant.",
+        text: "The YCC Kismat Ke Khiladi challenge is intended to allow up to two participation attempts for each eligible Participant.",
       },
       {
         type: "p",
-        text: "Where the challenge is conducted by an authorised YCC Campus Partner in a Participant's class, campus or designated location, that officially recorded attempt will constitute the Participant's final official attempt for the Event.",
+        text: "Where the challenge is conducted by an authorised YCC Campus Partner in a Participant's class, campus or designated location, those officially recorded attempts will constitute the Participant's final official attempts for the Event.",
       },
       {
         type: "p",
@@ -161,7 +161,7 @@ const SECTIONS: TermsSection[] = [
         type: "ul",
         items: [
           "The Participant must select one number between 1 and 10.",
-          "The Participant will receive one official opportunity to spin the wheel.",
+          "The Participant will receive up to two official opportunities to spin the wheel.",
           "The Participant wins the challenge only if the wheel lands on the number selected by the Participant, subject to verification by YCC.",
           "The official result recorded by YCC will be treated as the final result for that attempt.",
         ],

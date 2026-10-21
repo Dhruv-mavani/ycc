@@ -294,6 +294,12 @@ export function SoloQuizGame() {
         dispatch({ type: "START_FAILED" });
         return;
       }
+      // Server-authoritative — syncs away any staleness from the code
+      // lookup, since "Play again" (RESTART) reuses the same selection
+      // without a fresh team-lookup call.
+      if (typeof data.attemptNumber === "number") {
+        setSelection((s) => (s ? { ...s, attemptNumber: data.attemptNumber } : s));
+      }
       dispatch({ type: "START_OK", token: data.token, levelIndex: data.levelIndex, question: data.question });
     } catch {
       toast.error("Network error — please try again.");
@@ -498,6 +504,7 @@ export function SoloQuizGame() {
       <div className="relative z-10 mx-auto w-full max-w-4xl">
         <p className="mb-2 text-center text-sm font-semibold uppercase tracking-widest text-orange-400">
           Question {state.levelIndex + 1} of {TOTAL_LEVELS}
+          {selection ? ` · Chance ${selection.attemptNumber} of 2` : ""}
         </p>
 
         <TimerRing seconds={state.timer} running={!timerPaused} />
