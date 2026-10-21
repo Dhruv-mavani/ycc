@@ -251,26 +251,40 @@ export function lookupGameTeamById(
   return individualFreeRoster(teamRefId);
 }
 
-// Hardcoded exemption from the one-entry-per-code rule, for standing
-// test/demo identities only — not anything a player can self-serve into.
+// Hardcoded flags for standing test/demo identities only — never anything
+// a player can self-serve into. Keyed by "source:playerRefId". Two
+// independent flags, since a future test code might want one without the
+// other:
+//   - unlimitedPlays: exempt from the one-entry-per-code rule (applies
+//     across every game uniformly, since hasAlreadyPlayed/
+//     alreadyPlayedPlayerIds are the single shared choke point every
+//     game's play/start call and the team-lookup route go through).
+//   - alwaysWin: forces a win on every random draw — Mystery Box, Spin
+//     the Wheel (matches the player's own picked number; does NOT force
+//     a real jackpot prize section, so a test play never looks like a
+//     fulfilled Cash Prize/Sneakers/etc. in admin insights), and Roll a
+//     Dice. Quiz Champion is skill-based, not a random draw — this flag
+//     has no effect there, answers still have to actually be correct.
 // Currently just the founder's own real Partner code (ABHISHEK2801 /
-// YCCPP041, an approved, standing application — not a one-off test row),
-// so live-testing a game doesn't burn its one real entry. Applies across
-// every game uniformly (whatever gameSlugs a caller checks against), since
-// hasAlreadyPlayed/alreadyPlayedPlayerIds are the single shared choke
-// point every game's play/start call and the team-lookup route go through.
-// Add more "source:playerRefId" pairs here if another standing tester
-// identity is ever needed — never add a player's own event-registration
-// code here, since that id gets reused for its real result once their
-// actual registration is checked in.
-const UNLIMITED_TEST_PLAYERS: ReadonlySet<string> = new Set([
-  "partner:e897e102-ad8f-440e-beaa-8a22965b7e2d", // Abhishek Chaudhari (founder) — ABHISHEK2801
-]);
+// YCCPP041, an approved, standing application — not a one-off test row).
+// Add more "source:playerRefId" entries here for another standing tester
+// identity — never add a player's own event-registration code here,
+// since that id gets reused for its real result once their actual
+// registration is checked in.
+const TEST_PLAYER_FLAGS: Readonly<
+  Record<string, { unlimitedPlays?: boolean; alwaysWin?: boolean }>
+> = {
+  "partner:e897e102-ad8f-440e-beaa-8a22965b7e2d": { unlimitedPlays: true, alwaysWin: true }, // Abhishek Chaudhari (founder) — ABHISHEK2801
+};
 
 // Exported for public-leaderboard.ts — a test play recorded under this
 // exemption must never show up on the public leaderboard either.
 export function isUnlimitedTestPlayer(source: GameTeamSource, playerRefId: string): boolean {
-  return UNLIMITED_TEST_PLAYERS.has(`${source}:${playerRefId}`);
+  return !!TEST_PLAYER_FLAGS[`${source}:${playerRefId}`]?.unlimitedPlays;
+}
+
+export function isAlwaysWinPlayer(source: GameTeamSource, playerRefId: string): boolean {
+  return !!TEST_PLAYER_FLAGS[`${source}:${playerRefId}`]?.alwaysWin;
 }
 
 /** True if this exact code (source + player) already has a recorded play
@@ -431,7 +445,12 @@ export async function rollAndRecordLevelUpPlay(input: {
 
   if (input.level === "spin-wheel") {
     const prizes = prizesFor(input.source, input.eventSlug);
-    const landedIndex = drawSection(input.picked, prizes);
+    // alwaysWin: lands on the player's own picked number — not a forced
+    // jackpot prize section, so a test play never shows up in admin
+    // insights looking like a fulfilled Cash Prize/Sneakers/etc.
+    const landedIndex = isAlwaysWinPlayer(input.source, player.id)
+      ? input.picked - 1
+      : drawSection(input.picked, prizes);
     const landedIsPrize = landedIndex >= NUM_COUNT;
     const prize = landedIsPrize ? prizes[landedIndex - NUM_COUNT] : null;
     const won = landedIsPrize || landedIndex + 1 === input.picked;
@@ -444,7 +463,7 @@ export async function rollAndRecordLevelUpPlay(input: {
     };
     response = { ok: true, result, landedIndex };
   } else {
-    const drawnSum = drawSum(input.picked);
+    const drawnSum = isAlwaysWinPlayer(input.source, player.id) ? input.picked : drawSum(input.picked);
     const dieFaces = facesForSum(drawnSum);
     const won = input.picked === drawnSum;
     result = won ? "won" : "lost";
@@ -511,7 +530,7 @@ export async function rollAndRecordMysteryBoxPlay(input: {
     };
   }
 
-  const drawn = drawNumber(input.picked);
+  const drawn = isAlwaysWinPlayer(input.source, player.id) ? input.picked : drawNumber(input.picked);
   const result: "won" | "lost" = drawn === input.picked ? "won" : "lost";
 
   const admin = createAdminClient();
