@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import Confetti from "react-confetti";
 import { Gift, Loader2, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
@@ -200,89 +198,6 @@ export function LevelUpGame() {
             levelUpSessionId={sessionId}
           />
         ) : null}
-
-        {/* Cross-promo: Box Cricket is a separate, paid team event; the
-            Captain Benefits poster sits beside it promoting the extra
-            rewards a Box Cricket team captain unlocks by also completing
-            Spin the Wheel + Dice Challenge — both link to the same
-            registration page. On mobile (stacked) only the Box Cricket
-            card carries a QR footer, since that's the actual registration
-            flow both posters point to. On desktop (side-by-side) neither
-            card has its own footer — instead one shared QR block sits
-            below the pair, since scanning either poster leads to the same
-            place and two identical QR codes side by side would be
-            redundant. The whole card is still a real Link either way, for
-            anyone viewing this on the same device they'd register from. */}
-        <div className="mt-10 w-full max-w-3xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/50">
-            Also Open Now
-          </p>
-          <div className="flex flex-col items-center justify-center gap-6 md:flex-row md:items-start">
-            <Link
-              href="/events/cricket-championship-2026"
-              className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
-            >
-              {/* Both posters sit in a shared aspect-ratio frame (matching
-                  this one's real 941x1672 — close to 9:16) with
-                  object-contain, so the two cards always render at the
-                  same height side by side despite the source posters
-                  having different native aspect ratios — without ever
-                  cropping either poster's own content. */}
-              <div className="relative aspect-[9/16] w-full bg-black/20">
-                <Image
-                  src="/box-cricket/poster-999.png"
-                  alt="YCC Box Cricket Tournament poster"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <div className="flex items-center gap-3 border-t border-white/10 bg-black/40 p-3 md:hidden">
-                <Image
-                  src="/box-cricket/qr.png"
-                  alt="QR code to register for YCC Box Cricket Tournament"
-                  width={96}
-                  height={96}
-                  className="size-20 shrink-0 rounded-md bg-white p-1.5 sm:size-24"
-                />
-                <p className="text-left text-xs text-white/70 sm:text-sm">
-                  <span className="font-bold text-white">Scan to register</span>{" "}
-                  for the YCC Box Cricket Tournament — or tap this poster.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/events/cricket-championship-2026"
-              className="block w-full max-w-xs overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-300 hover:scale-[1.02] sm:max-w-sm md:max-w-[280px]"
-            >
-              <div className="relative aspect-[9/16] w-full bg-black/20">
-                <Image
-                  src="/go-goa-gone/captain-benefits-poster.png"
-                  alt="YCC Kismat Ke Khiladi — Exclusive Captain Benefits poster"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </Link>
-          </div>
-
-          <Link
-            href="/events/cricket-championship-2026"
-            className="mx-auto mt-6 hidden max-w-md items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 shadow-xl transition-transform duration-300 hover:scale-[1.02] md:flex"
-          >
-            <Image
-              src="/box-cricket/qr.png"
-              alt="QR code to register for YCC Box Cricket Tournament"
-              width={96}
-              height={96}
-              className="size-20 shrink-0 rounded-md bg-white p-1.5 sm:size-24"
-            />
-            <p className="text-left text-xs text-white/70 sm:text-sm">
-              <span className="font-bold text-white">Scan to register</span>{" "}
-              for the YCC Box Cricket Tournament — both posters lead here.
-            </p>
-          </Link>
-        </div>
 
         <button
           type="button"
