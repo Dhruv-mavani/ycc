@@ -11,6 +11,7 @@ import { GstBreakdown } from "@/components/registration/gst-breakdown";
 import { Banknote, Users, ScrollText, AlertCircle, Trophy, Download, CalendarDays } from "lucide-react";
 import { EventRegisterCta } from "@/components/registration/event-register-cta";
 import { isKismatKeKhiladiEvent } from "@/lib/kismat-ke-khiladi";
+import { cn } from "@/lib/utils";
 
 function formatRupees(paise: number) {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
@@ -19,7 +20,7 @@ function formatRupees(paise: number) {
 // Poster used per event for social share previews — falls back to the site's
 // default OG image (see root layout) when an event has none of its own.
 function posterFor(slug: string): string | undefined {
-  if (isKismatKeKhiladiEvent(slug)) return "/go-goa-gone/poster.png";
+  if (isKismatKeKhiladiEvent(slug)) return "/go-goa-gone/golden-emblem.png";
   if (slug === "cricket-championship-2026") return "/box-cricket/poster-999.png";
   if (slug === "ycc-jackpot-heist") return "/jackpot-heist/poster.png";
   return undefined;
@@ -172,7 +173,7 @@ export default async function EventDetailPage({
       // too, unlike this marketing page — so this CTA always just links
       // straight through.
       requireCommunityGate={false}
-      label={isBoxCricket ? "Register Now & Pay" : "Register for free"}
+      label={event.fee_paise === 0 ? "Register for free" : "Register Now & Pay"}
     />
   );
 
@@ -282,18 +283,24 @@ export default async function EventDetailPage({
                   // Box Cricket isn't free, so it keeps its own Registration
                   // Details card further down, after these steps.
                   <div>
-                    <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                    <div
+                      className={cn(
+                        isGoGoaGone
+                          ? "flex items-center justify-center p-4"
+                          : "rounded-2xl overflow-hidden border border-slate-200 shadow-sm",
+                      )}
+                    >
                       <Image
                         src={
                           isGoGoaGone
-                            ? "/go-goa-gone/poster.png"
+                            ? "/go-goa-gone/golden-emblem.png"
                             : isBoxCricket
                               ? "/box-cricket/poster-999.png"
                               : "/jackpot-heist/poster.png"
                         }
-                        alt={`${event.name} poster`}
-                        width={1024}
-                        height={1536}
+                        alt={isGoGoaGone ? `${event.name} logo` : `${event.name} poster`}
+                        width={isGoGoaGone ? 1944 : 1024}
+                        height={isGoGoaGone ? 809 : 1536}
                         className="w-full h-auto"
                       />
                     </div>
@@ -543,7 +550,9 @@ export default async function EventDetailPage({
                             <span className="font-semibold text-slate-900">
                               Fill the form correctly.
                             </span>{" "}
-                            Tap &ldquo;Register for free&rdquo; and enter your real name, WhatsApp
+                            Tap &ldquo;
+                            {event.fee_paise === 0 ? "Register for free" : "Register Now & Pay"}
+                            &rdquo; and enter your real name, WhatsApp
                             number, email, age and gender.
                           </p>
                         </li>
