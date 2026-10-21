@@ -12,6 +12,28 @@ function sanitizeForOrFilter(value: string): string {
   return value.replace(/[,()]/g, "");
 }
 
+/** Reads an event's prize-tier config (see migration 0044) — top_tier_chance/
+ * mid_tier_chance/mid_tier_prize_label, all null unless an admin has
+ * explicitly set them up for this event (Kismat Ke Khiladi today). Returns
+ * null when not configured, so callers can treat that as "tier system not
+ * used here" with a single check. */
+async function getEventPrizeTierConfig(
+  eventSlug: string,
+): Promise<{ topTierChance: number; midTierChance: number; midTierPrizeLabel: string | null } | null> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("events")
+    .select("top_tier_chance, mid_tier_chance, mid_tier_prize_label")
+    .eq("slug", eventSlug)
+    .maybeSingle();
+  if (!data || data.top_tier_chance == null || data.mid_tier_chance == null) return null;
+  return {
+    topTierChance: data.top_tier_chance,
+    midTierChance: data.mid_tier_chance,
+    midTierPrizeLabel: data.mid_tier_prize_label,
+  };
+}
+
 export const GAME_SLUGS = ["spin-wheel", "mystry-box", "roll-a-dice", "quiz-champion"] as const;
 export type GameSlug = (typeof GAME_SLUGS)[number];
 
@@ -384,12 +406,20 @@ export type LevelUpRollResult =
       // faces, so the client can animate the cube to that exact result.
       drawnSum?: number;
       dieFaces?: [number, number];
+      // Roll a Dice only, and only for events with top_tier_chance/
+      // mid_tier_chance configured (see the doc comment below) — the
+      // prize tier this run landed, independent of whether the wheel/dice
+      // actually matched the player's own picks. Undefined for every
+      // event without tier config (i.e. every event except Kismat Ke
+      // Khiladi today).
+      prizeTier?: "top" | "mid" | "none";
+      midTierPrizeLabel?: string;
     }
   | { ok: false; error: string };
 
 /**
  * The server-authoritative counterpart to recordGamePlay, used only by
- * Level Up (Kismat Ke Khiladi ft. Go Goa Gone's Spin the Wheel / Roll a
+ * Level Up (Kismat Ke Khiladi's Spin the Wheel / Roll a
  * Dice) — unlike recordGamePlay, this never accepts a client-asserted
  * `result`. The win/loss outcome is drawn here, server-side, using the
  * same odds tables the UI used to run in the browser (now in
@@ -467,13 +497,34 @@ export async function rollAndRecordLevelUpPlay(input: {
     const dieFaces = facesForSum(drawnSum);
     const won = input.picked === drawnSum;
     result = won ? "won" : "lost";
+
+    // Separate, independently-calibrated prize-tier draw — only runs for
+    // events with top_tier_chance/mid_tier_chance configured (Kismat Ke
+    // Khiladi today; null for every other event, so this is a no-op
+    // everywhere else). Deliberately decoupled from `won` above: the
+    // wheel/dice's real win/lose outcome can't be tuned to hit two
+    // independent target rates at once (verified — see the migration's
+    // doc comment), so the tier is its own draw, not derived from
+    // whether the player actually matched their picks.
+    let prizeTier: "top" | "mid" | "none" | undefined;
+    let midTierPrizeLabel: string | undefined;
+    const eventConfig = input.eventSlug ? await getEventPrizeTierConfig(input.eventSlug) : null;
+    if (eventConfig) {
+      const r = isAlwaysWinPlayer(input.source, player.id) ? 0 : Math.random();
+      if (r < eventConfig.topTierChance) prizeTier = "top";
+      else if (r < eventConfig.topTierChance + eventConfig.midTierChance) prizeTier = "mid";
+      else prizeTier = "none";
+      midTierPrizeLabel = eventConfig.midTierPrizeLabel ?? undefined;
+    }
+
     detail = {
       picked: input.picked,
       drawnSum,
       dieFaces,
       levelUpSessionId: input.levelUpSessionId,
+      ...(prizeTier ? { prizeTier, eventSlug: input.eventSlug } : {}),
     };
-    response = { ok: true, result, drawnSum, dieFaces };
+    response = { ok: true, result, drawnSum, dieFaces, prizeTier, midTierPrizeLabel };
   }
 
   const admin = createAdminClient();

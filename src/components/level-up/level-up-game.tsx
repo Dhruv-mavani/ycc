@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Confetti from "react-confetti";
-import { RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Gift, Loader2, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
@@ -180,6 +180,15 @@ export function LevelUpGame() {
           />
         </div>
 
+        {selection && sessionId ? (
+          <PrizeTierPanel
+            prizeTier={level2Detail?.prizeTier}
+            midTierPrizeLabel={level2Detail?.midTierPrizeLabel}
+            selection={selection}
+            levelUpSessionId={sessionId}
+          />
+        ) : null}
+
         {/* Cross-promo: Box Cricket is a separate, paid team event; the
             Captain Benefits poster sits beside it promoting the extra
             rewards a Box Cricket team captain unlocks by also completing
@@ -285,11 +294,6 @@ export function LevelUpGame() {
       <span className="text-5xl sm:text-6xl">🏆</span>
       <h1 className="mt-6 text-3xl font-black sm:text-4xl md:text-6xl">
         Kismat Ke Khiladi
-        <span className="block text-2xl text-violet-300 sm:text-3xl md:text-5xl">
-          ft.
-          <br />
-          <span className="text-white">Go Goa Gone</span>
-        </span>
       </h1>
       <div className="mt-6 max-w-xl text-left text-sm leading-relaxed text-white/75 sm:text-base md:text-lg">
         <p className="mb-3 text-center text-base font-bold text-white sm:text-lg">
@@ -332,7 +336,7 @@ export function LevelUpGame() {
           loop
           muted
           playsInline
-          aria-label="Gameplay demo of winning a round in Kismat Ke Khiladi ft. Go Goa Gone"
+          aria-label="Gameplay demo of winning a round in Kismat Ke Khiladi"
           className="w-full rounded-2xl border border-white/10 shadow-xl"
         />
       </div>
@@ -352,6 +356,159 @@ export function LevelUpGame() {
       >
         Start Level 1
       </button>
+    </div>
+  );
+}
+
+// Only rendered when the event has a prize-tier system configured (Kismat
+// Ke Khiladi) and this run actually landed a tier — level2Detail.prizeTier
+// is undefined for every other event. "mid" is awarded automatically (no
+// extra action); "top" opens the numbered picker below.
+function PrizeTierPanel({
+  prizeTier,
+  midTierPrizeLabel,
+  selection,
+  levelUpSessionId,
+}: {
+  prizeTier: "top" | "mid" | "none" | undefined;
+  midTierPrizeLabel: string | undefined;
+  selection: GameTeamSelection;
+  levelUpSessionId: string;
+}) {
+  if (prizeTier === "mid") {
+    return (
+      <div className="mt-8 w-full max-w-sm rounded-2xl border border-amber-300/40 bg-amber-400/10 p-5 text-center">
+        <p className="text-2xl">🎟️</p>
+        <p className="mt-2 text-lg font-bold text-amber-200">
+          You&apos;ve won a {midTierPrizeLabel ?? "prize"}!
+        </p>
+        <p className="mt-1 text-sm text-white/70">
+          Show this screen to our staff at the venue to claim it.
+        </p>
+      </div>
+    );
+  }
+
+  if (prizeTier === "top") {
+    return <PrizePicker selection={selection} levelUpSessionId={levelUpSessionId} />;
+  }
+
+  return null;
+}
+
+interface PrizeSlotView {
+  slotNumber: number;
+  available: boolean;
+}
+
+// Fetches real slot availability on mount (so an already-claimed number
+// shows disabled immediately) and re-verifies the claim server-side on
+// every pick — see kismat-prize-claim.ts. A losing race on a simultaneous
+// claim just disables that number and lets them pick again, not an error
+// state.
+function PrizePicker({
+  selection,
+  levelUpSessionId,
+}: {
+  selection: GameTeamSelection;
+  levelUpSessionId: string;
+}) {
+  const [slots, setSlots] = useState<PrizeSlotView[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState(false);
+  const [wonPrize, setWonPrize] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const params = new URLSearchParams({
+          source: selection.source,
+          playerRefId: selection.playerRefId,
+          levelUpSessionId,
+        });
+        const res = await fetch(`/api/games/kismat-prize-claim?${params}`);
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (!res.ok) {
+          toast.error(data?.error ?? "Could not load prizes.");
+          return;
+        }
+        setSlots(data.slots ?? []);
+        if (data.alreadyClaimed) setWonPrize(data.alreadyClaimed);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [selection.source, selection.playerRefId, levelUpSessionId]);
+
+  async function pick(slotNumber: number) {
+    if (claiming || wonPrize) return;
+    setClaiming(true);
+    try {
+      const res = await fetch("/api/games/kismat-prize-claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: selection.source,
+          playerRefId: selection.playerRefId,
+          levelUpSessionId,
+          slotNumber,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(data?.error ?? "That number was already taken — pick another.");
+        setSlots((prev) =>
+          prev ? prev.map((s) => (s.slotNumber === slotNumber ? { ...s, available: false } : s)) : prev,
+        );
+        return;
+      }
+      setWonPrize(data.prizeName);
+    } catch {
+      toast.error("Network error — please try again.");
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  return (
+    <div className="mt-8 w-full max-w-sm rounded-2xl border border-violet-300/40 bg-violet-400/10 p-5 text-center">
+      <Gift className="mx-auto size-8 text-violet-200" />
+      <p className="mt-2 text-lg font-bold text-violet-100">
+        You won both levels — pick a number for your prize!
+      </p>
+
+      {loading ? (
+        <div className="mt-4 flex justify-center">
+          <Loader2 className="size-6 animate-spin text-white/70" />
+        </div>
+      ) : wonPrize ? (
+        <p className="mt-4 text-xl font-black text-emerald-300">🎉 {wonPrize}</p>
+      ) : (
+        <div className="mt-4 grid grid-cols-5 gap-2">
+          {(slots ?? []).map((s) => (
+            <button
+              key={s.slotNumber}
+              type="button"
+              disabled={!s.available || claiming}
+              onClick={() => pick(s.slotNumber)}
+              className={cn(
+                "flex aspect-square items-center justify-center rounded-lg border text-base font-bold transition-all",
+                s.available
+                  ? "border-violet-300/50 bg-white/5 text-white hover:scale-110 hover:bg-violet-400/20"
+                  : "cursor-not-allowed border-white/5 bg-white/5 text-white/20",
+              )}
+            >
+              {s.slotNumber}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

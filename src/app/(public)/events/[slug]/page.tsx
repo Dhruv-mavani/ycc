@@ -10,6 +10,7 @@ import { BackButton } from "@/components/site/back-button";
 import { GstBreakdown } from "@/components/registration/gst-breakdown";
 import { Banknote, Users, ScrollText, AlertCircle, Trophy, Download, CalendarDays } from "lucide-react";
 import { EventRegisterCta } from "@/components/registration/event-register-cta";
+import { isKismatKeKhiladiEvent } from "@/lib/kismat-ke-khiladi";
 
 function formatRupees(paise: number) {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
@@ -18,7 +19,7 @@ function formatRupees(paise: number) {
 // Poster used per event for social share previews — falls back to the site's
 // default OG image (see root layout) when an event has none of its own.
 function posterFor(slug: string): string | undefined {
-  if (slug === "ycc-go-goa-gone") return "/go-goa-gone/poster.png";
+  if (isKismatKeKhiladiEvent(slug)) return "/go-goa-gone/poster.png";
   if (slug === "cricket-championship-2026") return "/box-cricket/poster-999.png";
   if (slug === "ycc-jackpot-heist") return "/jackpot-heist/poster.png";
   return undefined;
@@ -81,7 +82,7 @@ export default async function EventDetailPage({
   // Go Goa Gone is a "cricket" event (team registration), but it's free and
   // wants the same centered, poster-led treatment as the individual_free
   // events below rather than the two-column paid-tournament layout.
-  const isGoGoaGone = event.slug === "ycc-go-goa-gone";
+  const isGoGoaGone = isKismatKeKhiladiEvent(event.slug);
   const isBoxCricket = event.slug === "cricket-championship-2026";
 
   // BreadcrumbList — helps search/AI crawlers place this event within the
@@ -458,7 +459,9 @@ export default async function EventDetailPage({
                           </span>
                           <p className="text-sm text-slate-600">
                             <span className="font-semibold text-slate-900">
-                              Get your Game Certificate & Unique Code.
+                              {event.fee_paise > 0
+                                ? "Pay the entry fee to get your Game Certificate & Unique Code."
+                                : "Get your Game Certificate & Unique Code."}
                             </span>{" "}
                             Your Unique Code is mandatory for playing the
                             games and verification.
@@ -613,6 +616,35 @@ export default async function EventDetailPage({
                         );
                       })()}
                       {event.gst_exempt ? null : (
+                        <>
+                          <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
+                          <div className="pt-5 sm:pt-6 border-t border-slate-100">
+                            <GstBreakdown basePaise={event.fee_paise} />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Kismat Ke Khiladi's old free run (gst_exempt, fee_paise
+                    0) skips this entirely via the "dead weight" check
+                    above — this only fires for the new, paid run. Simple
+                    flat fee, no player-fee breakdown (that's Box Cricket's
+                    team-specific thing above) — it's a one-person entry. */}
+                {isGoGoaGone && event.fee_paise > 0 ? (
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                      <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
+                    </h3>
+                    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
+                      <div className="flex flex-wrap items-end gap-2 mb-4">
+                        <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
+                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">Entry Fee</span>
+                      </div>
+                      {event.gst_exempt ? (
+                        <p className="text-xs sm:text-sm text-slate-500">No GST on this event — the amount above is the total.</p>
+                      ) : (
                         <>
                           <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
                           <div className="pt-5 sm:pt-6 border-t border-slate-100">

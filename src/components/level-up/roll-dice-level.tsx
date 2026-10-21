@@ -137,6 +137,11 @@ export interface RollDiceResultDetail {
   die1: number;
   die2: number;
   drawnSum: number;
+  // Only set for events with a configured prize-tier system (Kismat Ke
+  // Khiladi) — see rollAndRecordLevelUpPlay's doc comment in
+  // game-plays.ts. Undefined for every other event.
+  prizeTier?: "top" | "mid" | "none";
+  midTierPrizeLabel?: string;
 }
 
 export function RollDiceLevel({
@@ -160,6 +165,9 @@ export function RollDiceLevel({
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
+  // Doesn't drive any animation, so it lives outside the reducer — just
+  // carried through to onDone once the result settles.
+  const prizeTierRef = useRef<{ tier?: "top" | "mid" | "none"; midLabel?: string }>({});
 
   const sfxRef = useRef<ActiveSound | null>(null);
   const stopSfx = useCallback(() => {
@@ -215,6 +223,7 @@ export function RollDiceLevel({
         dispatch({ type: "REQUEST_FAILED" });
         return;
       }
+      prizeTierRef.current = { tier: data.prizeTier, midLabel: data.midTierPrizeLabel };
       dispatch({
         type: "ROLL",
         drawnSum: data.drawnSum,
@@ -253,6 +262,8 @@ export function RollDiceLevel({
         die1,
         die2,
         drawnSum: state.drawnSum as number,
+        prizeTier: prizeTierRef.current.tier,
+        midTierPrizeLabel: prizeTierRef.current.midLabel,
       });
     }, RESULT_HOLD_MS);
     return () => window.clearTimeout(timer);

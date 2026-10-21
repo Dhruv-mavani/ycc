@@ -45,7 +45,7 @@ interface CollegeCampusPartnerOption {
 }
 
 /**
- * One-person entry for Kismat Ke Khiladi ft. Go Goa Gone. Replaces the team
+ * One-person entry for Kismat Ke Khiladi. Replaces the team
  * form for this event: everyone registers (and plays the games) on their
  * own code instead of a captain registering a squad.
  */

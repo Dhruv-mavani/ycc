@@ -35,7 +35,7 @@ export const GAMES: GameLink[] = [
   {
     slug: "level-up",
     href: "/level-upp",
-    title: "Kismat Ke Khiladi ft. Go Goa Gone",
+    title: "Kismat Ke Khiladi",
     description:
       "Two levels, one code: Spin the Wheel, then Roll a Dice. Win or lose, you always move on to the next level.",
     emoji: "🏆",
@@ -50,6 +50,6 @@ export const GAMES: GameLink[] = [
 // run, two levels, never independently).
 export const GAME_SLUG_LABELS: { slug: string; title: string }[] = [
   { slug: "mystry-box", title: "Mystery Box" },
-  { slug: "level-up", title: "Kismat Ke Khiladi ft. Go Goa Gone" },
+  { slug: "level-up", title: "Kismat Ke Khiladi" },
   { slug: "quiz-champion", title: "Quiz Champion" },
 ];

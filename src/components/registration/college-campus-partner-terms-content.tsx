@@ -17,7 +17,7 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: '1.2 The current Partner association covers "YCC Kismat Ke Khiladi Ft. Go, Goa, Gone" and two other upcoming YCC events specifically designated by YCC.',
+        text: '1.2 The current Partner association covers "YCC Kismat Ke Khiladi" and two other upcoming YCC events specifically designated by YCC.',
       },
       {
         type: "p",
@@ -55,7 +55,7 @@ const SECTIONS: TermsSection[] = [
     blocks: [
       {
         type: "p",
-        text: "3.1 The YCC Kismat Ke Khiladi Ft. Go, Goa, Gone campaign consists of three designated activities:",
+        text: "3.1 The YCC Kismat Ke Khiladi campaign consists of three designated activities:",
       },
       { type: "p", text: "Challenge Games" },
       {
@@ -172,7 +172,7 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: "YCC Kismat Ke Khiladi Ft. Go, Goa, Gone + YCC Box Cricket Tournament.",
+        text: "YCC Kismat Ke Khiladi + YCC Box Cricket Tournament.",
       },
       {
         type: "p",
@@ -383,7 +383,7 @@ export function CollegeCampusPartnerTermsContent() {
       <div className="space-y-0.5 text-xs">
         <p>Organiser: YCC</p>
         <p>Programme: YCC College Campus Partner</p>
-        <p>Campaign: YCC Kismat Ke Khiladi Ft. Go, Goa, Gone</p>
+        <p>Campaign: YCC Kismat Ke Khiladi</p>
         <p>Partner Type: Promotional Partner</p>
       </div>
 

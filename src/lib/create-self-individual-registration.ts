@@ -4,10 +4,11 @@ import { applyGst } from "@/lib/gst";
 import { confirmPayAtVenueRegistration } from "@/lib/confirm-pay-at-venue-registration";
 import { isRazorpayEnabled } from "@/lib/app-settings";
 import type { TeamRegistrationResult } from "@/lib/create-team-registration";
+import { KISMAT_KE_KHILADI_SLUGS } from "@/lib/kismat-ke-khiladi";
 
 // Events that take an open, one-person entry through this flow. Anything
 // else (the quiz has its own partner-referred individual flow) is refused.
-const SELF_INDIVIDUAL_EVENT_SLUGS = ["ycc-go-goa-gone"];
+const SELF_INDIVIDUAL_EVENT_SLUGS: readonly string[] = KISMAT_KE_KHILADI_SLUGS;
 
 export interface CreateSelfIndividualRegistrationInput {
   eventId: string;

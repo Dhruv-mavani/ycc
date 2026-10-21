@@ -650,7 +650,7 @@ export interface CollegeCampusPartnerInsights {
 
 /**
  * "How many people joined under this College Campus Partner" (registered
- * for Kismat Ke Khiladi ft. Go Goa Gone using their code), and of those,
+ * for Kismat Ke Khiladi using their code), and of those,
  * how many went on to also register for Box Cricket by registering for
  * it separately.
  * Conversion is matched by captain_phone rather than by id, since a

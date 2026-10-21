@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TeamRegistrationForm } from "@/components/registration/team-registration-form";
 import { SelfTeamRegistrationForm } from "@/components/registration/self-team-registration-form";
 import { GoGoaGoneIndividualForm } from "@/components/registration/go-goa-gone-individual-form";
+import { isKismatKeKhiladiEvent } from "@/lib/kismat-ke-khiladi";
 import { IndividualRegistrationForm } from "@/components/registration/individual-registration-form";
 import { SchoolRegistrationForm } from "@/components/registration/school-registration-form";
 import { IndividualFreeRegistrationForm } from "@/components/registration/individual-free-registration-form";
@@ -103,7 +104,7 @@ export default async function RegisterPage({
   // renders straight away, same as before.
   const requiresCommunityGate =
     event.type === "individual_free" ||
-    event.slug === "ycc-go-goa-gone" ||
+    isKismatKeKhiladiEvent(event.slug) ||
     event.slug === "cricket-championship-2026";
 
   const partnerOptions = [
@@ -207,7 +208,7 @@ export default async function RegisterPage({
                       campusPartners={campusPartners ?? []}
                       classPartners={classPartners ?? []}
                     />
-                  ) : event.slug === "ycc-go-goa-gone" ? (
+                  ) : isKismatKeKhiladiEvent(event.slug) ? (
                     <GoGoaGoneIndividualForm
                       eventId={event.id}
                       eventName={event.name}

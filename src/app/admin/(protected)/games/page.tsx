@@ -231,7 +231,7 @@ async function GamesData({
                     <TableCell>
                       {p.kind === "single"
                         ? (GAME_TITLE_BY_SLUG.get(p.gameSlug) ?? p.gameSlug)
-                        : "Kismat Ke Khiladi ft. Go Goa Gone"}
+                        : "Kismat Ke Khiladi"}
                     </TableCell>
                   )}
                   <TableCell>

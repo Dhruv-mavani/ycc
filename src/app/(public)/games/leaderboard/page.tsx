@@ -142,7 +142,7 @@ export default async function LeaderboardPage() {
           />
 
           <WinnersCard
-            title="Kismat Ke Khiladi ft. Go Goa Gone"
+            title="Kismat Ke Khiladi"
             icon={<Sparkles className="size-5 text-indigo-500" />}
             emptyCopy="No wins yet on Spin the Wheel or Roll a Dice — give it a shot."
             winners={levelUpWinners}

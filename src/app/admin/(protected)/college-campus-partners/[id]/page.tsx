@@ -181,7 +181,7 @@ export default async function AdminCollegeCampusPartnerDetailPage({
         <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
           <CardTitle>Registrations under this code</CardTitle>
           <CardDescription>
-            Kismat Ke Khiladi ft. Go Goa Gone registrations that entered{" "}
+            Kismat Ke Khiladi registrations that entered{" "}
             {profile.name}&apos;s code — and whether each person went on to also
             register for the Box Cricket Tournament.
           </CardDescription>
@@ -223,7 +223,7 @@ export default async function AdminCollegeCampusPartnerDetailPage({
               {teams.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-muted-foreground text-center py-12">
-                    No one has registered for Go Goa Gone with this code yet.
+                    No one has registered for Kismat Ke Khiladi with this code yet.
                   </TableCell>
                 </TableRow>
               ) : null}

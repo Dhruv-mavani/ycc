@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Kismat Ke Khiladi ft. Go Goa Gone | YCC",
+  title: "Kismat Ke Khiladi | YCC",
   description:
     "Two levels, one code: Spin the Wheel, then Roll a Dice. Win or lose, you always move on to the next level.",
 };

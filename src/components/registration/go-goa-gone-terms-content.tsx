@@ -1,4 +1,4 @@
-// Official Terms & Conditions for YCC Kismat Ke Khiladi ft. Go, Goa, Gone,
+// Official Terms & Conditions for YCC Kismat Ke Khiladi,
 // as provided by the organizer (September 2026), merged with the extra
 // individual-player contest terms (final round, 12-season commitment, etc.).
 // Section numbers are generated at render time so sections can be added or
@@ -47,7 +47,7 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: "To become eligible for the applicable benefits, prizes, promotional rewards or other opportunities offered under YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, a Participant must:",
+        text: "To become eligible for the applicable benefits, prizes, promotional rewards or other opportunities offered under YCC Kismat Ke Khiladi, a Participant must:",
       },
       {
         type: "ul",
@@ -189,7 +189,7 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: "To qualify for benefits associated with YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, the Participant must participate in the applicable YCC Box Cricket League.",
+        text: "To qualify for benefits associated with YCC Kismat Ke Khiladi, the Participant must participate in the applicable YCC Box Cricket League.",
       },
       { type: "p", text: "Important:" },
       {
@@ -495,7 +495,7 @@ const SECTIONS: TermsSection[] = [
     blocks: [
       {
         type: "p",
-        text: "By participating in YCC Kismat Ke Khiladi Ft. Go, Goa, Gone, the Participant confirms that they have read and understood these Terms & Conditions and agree to comply with them.",
+        text: "By participating in YCC Kismat Ke Khiladi, the Participant confirms that they have read and understood these Terms & Conditions and agree to comply with them.",
       },
       {
         type: "p",
@@ -571,12 +571,12 @@ export function GoGoaGoneTermsContent() {
     <div className="space-y-5 text-sm text-muted-foreground">
       <div className="space-y-1">
         <p className="text-xs font-semibold tracking-wide uppercase text-foreground">
-          YCC Kismat Ke Khiladi Ft. Go, Goa, Gone
+          YCC Kismat Ke Khiladi
         </p>
         <p className="font-medium text-foreground">Terms &amp; Conditions</p>
         <p>
           These Terms &amp; Conditions (&quot;Terms&quot;) govern participation in YCC
-          Kismat Ke Khiladi Ft. Go, Goa, Gone (&quot;Event&quot;),
+          Kismat Ke Khiladi (&quot;Event&quot;),
           organised and managed by YCC (&quot;YCC&quot;, &quot;Organiser&quot;, &quot;we&quot;, &quot;us&quot; or
           &quot;our&quot;). By participating in any challenge or activity associated
           with this Event, the participant (&quot;Participant&quot;, &quot;you&quot; or &quot;your&quot;)
@@ -602,7 +602,7 @@ export function GoGoaGoneTermsContent() {
 
       <div className="space-y-0.5 border-t border-border pt-4 text-xs">
         <p>Organiser: YCC</p>
-        <p>Event: YCC Kismat Ke Khiladi Ft. Go, Goa, Gone</p>
+        <p>Event: YCC Kismat Ke Khiladi</p>
         <p>Nature of Activity: Sports Tournament, Games &amp; Promotional Contest</p>
         <p>Last Updated: September 2026</p>
       </div>

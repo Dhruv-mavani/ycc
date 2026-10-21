@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateQrDataUrl } from "@/lib/qr";
 import { renderReceiptPdf } from "@/lib/receipts";
+import { isKismatKeKhiladiEvent } from "@/lib/kismat-ke-khiladi";
 
 /**
  * Rebuilds the receipt PDF for a confirmed registration from scratch (no
@@ -113,9 +114,9 @@ export async function buildReceiptPdf(
     participants: participantsWithQr,
     includeCongratsLetter:
       (registration.type === "team" && !event.requires_referral) ||
-      // One-person Go Goa Gone entries get the same invitation pass teams
-      // always did (the quiz's individuals don't).
-      (registration.type === "individual" && event.slug === "ycc-go-goa-gone"),
+      // One-person Kismat Ke Khiladi entries get the same invitation pass
+      // teams always did (the quiz's individuals don't).
+      (registration.type === "individual" && isKismatKeKhiladiEvent(event.slug)),
     paymentDue,
     // Only hidden while payment is still due — once a staff member marks
     // the cash payment paid (adding a `payments` row), paymentDue flips to
@@ -126,11 +127,11 @@ export async function buildReceiptPdf(
     // Partner/Co-Partner registrations alike.
     hideReceiptPage: !options.forceFullReceipt && event.hide_receipt_page && paymentDue,
     gstExempt: event.gst_exempt,
-    // Go Goa Gone is a free games event with no physical entry check — no
+    // Kismat Ke Khiladi is a games event with no physical entry check — no
     // point printing an ID card nobody's asked to show. Box Cricket keeps
     // its ID cards (mandatory at the venue). See hideIdCards on ReceiptData
     // and hasIdCards on InvitationLetterData for what this actually swaps.
-    hideIdCards: event.slug === "ycc-go-goa-gone",
+    hideIdCards: isKismatKeKhiladiEvent(event.slug),
   });
 
   return { pdfBuffer, registration, paymentDue };

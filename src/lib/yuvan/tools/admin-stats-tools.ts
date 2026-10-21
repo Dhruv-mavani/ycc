@@ -97,7 +97,7 @@ export const adminTools = {
 
   collegeCampusPartnerInsights: tool({
     description:
-      "For one College Campus Partner (by id — resolve via collegeCampusPartnerOverview first): how many teams and people registered for Kismat Ke Khiladi ft. Go Goa Gone using their code, and how many of those teams converted (also registered) to the Box Cricket League.",
+      "For one College Campus Partner (by id — resolve via collegeCampusPartnerOverview first): how many teams and people registered for Kismat Ke Khiladi using their code, and how many of those teams converted (also registered) to the Box Cricket League.",
     inputSchema: z.object({
       partnerId: z.string().uuid(),
     }),

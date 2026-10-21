@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 // Same ornate-border design as the "team" kind invitation pass used by Box
-// Cricket / Kismat Ke Khiladi Ft. Go Goa Gone (src/lib/invitation-letter.tsx)
+// Cricket / Kismat Ke Khiladi (src/lib/invitation-letter.tsx)
 // — kept as a standalone file rather than extending that shared one, since
 // this is a distinct flow (College Campus Partner, an individual applicant
 // rather than a team) with its own table and copy.
@@ -233,7 +233,7 @@ export function CollegeCampusPartnerCertificatePage({
 
         <Text style={styles.paragraph}>
           Congratulations! You&apos;ve been officially welcomed as a YCC
-          College Campus Partner for the Kismat Ke Khiladi Ft. Go, Goa, Gone
+          College Campus Partner for the Kismat Ke Khiladi
           campaign. We&apos;re excited to have you on board — your energy
           and reach on campus is exactly what makes this campaign a success.
         </Text>

@@ -151,6 +151,9 @@ export interface Database {
           pay_at_venue: boolean;
           hide_receipt_page: boolean;
           gst_exempt: boolean;
+          top_tier_chance: number | null;
+          mid_tier_chance: number | null;
+          mid_tier_prize_label: string | null;
           created_at: string;
         };
         Insert: {
@@ -171,6 +174,9 @@ export interface Database {
           pay_at_venue?: boolean;
           hide_receipt_page?: boolean;
           gst_exempt?: boolean;
+          top_tier_chance?: number | null;
+          mid_tier_chance?: number | null;
+          mid_tier_prize_label?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
@@ -344,6 +350,30 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["game_plays"]["Insert"]>;
+        Relationships: [];
+      };
+      event_prize_slots: {
+        Row: {
+          id: string;
+          event_id: string;
+          slot_number: number;
+          prize_name: string;
+          claimed_by_registration_id: string | null;
+          claimed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          slot_number: number;
+          prize_name: string;
+          claimed_by_registration_id?: string | null;
+          claimed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["event_prize_slots"]["Insert"]
+        >;
         Relationships: [];
       };
       staff: {
