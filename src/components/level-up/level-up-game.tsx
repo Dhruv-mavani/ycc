@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
-import { Gift, Loader2, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Loader2, Phone, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
@@ -145,12 +145,23 @@ export function LevelUpGame() {
   }
 
   if (stage === "summary") {
-    const anyWon = level1Result === "won" || level2Result === "won";
+    // Kismat Ke Khiladi's prize tier (level2Detail.prizeTier) is a separate,
+    // independently-calibrated draw, deliberately decoupled from the real
+    // wheel/dice win/lose outcome below it (see game-plays.ts) — so
+    // celebrating/confetti is keyed off actually landing a prize tier, not
+    // off the real per-level result, to avoid popping confetti into a "no
+    // prize" screen. Events with no prize-tier system configured
+    // (prizeTier stays undefined) fall back to the real win/lose outcome,
+    // same as before this existed.
+    const hasPrizeTierSystem = level2Detail?.prizeTier !== undefined;
+    const wonSomething = hasPrizeTierSystem
+      ? level2Detail?.prizeTier === "top" || level2Detail?.prizeTier === "mid"
+      : level1Result === "won" || level2Result === "won";
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
         {muteButton}
         <LevelUpLeaderboardWidget />
-        {anyWon ? <ResultConfetti /> : null}
+        {wonSomething ? <ResultConfetti /> : null}
 
         <div className="animate-mystery-box-pop text-6xl sm:text-7xl md:text-8xl">
           🏁
@@ -191,7 +202,7 @@ export function LevelUpGame() {
         </div>
 
         {selection && sessionId ? (
-          <PrizeTierPanel
+          <ResultPanel
             prizeTier={level2Detail?.prizeTier}
             midTierPrizeLabel={level2Detail?.midTierPrizeLabel}
             selection={selection}
@@ -287,11 +298,33 @@ export function LevelUpGame() {
   );
 }
 
-// Only rendered when the event has a prize-tier system configured (Kismat
-// Ke Khiladi) and this run actually landed a tier — level2Detail.prizeTier
-// is undefined for every other event. "mid" is awarded automatically (no
-// extra action); "top" opens the numbered picker below.
-function PrizeTierPanel({
+// Official YCC contact number, reused as-is from every other place it
+// already appears on the site (/contact, /faq, /about) — not a new number
+// invented for this screen.
+const CONTACT_PHONE_DISPLAY = "+91 84878 32810";
+const CONTACT_PHONE_HREF = "tel:+918487832810";
+
+function ContactCallout() {
+  return (
+    <a
+      href={CONTACT_PHONE_HREF}
+      className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white sm:text-sm"
+    >
+      <Phone className="size-4 shrink-0" />
+      <span className="min-w-0">Call or WhatsApp {CONTACT_PHONE_DISPLAY} for details</span>
+    </a>
+  );
+}
+
+// Shown once both levels are finished, for events with a prize-tier system
+// configured (Kismat Ke Khiladi today) — level2Detail.prizeTier stays
+// undefined for every other event sharing this component, so nothing
+// renders there, unchanged from before this existed. The three outcomes —
+// no prize, a Standup Comedy Pass, or a unique numbered prize — all share
+// the same card shell (size, padding, radius, headline scale) so none of
+// them reads as more of an afterthought than the others; only the
+// icon/color/copy changes per outcome.
+function ResultPanel({
   prizeTier,
   midTierPrizeLabel,
   selection,
@@ -302,25 +335,36 @@ function PrizeTierPanel({
   selection: GameTeamSelection;
   levelUpSessionId: string;
 }) {
-  if (prizeTier === "mid") {
+  if (prizeTier === undefined) return null;
+
+  if (prizeTier === "none") {
     return (
-      <div className="mt-8 w-full max-w-sm rounded-2xl border border-amber-300/40 bg-amber-400/10 p-5 text-center">
-        <p className="text-2xl">🎟️</p>
-        <p className="mt-2 text-lg font-bold text-amber-200">
-          You&apos;ve won a {midTierPrizeLabel ?? "prize"}!
-        </p>
-        <p className="mt-1 text-sm text-white/70">
-          Show this screen to our staff at the venue to claim it.
+      <div className="mt-8 w-full max-w-sm rounded-2xl border border-white/15 bg-white/5 p-5 text-center">
+        <p className="text-3xl">🙁</p>
+        <p className="mt-2 text-lg font-bold text-white sm:text-xl">Not This Time</p>
+        <p className="mt-1 text-xs text-white/60 sm:text-sm">
+          No prize on this run — thanks for playing Kismat Ke Khiladi!
         </p>
       </div>
     );
   }
 
-  if (prizeTier === "top") {
-    return <PrizePicker selection={selection} levelUpSessionId={levelUpSessionId} />;
+  if (prizeTier === "mid") {
+    return (
+      <div className="mt-8 w-full max-w-sm rounded-2xl border border-amber-300/40 bg-amber-400/10 p-5 text-center">
+        <p className="text-3xl">🎟️</p>
+        <p className="mt-2 text-lg font-bold text-amber-200 sm:text-xl">
+          You&apos;ve Won a {midTierPrizeLabel ?? "Prize"}!
+        </p>
+        <p className="mt-1 text-xs text-white/70 sm:text-sm">
+          Show this screen to our staff at the venue to claim it.
+        </p>
+        <ContactCallout />
+      </div>
+    );
   }
 
-  return null;
+  return <PrizePicker selection={selection} levelUpSessionId={levelUpSessionId} />;
 }
 
 interface PrizeSlotView {
@@ -405,9 +449,9 @@ function PrizePicker({
 
   return (
     <div className="mt-8 w-full max-w-sm rounded-2xl border border-violet-300/40 bg-violet-400/10 p-5 text-center">
-      <Gift className="mx-auto size-8 text-violet-200" />
-      <p className="mt-2 text-lg font-bold text-violet-100">
-        You won both levels — pick a number for your prize!
+      <p className="text-3xl">🏆</p>
+      <p className="mt-2 text-lg font-bold text-violet-100 sm:text-xl">
+        Congratulations — You Won Both Levels!
       </p>
 
       {loading ? (
@@ -415,27 +459,39 @@ function PrizePicker({
           <Loader2 className="size-6 animate-spin text-white/70" />
         </div>
       ) : wonPrize ? (
-        <p className="mt-4 text-xl font-black text-emerald-300">🎉 {wonPrize}</p>
+        <>
+          <p className="mt-4 text-xl font-black text-emerald-300">🎉 {wonPrize}</p>
+          <p className="mt-1 text-xs text-white/70 sm:text-sm">
+            Show this screen to our staff at the venue to claim it.
+          </p>
+        </>
       ) : (
-        <div className="mt-4 grid grid-cols-5 gap-2">
-          {(slots ?? []).map((s) => (
-            <button
-              key={s.slotNumber}
-              type="button"
-              disabled={!s.available || claiming}
-              onClick={() => pick(s.slotNumber)}
-              className={cn(
-                "flex aspect-square items-center justify-center rounded-lg border text-base font-bold transition-all",
-                s.available
-                  ? "border-violet-300/50 bg-white/5 text-white hover:scale-110 hover:bg-violet-400/20"
-                  : "cursor-not-allowed border-white/5 bg-white/5 text-white/20",
-              )}
-            >
-              {s.slotNumber}
-            </button>
-          ))}
-        </div>
+        <>
+          <p className="mt-1 text-xs text-white/70 sm:text-sm">
+            Pick a number below for your prize.
+          </p>
+          <div className="mt-4 grid grid-cols-5 gap-1.5 min-[380px]:gap-2">
+            {(slots ?? []).map((s) => (
+              <button
+                key={s.slotNumber}
+                type="button"
+                disabled={!s.available || claiming}
+                onClick={() => pick(s.slotNumber)}
+                className={cn(
+                  "flex aspect-square items-center justify-center rounded-lg border text-sm font-bold transition-all min-[380px]:text-base",
+                  s.available
+                    ? "border-violet-300/50 bg-white/5 text-white hover:scale-110 hover:bg-violet-400/20"
+                    : "cursor-not-allowed border-white/5 bg-white/5 text-white/20",
+                )}
+              >
+                {s.slotNumber}
+              </button>
+            ))}
+          </div>
+        </>
       )}
+
+      <ContactCallout />
     </div>
   );
 }
