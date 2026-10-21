@@ -29,6 +29,7 @@ function SearchableSelect({
   emptyText = "No results found.",
   className,
   truncateLabels = true,
+  header,
 }: {
   options: SearchableSelectOption[]
   value: string | null | undefined
@@ -40,6 +41,9 @@ function SearchableSelect({
    * labels wrap instead — for lists with no sublabel sharing the row,
    * where there's nothing else competing for width. */
   truncateLabels?: boolean
+  /** Extra content pinned above the option list inside the dropdown panel
+   * — e.g. a small toggle switch that changes which options are shown. */
+  header?: React.ReactNode
 }) {
   const selected = options.find((o) => o.value === (value ?? null)) ?? null
 
@@ -86,6 +90,9 @@ function SearchableSelect({
       <Combobox.Portal>
         <Combobox.Positioner className="isolate z-50" sideOffset={4}>
           <Combobox.Popup className="max-h-(--available-height) w-(--anchor-width) origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
+            {header ? (
+              <div className="border-b border-border p-1">{header}</div>
+            ) : null}
             <Combobox.Empty className="text-muted-foreground px-3 py-4 text-center text-sm">
               {emptyText}
             </Combobox.Empty>

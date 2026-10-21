@@ -7,7 +7,7 @@ import {
   SearchableSelect,
   type SearchableSelectOption,
 } from "@/components/ui/searchable-select";
-import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 
 // A searchable combobox rather than a plain dropdown — as more events pile
 // up over seasons (10s now, potentially 100s eventually), a flat <Select>
@@ -66,36 +66,34 @@ export function EventFilter({
     ...visibleEvents.map((e) => ({ value: e.id, label: e.name })),
   ];
 
+  // Pinned above the option list inside the dropdown panel itself (right
+  // alongside "All events"), rather than a separate button beside the
+  // trigger — a small toggle switch, not a full control, since this is a
+  // secondary view switch rather than its own field.
+  const header =
+    archivedEvents.length > 0 ? (
+      <div className="flex items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <Archive className="h-3.5 w-3.5" />
+          Archived ({archivedEvents.length})
+        </span>
+        <Switch
+          size="sm"
+          checked={showArchived}
+          onCheckedChange={(checked) => setShowArchived(Boolean(checked))}
+        />
+      </div>
+    ) : undefined;
+
   return (
-    <div className="flex items-center gap-2">
-      <SearchableSelect
-        options={options}
-        value={value}
-        onChange={handleChange}
-        placeholder="Filter by event"
-        className="h-9 w-full sm:w-[280px]"
-        truncateLabels={false}
-      />
-      {archivedEvents.length > 0 && (
-        <button
-          type="button"
-          onClick={() => setShowArchived((s) => !s)}
-          className={cn(
-            "flex h-9 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors",
-            showArchived
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-input bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-          )}
-          title={
-            showArchived
-              ? "Showing archived events — click to show active events"
-              : "Show archived (hidden-from-public) events"
-          }
-        >
-          <Archive className="h-4 w-4" />
-          {showArchived ? "Archived" : `Archive (${archivedEvents.length})`}
-        </button>
-      )}
-    </div>
+    <SearchableSelect
+      options={options}
+      value={value}
+      onChange={handleChange}
+      placeholder="Filter by event"
+      className="h-9 w-full sm:w-[280px]"
+      truncateLabels={false}
+      header={header}
+    />
   );
 }
