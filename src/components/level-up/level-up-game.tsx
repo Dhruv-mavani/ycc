@@ -416,9 +416,7 @@ function ResultPanel({
         <p className="mt-2 text-lg font-bold text-amber-200 sm:text-xl">
           You&apos;ve Won a {midTierPrizeLabel ?? "Prize"}!
         </p>
-        <p className="mt-1 text-xs text-white/70 sm:text-sm">
-          Show this screen to our staff at the venue to claim it.
-        </p>
+
         <InvitationLetter />
       </div>
     );
@@ -521,15 +519,11 @@ function PrizePicker({
       ) : wonPrize ? (
         <>
           <p className="mt-4 text-xl font-black text-emerald-300">🎉 {wonPrize}</p>
-          <p className="mt-1 text-xs text-white/70 sm:text-sm">
-            Show this screen to our staff at the venue to claim it.
-          </p>
+
         </>
       ) : (
         <>
-          <p className="mt-1 text-xs text-white/70 sm:text-sm">
-            Pick a number below for your prize.
-          </p>
+
           <div className="mt-4 grid grid-cols-5 gap-1.5 min-[380px]:gap-2">
             {(slots ?? []).map((s) => (
               <button
