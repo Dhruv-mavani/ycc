@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
+import { KISMAT_KE_KHILADI_SLUGS } from "@/lib/kismat-ke-khiladi";
 
 type ParticipantRow = Database["public"]["Tables"]["participants"]["Row"];
 
@@ -1104,6 +1105,13 @@ export interface LevelUpRunRow {
   level1: { result: "won" | "lost" } | null;
   level2: { result: "won" | "lost" } | null;
   createdAt: string;
+  /** Which Level Up event this run belongs to — "level-up:<slug>" for
+   * ycc-go-goa-gone/kismat-ke-khiladi (resolved via team_ref_id ->
+   * registrations.event_id, since game_plays itself doesn't record this),
+   * or "level-up:other" for a run with no resolvable event (the standing
+   * unlimited-test Partner identities in game-plays.ts, which have no
+   * registration at all). */
+  eventBucket: string;
 }
 
 export type RecentPlayRow = GamePlayRow | LevelUpRunRow;
@@ -1113,14 +1121,72 @@ export type RecentPlayRow = GamePlayRow | LevelUpRunRow;
 // resolves wherever a caller filters or groups by it.
 const LEVEL_UP_SLUGS = ["spin-wheel", "roll-a-dice"];
 
+const LEVEL_UP_OTHER_BUCKET = "level-up:other";
+
+export interface LevelUpEventOption {
+  slug: string;
+  name: string;
+  isActive: boolean;
+}
+
+/** The two events that play Level Up (see kismat-ke-khiladi.ts) — for the
+ * admin Games page's event filter dropdown and for resolving/display-
+ * labeling which event a given run belongs to, since game_plays rows
+ * themselves don't carry an event slug. */
+export async function getLevelUpEventOptions(): Promise<LevelUpEventOption[]> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("events")
+    .select("slug, name, is_active")
+    .in("slug", KISMAT_KE_KHILADI_SLUGS)
+    .order("created_at");
+  return (data ?? []).map((e) => ({ slug: e.slug, name: e.name, isActive: e.is_active }));
+}
+
+/** registrations.id -> "level-up:<event slug>" for every registration under
+ * either Level Up event — the only way to tell which event a Level Up
+ * game_plays row belongs to (team_ref_id is a registrations.id for
+ * source="registration", but game_plays carries no event slug of its own).
+ * A row whose team_ref_id isn't in this map (every other source, in
+ * practice just the standing unlimited-test Partner identities) falls back
+ * to LEVEL_UP_OTHER_BUCKET wherever this is consulted. */
+async function getLevelUpRegistrationEventMap(
+  admin: ReturnType<typeof createAdminClient>,
+): Promise<Map<string, string>> {
+  const { data: events } = await admin
+    .from("events")
+    .select("id, slug")
+    .in("slug", KISMAT_KE_KHILADI_SLUGS);
+  const slugByEventId = new Map((events ?? []).map((e) => [e.id, e.slug]));
+  const eventIds = [...slugByEventId.keys()];
+  if (eventIds.length === 0) return new Map();
+
+  const { data: regs } = await admin
+    .from("registrations")
+    .select("id, event_id")
+    .in("event_id", eventIds);
+
+  const map = new Map<string, string>();
+  for (const r of regs ?? []) {
+    const slug = slugByEventId.get(r.event_id);
+    if (slug) map.set(r.id, `level-up:${slug}`);
+  }
+  return map;
+}
+
 /**
  * Spin the Wheel / Mystery Box / Roll a Dice insights for the admin games
  * page. Summary counts scan every matching row (no limit — plain text
  * columns, cheap) so totals stay accurate regardless of volume; recentPlays
- * is capped for the table. Level Up's two constituent games are merged
- * throughout: one summary bucket ("level-up"), and one recentPlays row per
- * run (pairing Level 1 + Level 2 by their shared levelUpSessionId) instead
- * of two separate rows.
+ * is capped for the table. Level Up's two constituent games are always
+ * paired into one recentPlays row per run (by their shared
+ * levelUpSessionId), but — unlike before — are split into per-event
+ * summary buckets/filters ("level-up:ycc-go-goa-gone",
+ * "level-up:kismat-ke-khiladi") rather than one merged "level-up" bucket,
+ * since they're two different events that happen to share the same game
+ * mechanic. `gameSlug` accepts either of those compound values, a plain
+ * game_plays slug ("mystry-box", "quiz-champion", ...), or is omitted for
+ * everything.
  */
 export async function getGameInsights(
   gameSlug?: string,
@@ -1132,13 +1198,25 @@ export async function getGameInsights(
 }> {
   const admin = createAdminClient();
   const trimmedSearch = search?.trim();
-  const dbSlugs = gameSlug === "level-up" ? LEVEL_UP_SLUGS : gameSlug ? [gameSlug] : null;
+  const levelUpEventFilter = gameSlug?.startsWith("level-up:") ? gameSlug : null;
+  const isLevelUpFilter = gameSlug === "level-up" || levelUpEventFilter !== null;
+  const dbSlugs = isLevelUpFilter ? LEVEL_UP_SLUGS : gameSlug ? [gameSlug] : null;
+
+  const regEventMap = await getLevelUpRegistrationEventMap(admin);
+  // When filtering to one specific Level Up event, narrow to exactly the
+  // registrations that resolve to it — PostgREST .in() with an empty array
+  // matches nothing, which is exactly right here (e.g. a brand new event
+  // with zero registrations yet shows as empty, not "all Level Up runs").
+  const targetRegIds = levelUpEventFilter
+    ? [...regEventMap.entries()].filter(([, b]) => b === levelUpEventFilter).map(([id]) => id)
+    : null;
 
   // Summary totals stay scoped to gameSlug only (not `result`/`search`) —
   // they're meant to show overall wins/losses regardless of how the
   // "Recent plays" table below is currently filtered.
-  let summaryQuery = admin.from("game_plays").select("game_slug, result");
+  let summaryQuery = admin.from("game_plays").select("game_slug, result, source, team_ref_id");
   if (dbSlugs) summaryQuery = summaryQuery.in("game_slug", dbSlugs);
+  if (targetRegIds) summaryQuery = summaryQuery.eq("source", "registration").in("team_ref_id", targetRegIds);
 
   // `search` is safe to apply at the SQL level as before: player_name/
   // team_label are the same denormalized text on both of a run's rows (the
@@ -1154,11 +1232,12 @@ export async function getGameInsights(
   let recentQuery = admin
     .from("game_plays")
     .select(
-      "id, game_slug, player_name, team_label, source, is_captain, result, detail, created_at",
+      "id, game_slug, player_name, team_label, source, team_ref_id, is_captain, result, detail, created_at",
     )
     .order("created_at", { ascending: false })
     .limit(400);
   if (dbSlugs) recentQuery = recentQuery.in("game_slug", dbSlugs);
+  if (targetRegIds) recentQuery = recentQuery.eq("source", "registration").in("team_ref_id", targetRegIds);
   if (trimmedSearch) {
     recentQuery = recentQuery.or(
       `player_name.ilike.%${trimmedSearch}%,team_label.ilike.%${trimmedSearch}%`,
@@ -1170,9 +1249,15 @@ export async function getGameInsights(
     recentQuery,
   ]);
 
+  function levelUpBucket(source: string, teamRefId: string): string {
+    return source === "registration" ? (regEventMap.get(teamRefId) ?? LEVEL_UP_OTHER_BUCKET) : LEVEL_UP_OTHER_BUCKET;
+  }
+
   const bySlug = new Map<string, GameInsightsSummary>();
   for (const r of allRows ?? []) {
-    const bucketSlug = LEVEL_UP_SLUGS.includes(r.game_slug) ? "level-up" : r.game_slug;
+    const bucketSlug = LEVEL_UP_SLUGS.includes(r.game_slug)
+      ? levelUpBucket(r.source, r.team_ref_id)
+      : r.game_slug;
     const entry = bySlug.get(bucketSlug) ?? {
       gameSlug: bucketSlug,
       plays: 0,
@@ -1222,6 +1307,7 @@ export async function getGameInsights(
         level1: r.game_slug === "spin-wheel" ? levelResult : null,
         level2: r.game_slug === "roll-a-dice" ? levelResult : null,
         createdAt: r.created_at,
+        eventBucket: levelUpBucket(r.source, r.team_ref_id),
       });
     } else {
       if (r.game_slug === "spin-wheel") existing.level1 = levelResult;

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowLeftIcon, Crown, Gamepad2, Trophy, XCircle } from "lucide-react";
-import { getGameInsights } from "@/lib/admin-stats";
+import { getGameInsights, getLevelUpEventOptions } from "@/lib/admin-stats";
 import { GAME_SLUG_LABELS } from "@/lib/games";
 import { GameFilter } from "@/components/admin/game-filter";
 import { GamePlaySearch } from "@/components/admin/game-play-search";
@@ -26,7 +26,11 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-const GAME_TITLE_BY_SLUG = new Map(GAME_SLUG_LABELS.map((g) => [g.slug, g.title]));
+// "level-up" here is a static fallback label (bare "level-up", never
+// reachable via the dropdown anymore) — the two real Level Up event
+// entries ("level-up:<slug>") are added once their names are fetched,
+// below, since they come from the events table, not this static list.
+const STATIC_TITLE_BY_SLUG = new Map(GAME_SLUG_LABELS.map((g) => [g.slug, g.title]));
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-IN", {
@@ -42,6 +46,10 @@ export default async function AdminGamesPage({
   searchParams: Promise<{ game?: string; q?: string; result?: "won" | "lost" }>;
 }) {
   const { game, q, result } = await searchParams;
+  // Filter-independent — fetched once outside the Suspense boundary (same
+  // pattern as EventFilter's own events fetch on the overview page) so the
+  // dropdown never unmounts/reloads when a filter changes.
+  const levelUpEvents = await getLevelUpEventOptions();
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4">
@@ -58,14 +66,14 @@ export default async function AdminGamesPage({
           }
         />
         <div className="flex flex-col min-[480px]:flex-row gap-2 w-full sm:w-auto">
-          <GameFilter />
+          <GameFilter levelUpEvents={levelUpEvents} />
           <GameResultFilter />
           <GamePlaySearch />
         </div>
       </div>
 
       <Suspense key={`${game ?? "all"}-${q ?? ""}-${result ?? "all"}`} fallback={<PageSpinner className="min-h-[40vh]" />}>
-        <GamesData gameSlug={game} search={q} result={result} />
+        <GamesData gameSlug={game} search={q} result={result} levelUpEvents={levelUpEvents} />
       </Suspense>
     </div>
   );
@@ -75,15 +83,24 @@ async function GamesData({
   gameSlug,
   search,
   result,
+  levelUpEvents,
 }: {
   gameSlug?: string;
   search?: string;
   result?: "won" | "lost";
+  levelUpEvents: { slug: string; name: string; isActive: boolean }[];
 }) {
   const { summary, recentPlays } = await getGameInsights(gameSlug, search, result);
   const resultLabel = result === "won" ? "won" : result === "lost" ? "lost" : null;
   const totalPlays = summary.reduce((sum, s) => sum + s.plays, 0);
   const totalWins = summary.reduce((sum, s) => sum + s.wins, 0);
+  // Static mechanic titles (Mystery Box, Quiz Champion, bare "level-up")
+  // plus one entry per real Level Up event, keyed by the compound slug
+  // getGameInsights buckets/filters on ("level-up:<event slug>") — plus a
+  // fallback for runs with no resolvable event (the standing test codes).
+  const titleBySlug = new Map(STATIC_TITLE_BY_SLUG);
+  for (const e of levelUpEvents) titleBySlug.set(`level-up:${e.slug}`, e.name);
+  titleBySlug.set("level-up:other", "Kismat Ke Khiladi — Test Plays");
 
   return (
     <div className="space-y-6">
@@ -149,7 +166,7 @@ async function GamesData({
             return (
               <Card key={s.gameSlug}>
                 <CardHeader>
-                  <CardTitle>{GAME_TITLE_BY_SLUG.get(s.gameSlug) ?? s.gameSlug}</CardTitle>
+                  <CardTitle>{titleBySlug.get(s.gameSlug) ?? s.gameSlug}</CardTitle>
                   <CardDescription>{s.plays} rounds played</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-3 gap-4">
@@ -180,7 +197,7 @@ async function GamesData({
           </CardTitle>
           <CardDescription>
             {gameSlug
-              ? `Most recent 200 matching rounds of ${GAME_TITLE_BY_SLUG.get(gameSlug) ?? gameSlug}`
+              ? `Most recent 200 matching rounds of ${titleBySlug.get(gameSlug) ?? gameSlug}`
               : "Most recent 200 matching rounds"}
             {resultLabel ? ` that ${resultLabel}` : ""}
             {search ? ` — filtered to "${search}"` : ""}.
@@ -230,8 +247,8 @@ async function GamesData({
                   {gameSlug ? null : (
                     <TableCell>
                       {p.kind === "single"
-                        ? (GAME_TITLE_BY_SLUG.get(p.gameSlug) ?? p.gameSlug)
-                        : "Kismat Ke Khiladi"}
+                        ? (titleBySlug.get(p.gameSlug) ?? p.gameSlug)
+                        : (titleBySlug.get(p.eventBucket) ?? p.eventBucket)}
                     </TableCell>
                   )}
                   <TableCell>
