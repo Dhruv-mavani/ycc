@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/dialog";
 
 interface WinnerRow {
+  rank: number;
   playerName: string;
   teamLabel: string;
-  createdAt: string;
-  level?: "Spin the Wheel" | "Roll a Dice";
+  tier: "full" | "mid";
 }
 
 // Self-contained button + dialog, mounted independently on every Level Up
@@ -21,10 +21,10 @@ interface WinnerRow {
 // insertion points in level-up-game.tsx/spin-wheel-level.tsx/roll-dice-
 // level.tsx) so the live winners list is reachable at every point in a
 // run, not just after finishing — same pattern as QuizLeaderboardWidget
-// in solo-quiz-game.tsx. No ranking here (unlike Quiz Champion): Level
-// Up's two legs are win/lose only, so this is just who's won so far, not
-// a score table. Fetches from /api/games/level-up-winners (a thin public
-// wrapper around the same cached getLevelUpWinners() that backs
+// in solo-quiz-game.tsx. A real ranked Top 10 (full win outranks a win on
+// just one level, tiebroken by speed) — see getLevelUpWinnersUncached in
+// public-leaderboard.ts. Fetches from /api/games/level-up-winners (a thin
+// public wrapper around the same cached getLevelUpWinners() that backs
 // /games/leaderboard) each time it's opened.
 export function LevelUpLeaderboardWidget() {
   const [open, setOpen] = useState(false);
@@ -59,7 +59,7 @@ export function LevelUpLeaderboardWidget() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="border-2 border-violet-500 bg-violet-950 text-white sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-center text-white">Kismat Ke Khiladi Winners</DialogTitle>
+            <DialogTitle className="text-center text-white">Kismat Ke Khiladi — Top 10</DialogTitle>
           </DialogHeader>
           {loading ? (
             <div className="flex justify-center py-8">
@@ -71,17 +71,23 @@ export function LevelUpLeaderboardWidget() {
             </p>
           ) : (
             <div className="max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
-              {rows.map((w, i) => (
+              {rows.map((w) => (
                 <div
-                  key={`${w.playerName}-${w.createdAt}-${i}`}
-                  className="flex flex-col gap-0.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                  key={`${w.rank}-${w.playerName}`}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
                 >
-                  <span className="truncate font-medium">
-                    {w.playerName}{" "}
-                    <span className="text-white/50">
-                      — {w.teamLabel}
-                      {w.level ? ` · ${w.level}` : ""}
-                    </span>
+                  <span className="min-w-0 truncate font-medium">
+                    <span className="text-white/50">{w.rank}.</span> {w.playerName}{" "}
+                    <span className="text-white/50">— {w.teamLabel}</span>
+                  </span>
+                  <span
+                    className={
+                      w.tier === "full"
+                        ? "shrink-0 rounded-full bg-emerald-400/20 px-2 py-0.5 text-xs font-semibold text-emerald-300"
+                        : "shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold text-white/60"
+                    }
+                  >
+                    {w.tier === "full" ? "Won Both" : "Won 1"}
                   </span>
                 </div>
               ))}

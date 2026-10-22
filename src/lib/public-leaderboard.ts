@@ -34,11 +34,26 @@ export interface WinnerRow {
   teamLabel: string;
   source: GameTeamSource;
   createdAt: string;
-  /** Level Up only — which leg this win was on. */
-  level?: "Spin the Wheel" | "Roll a Dice";
+}
+
+export interface LevelUpWinnerRow {
+  rank: number;
+  playerName: string;
+  teamLabel: string;
+  source: GameTeamSource;
+  /** "full" = won both legs (Spin the Wheel + Roll a Dice), "mid" = won
+   * exactly one. Ranked above "mid", same as the real win/lose outcome —
+   * not the separate prize-tier draw layered on top (see game-plays.ts). */
+  tier: "full" | "mid";
+  /** The moment this ranking is based on — for "full" it's when the
+   * *second* leg was won (that's when they actually became a full
+   * winner), for "mid" it's their one win. Ties within a tier are broken
+   * by whoever reached it earliest. */
+  createdAt: string;
 }
 
 const QUIZ_LEADERBOARD_LIMIT = 50;
+const LEVEL_UP_LEADERBOARD_LIMIT = 10;
 
 async function getQuizLeaderboardUncached(): Promise<QuizLeaderboardRow[]> {
   const admin = createAdminClient();
@@ -109,7 +124,7 @@ async function getMysteryBoxWinnersUncached(): Promise<WinnerRow[]> {
   return [...firstWinByPlayer.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-async function getLevelUpWinnersUncached(): Promise<WinnerRow[]> {
+async function getLevelUpWinnersUncached(): Promise<LevelUpWinnerRow[]> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("game_plays")
@@ -118,9 +133,12 @@ async function getLevelUpWinnersUncached(): Promise<WinnerRow[]> {
     .eq("result", "won")
     .order("created_at", { ascending: true });
 
-  // Keyed per leg too — a win on Spin the Wheel and a win on Roll a Dice
-  // are both worth showing, same player or not.
-  const firstWinByPlayerAndLeg = new Map<string, WinnerRow>();
+  // First win per player per leg (earliest attempt that actually won that
+  // leg — a player can have up to 2 attempts with this code).
+  const firstWinByPlayerAndLeg = new Map<
+    string,
+    { playerName: string; teamLabel: string; createdAt: string }
+  >();
   for (const r of data ?? []) {
     const source = r.source as GameTeamSource;
     if (isUnlimitedTestPlayer(source, r.player_ref_id)) continue;
@@ -129,13 +147,53 @@ async function getLevelUpWinnersUncached(): Promise<WinnerRow[]> {
       firstWinByPlayerAndLeg.set(key, {
         playerName: r.player_name,
         teamLabel: r.team_label,
-        source,
         createdAt: r.created_at,
-        level: r.game_slug === "spin-wheel" ? "Spin the Wheel" : "Roll a Dice",
       });
     }
   }
-  return [...firstWinByPlayerAndLeg.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  // Group per player across both legs — "full" (won both) outranks "mid"
+  // (won one), tiebroken by whoever reached that tier earliest.
+  const byPlayer = new Map<
+    string,
+    {
+      playerName: string;
+      teamLabel: string;
+      source: GameTeamSource;
+      spinWinAt?: string;
+      diceWinAt?: string;
+    }
+  >();
+  for (const [key, win] of firstWinByPlayerAndLeg) {
+    const [slug, source, playerRefId] = key.split(":");
+    const playerKey = `${source}:${playerRefId}`;
+    const entry = byPlayer.get(playerKey) ?? {
+      playerName: win.playerName,
+      teamLabel: win.teamLabel,
+      source: source as GameTeamSource,
+    };
+    if (slug === "spin-wheel") entry.spinWinAt = win.createdAt;
+    else entry.diceWinAt = win.createdAt;
+    byPlayer.set(playerKey, entry);
+  }
+
+  const rows = [...byPlayer.values()].map((p) => {
+    const tier: "full" | "mid" = p.spinWinAt && p.diceWinAt ? "full" : "mid";
+    const createdAt =
+      tier === "full"
+        ? p.spinWinAt! > p.diceWinAt! ? p.spinWinAt! : p.diceWinAt!
+        : (p.spinWinAt ?? p.diceWinAt)!;
+    return { playerName: p.playerName, teamLabel: p.teamLabel, source: p.source, tier, createdAt };
+  });
+
+  return rows
+    .sort((a, b) =>
+      a.tier !== b.tier
+        ? a.tier === "full" ? -1 : 1
+        : a.createdAt.localeCompare(b.createdAt),
+    )
+    .slice(0, LEVEL_UP_LEADERBOARD_LIMIT)
+    .map((row, i) => ({ ...row, rank: i + 1 }));
 }
 
 const CACHE_OPTS = { revalidate: 15, tags: ["game-plays"] };

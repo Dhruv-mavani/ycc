@@ -6,6 +6,7 @@ import {
   getLevelUpWinners,
   type QuizLeaderboardRow,
   type WinnerRow,
+  type LevelUpWinnerRow,
 } from "@/lib/public-leaderboard";
 import { Crown, Gift, Sparkles, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -141,13 +142,7 @@ export default async function LeaderboardPage() {
             winners={mysteryBoxWinners}
           />
 
-          <WinnersCard
-            title="Kismat Ke Khiladi"
-            icon={<Sparkles className="size-5 text-indigo-500" />}
-            emptyCopy="No wins yet on Spin the Wheel or Roll a Dice — give it a shot."
-            winners={levelUpWinners}
-            showLevel
-          />
+          <LevelUpLeaderboardCard winners={levelUpWinners} />
         </div>
       </div>
     </div>
@@ -159,13 +154,11 @@ function WinnersCard({
   icon,
   emptyCopy,
   winners,
-  showLevel,
 }: {
   title: string;
   icon: React.ReactNode;
   emptyCopy: string;
   winners: WinnerRow[];
-  showLevel?: boolean;
 }) {
   return (
     <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
@@ -190,13 +183,89 @@ function WinnersCard({
                   {w.playerName}{" "}
                   <span className="text-muted-foreground">
                     — {w.teamLabel} ({sourceLabel(w.source)})
-                    {showLevel && w.level ? ` · ${w.level}` : ""}
                   </span>
                 </span>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">{formatWhen(w.createdAt)}</span>
               </li>
             ))}
           </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Unlike WinnersCard above (a flat "newest first" feed), Level Up has a
+// real Top 10 ranking: full win (both legs) outranks a win on just one,
+// tiebroken by whoever reached that tier earliest — see
+// getLevelUpWinnersUncached in public-leaderboard.ts. Same ranked-table
+// look as the Quiz Champion table above, rather than WinnersCard's list.
+function LevelUpLeaderboardCard({ winners }: { winners: LevelUpWinnerRow[] }) {
+  return (
+    <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
+      <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="size-5 text-indigo-500" /> Kismat Ke Khiladi
+          <Badge variant="secondary">Top {winners.length}</Badge>
+        </CardTitle>
+        <CardDescription>Won both levels, then earliest first.</CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        {winners.length === 0 ? (
+          <p className="text-muted-foreground text-center py-10">
+            No wins yet on Spin the Wheel or Roll a Dice — give it a shot.
+          </p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-semibold text-foreground/80 pl-6">#</TableHead>
+                <TableHead className="font-semibold text-foreground/80">Player</TableHead>
+                <TableHead className="font-semibold text-foreground/80">Team</TableHead>
+                <TableHead className="font-semibold text-foreground/80 text-right pr-6">Result</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {winners.map((row) => (
+                <TableRow key={`${row.source}-${row.rank}`} className="hover:bg-primary/5 transition-colors">
+                  <TableCell className="pl-6 font-semibold text-muted-foreground">
+                    {row.rank <= 3 ? (
+                      <Crown
+                        className={
+                          row.rank === 1
+                            ? "size-4 text-amber-500"
+                            : row.rank === 2
+                              ? "size-4 text-slate-400"
+                              : "size-4 text-amber-700"
+                        }
+                      />
+                    ) : (
+                      row.rank
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">{row.playerName}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {row.teamLabel}
+                    <span className="ml-1.5 text-xs text-muted-foreground/60">
+                      ({sourceLabel(row.source)})
+                    </span>
+                  </TableCell>
+                  <TableCell className="pr-6 text-right">
+                    <Badge
+                      variant="outline"
+                      className={
+                        row.tier === "full"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : "bg-muted text-muted-foreground"
+                      }
+                    >
+                      {row.tier === "full" ? "Won Both" : "Won 1 Level"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>
