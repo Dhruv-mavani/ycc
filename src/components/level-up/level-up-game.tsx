@@ -413,9 +413,6 @@ function ResultPanel({
     return (
       <div className="mt-8 w-full max-w-sm rounded-2xl border border-amber-300/40 bg-amber-400/10 p-5 text-center">
         <p className="text-3xl">🎟️</p>
-        <p className="mt-2 text-lg font-bold text-amber-200 sm:text-xl">
-          You&apos;ve Won a {midTierPrizeLabel ?? "Prize"}!
-        </p>
 
         <InvitationLetter />
       </div>
