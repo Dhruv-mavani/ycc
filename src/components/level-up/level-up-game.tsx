@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
-import { Loader2, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Loader2, Lock, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
@@ -257,19 +257,36 @@ export function LevelUpGame() {
           />
         ) : null}
 
-        <button
-          type="button"
-          onClick={playAgain}
-          disabled={checkingNextChance}
-          className="mt-8 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-400 to-violet-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-violet-500/20 transition-all duration-300 hover:scale-105 hover:from-violet-300 hover:to-violet-400 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 sm:px-8 sm:py-3 sm:text-xl"
-        >
-          {checkingNextChance ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            <RotateCcw className="size-5" />
-          )}
-          Play again
-        </button>
+        {/* Derived straight from the server-authoritative attemptNumber
+            (synced after Level 1's own roll — see its onDone above), not a
+            fresh lookup — a player who just finished chance 2 of 2 already
+            knows it from this run itself, no round-trip needed. Stays 2 for
+            an unlimited-test identity's attemptNumber forever (see
+            isUnlimitedTestPlayer in game-plays.ts), so this never fires for
+            those codes — only for a real player's genuine last chance. The
+            server round-trip inside playAgain() below remains the real,
+            unbypassable gate either way (e.g. the same code finishing its
+            2nd chance on another device/tab first). */}
+        {selection && selection.attemptNumber >= 2 ? (
+          <div className="mt-8 flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-2.5 text-base font-bold text-white/50 sm:px-8 sm:py-3 sm:text-xl">
+            <Lock className="size-5" />
+            You&apos;ve used both your chances
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={playAgain}
+            disabled={checkingNextChance}
+            className="mt-8 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-400 to-violet-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-violet-500/20 transition-all duration-300 hover:scale-105 hover:from-violet-300 hover:to-violet-400 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 sm:px-8 sm:py-3 sm:text-xl"
+          >
+            {checkingNextChance ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <RotateCcw className="size-5" />
+            )}
+            Play again
+          </button>
+        )}
       </div>
     );
   }
