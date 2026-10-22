@@ -38,6 +38,10 @@ export interface GameTeamSelection {
   eventSlug?: string;
   /** Which of this code's MAX_PLAYS_PER_CODE (2) chances this run is. */
   attemptNumber: number;
+  /** The code that resolved to this selection — kept so a game that lets
+   * the same player go again (Level Up's "Play again") can re-look-up a
+   * fresh attemptNumber without making the player retype it. */
+  code: string;
 }
 
 interface RosterPlayer {
@@ -125,6 +129,7 @@ export function TeamPlayerGate({
           playerName: only.name,
           eventSlug: team.eventSlug,
           attemptNumber: only.attemptNumber ?? 1,
+          code: trimmed,
         });
       }
     } catch {
@@ -145,6 +150,7 @@ export function TeamPlayerGate({
       playerName: player.name,
       eventSlug: roster.eventSlug,
       attemptNumber: player.attemptNumber ?? 1,
+      code: code.trim(),
     });
   }
 

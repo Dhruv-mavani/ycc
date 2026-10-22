@@ -41,6 +41,7 @@ export function LevelUpGame() {
   const [level2Result, setLevel2Result] = useState<LevelResult>(null);
   const [level2Detail, setLevel2Detail] = useState<RollDiceResultDetail | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [checkingNextChance, setCheckingNextChance] = useState(false);
 
   function toggleMute() {
     setMuted((m) => !m);
@@ -51,20 +52,66 @@ export function LevelUpGame() {
     setStage("level1");
   }
 
-  function restart() {
+  // Hard reset, straight back to the gate (not a replay) — used when a run
+  // is abandoned (tab hidden mid-run, below) or when "Play again" finds
+  // this code has no chances left. This screen is often shared at a booth,
+  // so the next player needs to find their own code rather than inherit
+  // whoever went before them. Clearing selection also drops us into the
+  // "gate" branch below, which mounts a fresh TeamPlayerGate (its own
+  // code/roster state resets for free since the previous instance was
+  // already unmounted while playing).
+  function abandonRun() {
     setLevel1Result(null);
     setLevel1Detail(null);
     setLevel2Result(null);
     setLevel2Detail(null);
     setSessionId(null);
-    // Back to the gate, not straight into Level 1 — this screen is often
-    // shared at a booth, so the next player needs to find their own code
-    // rather than replay as whoever went before them. Clearing selection
-    // also drops us into the "gate" branch below, which mounts a fresh
-    // TeamPlayerGate (its own code/roster state resets for free since the
-    // previous instance was already unmounted while playing).
     setSelection(null);
     setStage("gate");
+  }
+
+  // "Play again" on the summary screen — same player, same code, straight
+  // back into Level 1 (no retyping the code). Re-looks-up the code first
+  // (same endpoint the gate itself uses) rather than just incrementing the
+  // locally-known attemptNumber, since that's the one source of truth that
+  // correctly handles both a real player's second-of-two chances *and* a
+  // standing unlimited-test identity (whose attemptNumber the server
+  // always reports as 1 — see isUnlimitedTestPlayer in game-plays.ts).
+  async function playAgain() {
+    if (!selection) {
+      abandonRun();
+      return;
+    }
+    setCheckingNextChance(true);
+    try {
+      const res = await fetch(
+        `/api/games/team-lookup?code=${encodeURIComponent(selection.code)}&game=level-up`,
+      );
+      const data = await res.json().catch(() => null);
+      const player = (
+        data?.team?.players as
+          | Array<{ id: string; attemptNumber?: number; alreadyPlayed?: boolean }>
+          | undefined
+      )?.find((p) => p.id === selection.playerRefId);
+
+      if (!res.ok || !player || player.alreadyPlayed) {
+        toast.error("You've already used both your chances with this code — 2 plays per code.");
+        abandonRun();
+        return;
+      }
+
+      setLevel1Result(null);
+      setLevel1Detail(null);
+      setLevel2Result(null);
+      setLevel2Detail(null);
+      setSelection((s) => (s ? { ...s, attemptNumber: player.attemptNumber ?? s.attemptNumber } : s));
+      startRun();
+    } catch {
+      toast.error("Network error — please try again.");
+      abandonRun();
+    } finally {
+      setCheckingNextChance(false);
+    }
   }
 
   // Leaving the tab mid-run ends it outright — switching apps, opening
@@ -82,7 +129,7 @@ export function LevelUpGame() {
       if (document.visibilityState !== "hidden") return;
       if (stage !== "level1" && stage !== "level2") return;
       toast.error("You left the game, so this run has ended — enter your code again to start a new one.");
-      restart();
+      abandonRun();
     }
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => document.removeEventListener("visibilitychange", onVisibilityChange);
@@ -212,10 +259,15 @@ export function LevelUpGame() {
 
         <button
           type="button"
-          onClick={restart}
-          className="mt-8 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-400 to-violet-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-violet-500/20 transition-all duration-300 hover:scale-105 hover:from-violet-300 hover:to-violet-400 hover:shadow-violet-500/40 sm:px-8 sm:py-3 sm:text-xl"
+          onClick={playAgain}
+          disabled={checkingNextChance}
+          className="mt-8 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-400 to-violet-500 px-6 py-2.5 text-base font-bold text-black shadow-xl shadow-violet-500/20 transition-all duration-300 hover:scale-105 hover:from-violet-300 hover:to-violet-400 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 sm:px-8 sm:py-3 sm:text-xl"
         >
-          <RotateCcw className="size-5" />
+          {checkingNextChance ? (
+            <Loader2 className="size-5 animate-spin" />
+          ) : (
+            <RotateCcw className="size-5" />
+          )}
           Play again
         </button>
       </div>
@@ -360,6 +412,9 @@ function ResultPanel({
           Show this screen to our staff at the venue to claim it.
         </p>
         <ContactCallout />
+        <p className="mt-3 text-xs text-white/60 sm:text-sm">
+          We&apos;ll reach out to you soon with the details — keep an eye on your phone.
+        </p>
       </div>
     );
   }
@@ -492,6 +547,9 @@ function PrizePicker({
       )}
 
       <ContactCallout />
+      <p className="mt-3 text-xs text-white/60 sm:text-sm">
+        We&apos;ll reach out to you soon with the details — keep an eye on your phone.
+      </p>
     </div>
   );
 }

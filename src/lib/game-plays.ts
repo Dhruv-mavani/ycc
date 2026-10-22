@@ -274,30 +274,45 @@ export function lookupGameTeamById(
 }
 
 // Hardcoded flags for standing test/demo identities only — never anything
-// a player can self-serve into. Keyed by "source:playerRefId". Two
-// independent flags, since a future test code might want one without the
-// other:
+// a player can self-serve into. Keyed by "source:playerRefId".
 //   - unlimitedPlays: exempt from the one-entry-per-code rule (applies
 //     across every game uniformly, since hasAlreadyPlayed/
 //     alreadyPlayedPlayerIds are the single shared choke point every
 //     game's play/start call and the team-lookup route go through).
-//   - alwaysWin: forces a win on every random draw — Mystery Box, Spin
-//     the Wheel (matches the player's own picked number; does NOT force
-//     a real jackpot prize section, so a test play never looks like a
-//     fulfilled Cash Prize/Sneakers/etc. in admin insights), and Roll a
-//     Dice. Quiz Champion is skill-based, not a random draw — this flag
-//     has no effect there, answers still have to actually be correct.
-// Currently just the founder's own real Partner code (ABHISHEK2801 /
-// YCCPP041, an approved, standing application — not a one-off test row).
+//   - forcedTier: forces every random draw to land on a specific outcome
+//     instead of a real draw — "full" wins everything (Mystery Box, Spin
+//     the Wheel matching the player's own pick, Roll a Dice, and — for
+//     events with a prize-tier system like Kismat Ke Khiladi — the "top"
+//     prize tier); "partial" wins the Spin the Wheel leg but loses Roll a
+//     Dice (prize tier "mid"); "loss" loses everything (prize tier
+//     "none"). None of these force a real jackpot/Cash-Prize/Sneakers
+//     prize section, so a test play never looks like a fulfilled prize in
+//     admin insights. Quiz Champion is skill-based, not a random draw —
+//     this flag has no effect there, answers still have to actually be
+//     correct.
+// Three standing Partner codes (all approved, non-self-serve applications
+// under the founder's own name — not one-off test rows):
+//   - ABHISHEK2801 / YCCPP041 — full win
+//   - ABHISHEK2802 / YCCPP093 — partial win
+//   - ABHISHEK2803 / YCCPP094 — full loss
 // Add more "source:playerRefId" entries here for another standing tester
 // identity — never add a player's own event-registration code here,
 // since that id gets reused for its real result once their actual
 // registration is checked in.
 const TEST_PLAYER_FLAGS: Readonly<
-  Record<string, { unlimitedPlays?: boolean; alwaysWin?: boolean }>
+  Record<string, { unlimitedPlays?: boolean; forcedTier?: ForcedResultTier }>
 > = {
-  "partner:e897e102-ad8f-440e-beaa-8a22965b7e2d": { unlimitedPlays: true, alwaysWin: true }, // Abhishek Chaudhari (founder) — ABHISHEK2801
+  "partner:e897e102-ad8f-440e-beaa-8a22965b7e2d": { unlimitedPlays: true, forcedTier: "full" }, // ABHISHEK2801
+  "partner:e2daf778-f43a-4a63-9958-2aa9636f8072": { unlimitedPlays: true, forcedTier: "partial" }, // ABHISHEK2802
+  "partner:f114a47c-6f2e-4afd-9465-ccfbdb718ed7": { unlimitedPlays: true, forcedTier: "loss" }, // ABHISHEK2803
 };
+
+export type ForcedResultTier = "full" | "partial" | "loss";
+
+/** undefined for a real player — a real random draw happens as normal. */
+function getForcedTier(source: GameTeamSource, playerRefId: string): ForcedResultTier | undefined {
+  return TEST_PLAYER_FLAGS[`${source}:${playerRefId}`]?.forcedTier;
+}
 
 // Exported for public-leaderboard.ts — a test play recorded under this
 // exemption must never show up on the public leaderboard either.
@@ -306,7 +321,7 @@ export function isUnlimitedTestPlayer(source: GameTeamSource, playerRefId: strin
 }
 
 export function isAlwaysWinPlayer(source: GameTeamSource, playerRefId: string): boolean {
-  return !!TEST_PLAYER_FLAGS[`${source}:${playerRefId}`]?.alwaysWin;
+  return getForcedTier(source, playerRefId) === "full";
 }
 
 // Two plays per code per game (was one — see the session this bumped it,
@@ -503,14 +518,22 @@ export async function rollAndRecordLevelUpPlay(input: {
   let detail: Record<string, unknown>;
   let response: LevelUpRollResult;
 
+  const forcedTier = getForcedTier(input.source, player.id);
+
   if (input.level === "spin-wheel") {
     const prizes = prizesFor(input.source, input.eventSlug);
-    // alwaysWin: lands on the player's own picked number — not a forced
+    // forcedTier "full"/"partial" (Spin the Wheel is the leg that wins in
+    // both): lands on the player's own picked number — not a forced
     // jackpot prize section, so a test play never shows up in admin
-    // insights looking like a fulfilled Cash Prize/Sneakers/etc.
-    const landedIndex = isAlwaysWinPlayer(input.source, player.id)
-      ? input.picked - 1
-      : drawSection(input.picked, prizes);
+    // insights looking like a fulfilled Cash Prize/Sneakers/etc. "loss":
+    // lands on a different, still-non-prize section (picked % NUM_COUNT —
+    // always within the plain sections, never equal to the winning index).
+    const landedIndex =
+      forcedTier === "full" || forcedTier === "partial"
+        ? input.picked - 1
+        : forcedTier === "loss"
+          ? input.picked % NUM_COUNT
+          : drawSection(input.picked, prizes);
     const landedIsPrize = landedIndex >= NUM_COUNT;
     const prize = landedIsPrize ? prizes[landedIndex - NUM_COUNT] : null;
     const won = landedIsPrize || landedIndex + 1 === input.picked;
@@ -523,7 +546,15 @@ export async function rollAndRecordLevelUpPlay(input: {
     };
     response = { ok: true, result, landedIndex, attemptNumber };
   } else {
-    const drawnSum = isAlwaysWinPlayer(input.source, player.id) ? input.picked : drawSum(input.picked);
+    // forcedTier "full": Roll a Dice also wins. "partial"/"loss": Roll a
+    // Dice loses (that's what makes "partial" partial) — any sum other
+    // than the pick, picked deterministically rather than randomly.
+    const drawnSum =
+      forcedTier === "full"
+        ? input.picked
+        : forcedTier === "partial" || forcedTier === "loss"
+          ? input.picked === MIN_SUM ? MAX_SUM : MIN_SUM
+          : drawSum(input.picked);
     const dieFaces = facesForSum(drawnSum);
     const won = input.picked === drawnSum;
     result = won ? "won" : "lost";
@@ -535,15 +566,22 @@ export async function rollAndRecordLevelUpPlay(input: {
     // wheel/dice's real win/lose outcome can't be tuned to hit two
     // independent target rates at once (verified — see the migration's
     // doc comment), so the tier is its own draw, not derived from
-    // whether the player actually matched their picks.
+    // whether the player actually matched their picks. A forcedTier
+    // identity skips the draw and maps straight to its tier instead
+    // (full→top, partial→mid, loss→none).
     let prizeTier: "top" | "mid" | "none" | undefined;
     let midTierPrizeLabel: string | undefined;
     const eventConfig = input.eventSlug ? await getEventPrizeTierConfig(input.eventSlug) : null;
     if (eventConfig) {
-      const r = isAlwaysWinPlayer(input.source, player.id) ? 0 : Math.random();
-      if (r < eventConfig.topTierChance) prizeTier = "top";
-      else if (r < eventConfig.topTierChance + eventConfig.midTierChance) prizeTier = "mid";
-      else prizeTier = "none";
+      if (forcedTier === "full") prizeTier = "top";
+      else if (forcedTier === "partial") prizeTier = "mid";
+      else if (forcedTier === "loss") prizeTier = "none";
+      else {
+        const r = Math.random();
+        if (r < eventConfig.topTierChance) prizeTier = "top";
+        else if (r < eventConfig.topTierChance + eventConfig.midTierChance) prizeTier = "mid";
+        else prizeTier = "none";
+      }
       midTierPrizeLabel = eventConfig.midTierPrizeLabel ?? undefined;
     }
 
