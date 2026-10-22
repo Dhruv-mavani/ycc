@@ -18,6 +18,8 @@ export interface CreateSelfIndividualRegistrationInput {
   email?: string | null;
   /** Optional YCC College Campus Partner who referred this person. */
   referredByCollegeCampusPartnerId?: string | null;
+  /** Optional YCC Promotional Partner who referred this person. */
+  referredByPromotionalPartnerId?: string | null;
 }
 
 /**
@@ -109,6 +111,8 @@ export async function createSelfIndividualRegistration(
       status: "pending_payment",
       referred_by_college_campus_partner_id:
         input.referredByCollegeCampusPartnerId || null,
+      referred_by_promotional_partner_id:
+        input.referredByPromotionalPartnerId || null,
     })
     .select("*")
     .single();

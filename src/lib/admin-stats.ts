@@ -616,6 +616,50 @@ export async function getCollegeCampusPartnerOverview(): Promise<
   }));
 }
 
+export interface PromotionalPartnerOverviewRow {
+  id: string;
+  name: string;
+  collegeName: string | null;
+  stream: string;
+  year: number;
+  semester: number;
+  code: string | null;
+}
+
+/**
+ * Same shape as getCollegeCampusPartnerOverview — a flat list of every
+ * Promotional Partner, no referral hierarchy or revenue to roll up.
+ */
+export async function getPromotionalPartnerOverview(): Promise<
+  PromotionalPartnerOverviewRow[]
+> {
+  const admin = createAdminClient();
+
+  const { data: applications } = await admin
+    .from("promotional_partner_applications")
+    .select("id, name, college_id, stream, year, semester, code")
+    .order("name");
+
+  const collegeIds = [
+    ...new Set((applications ?? []).map((a) => a.college_id)),
+  ];
+  const { data: colleges } =
+    collegeIds.length > 0
+      ? await admin.from("colleges").select("id, name").in("id", collegeIds)
+      : { data: [] as { id: string; name: string }[] };
+  const collegeNameById = new Map((colleges ?? []).map((c) => [c.id, c.name]));
+
+  return (applications ?? []).map((a) => ({
+    id: a.id,
+    name: a.name,
+    collegeName: collegeNameById.get(a.college_id) ?? null,
+    stream: a.stream,
+    year: a.year,
+    semester: a.semester,
+    code: a.code,
+  }));
+}
+
 export interface CollegeCampusPartnerProfile {
   id: string;
   name: string;
@@ -739,6 +783,144 @@ export async function getCollegeCampusPartnerInsights(
   const convertedPhones = new Set((boxCricketRegs ?? []).map((r) => r.captain_phone));
 
   const teams: CollegeCampusPartnerTeam[] = registrations.map((r) => ({
+    registrationId: r.id,
+    teamName: r.team_name,
+    captainName: r.captain_name,
+    squadSize: squadSizeByRegistration.get(r.id) ?? 0,
+    convertedToBoxCricket: convertedPhones.has(r.captain_phone),
+    createdAt: r.created_at,
+  }));
+
+  return {
+    profile,
+    teams,
+    totalPlayers: teams.reduce((sum, t) => sum + t.squadSize, 0),
+    convertedCount: teams.filter((t) => t.convertedToBoxCricket).length,
+  };
+}
+
+export interface PromotionalPartnerProfile {
+  id: string;
+  name: string;
+  email: string | null;
+  mobile: string;
+  age: number;
+  gender: string;
+  instagramHandle: string | null;
+  stream: string;
+  year: number;
+  semester: number;
+  code: string | null;
+  collegeName: string | null;
+  createdAt: string;
+}
+
+export interface PromotionalPartnerTeam {
+  registrationId: string;
+  teamName: string | null;
+  captainName: string | null;
+  squadSize: number;
+  convertedToBoxCricket: boolean;
+  createdAt: string;
+}
+
+export interface PromotionalPartnerInsights {
+  profile: PromotionalPartnerProfile;
+  teams: PromotionalPartnerTeam[];
+  totalPlayers: number;
+  convertedCount: number;
+}
+
+/**
+ * Same shape as getCollegeCampusPartnerInsights — "how many people joined
+ * under this Promotional Partner" (registered for Kismat Ke Khiladi using
+ * their code), and of those, how many went on to also register for Box
+ * Cricket. Pointed at the live `kismat-ke-khiladi` slug (not the retired
+ * `ycc-go-goa-gone` one the College Campus Partner version still uses),
+ * since that's the event actually open for new registrations.
+ */
+export async function getPromotionalPartnerInsights(
+  partnerId: string,
+): Promise<PromotionalPartnerInsights | null> {
+  const admin = createAdminClient();
+
+  const { data: partner } = await admin
+    .from("promotional_partner_applications")
+    .select(
+      "id, name, email, mobile, age, gender, instagram_handle, stream, year, semester, code, college_id, created_at",
+    )
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  if (!partner) return null;
+
+  const [{ data: college }, { data: kismatKeKhiladiEvent }, { data: boxCricketEvent }] =
+    await Promise.all([
+      admin.from("colleges").select("name").eq("id", partner.college_id).maybeSingle(),
+      admin.from("events").select("id").eq("slug", "kismat-ke-khiladi").maybeSingle(),
+      admin.from("events").select("id").eq("slug", "cricket-championship-2026").maybeSingle(),
+    ]);
+
+  const profile: PromotionalPartnerProfile = {
+    id: partner.id,
+    name: partner.name,
+    email: partner.email,
+    mobile: partner.mobile,
+    age: partner.age,
+    gender: partner.gender,
+    instagramHandle: partner.instagram_handle,
+    stream: partner.stream,
+    year: partner.year,
+    semester: partner.semester,
+    code: partner.code,
+    collegeName: college?.name ?? null,
+    createdAt: partner.created_at,
+  };
+
+  if (!kismatKeKhiladiEvent) {
+    return { profile, teams: [], totalPlayers: 0, convertedCount: 0 };
+  }
+
+  const { data: registrations } = await admin
+    .from("registrations")
+    .select("id, team_name, captain_name, captain_phone, created_at")
+    .eq("referred_by_promotional_partner_id", partnerId)
+    .eq("event_id", kismatKeKhiladiEvent.id)
+    .eq("status", "confirmed")
+    .order("created_at");
+
+  if (!registrations || registrations.length === 0) {
+    return { profile, teams: [], totalPlayers: 0, convertedCount: 0 };
+  }
+
+  const registrationIds = registrations.map((r) => r.id);
+  const captainPhones = [...new Set(registrations.map((r) => r.captain_phone))];
+
+  const [{ data: participants }, { data: boxCricketRegs }] = await Promise.all([
+    admin
+      .from("participants")
+      .select("registration_id")
+      .in("registration_id", registrationIds),
+    boxCricketEvent
+      ? admin
+          .from("registrations")
+          .select("captain_phone")
+          .eq("event_id", boxCricketEvent.id)
+          .eq("status", "confirmed")
+          .in("captain_phone", captainPhones)
+      : Promise.resolve({ data: [] as { captain_phone: string }[] }),
+  ]);
+
+  const squadSizeByRegistration = new Map<string, number>();
+  for (const p of participants ?? []) {
+    squadSizeByRegistration.set(
+      p.registration_id,
+      (squadSizeByRegistration.get(p.registration_id) ?? 0) + 1,
+    );
+  }
+  const convertedPhones = new Set((boxCricketRegs ?? []).map((r) => r.captain_phone));
+
+  const teams: PromotionalPartnerTeam[] = registrations.map((r) => ({
     registrationId: r.id,
     teamName: r.team_name,
     captainName: r.captain_name,

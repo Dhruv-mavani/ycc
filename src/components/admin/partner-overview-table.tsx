@@ -18,18 +18,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PartnerSquadReadiness, CollegeCampusPartnerOverviewRow } from "@/lib/admin-stats";
+import type {
+  PartnerSquadReadiness,
+  CollegeCampusPartnerOverviewRow,
+  PromotionalPartnerOverviewRow,
+} from "@/lib/admin-stats";
 
 function formatRupees(paise: number) {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
 }
 
-type ActiveType = "campus" | "class" | "college-campus-partner";
+type ActiveType = "campus" | "class" | "college-campus-partner" | "promotional-partner";
 
 const TYPE_LABEL: Record<ActiveType, string> = {
   campus: "YCC Partner",
   class: "YCC Co-Partner",
   "college-campus-partner": "YCC College Campus Partner",
+  "promotional-partner": "YCC Promotional Partner",
 };
 
 const UNASSIGNED_COLLEGE = "__unassigned__";
@@ -43,19 +48,29 @@ interface CollegeOption {
 export function PartnerOverviewTable({
   data,
   collegeCampusPartnerData,
+  promotionalPartnerData,
   colleges,
 }: {
   data: PartnerSquadReadiness[];
   collegeCampusPartnerData: CollegeCampusPartnerOverviewRow[];
+  promotionalPartnerData: PromotionalPartnerOverviewRow[];
   colleges: CollegeOption[];
 }) {
   const [activeType, setActiveType] = useState<ActiveType>("campus");
   const [collegeFilter, setCollegeFilter] = useState<string>("all");
 
-  const isCollegeCampusPartner = activeType === "college-campus-partner";
+  // Both of these are flat, hierarchy-free application lists (same simple
+  // table layout), unlike campus/class which roll up referral/revenue
+  // stats — just a different source table and detail-page link prefix.
+  const simpleListData =
+    activeType === "college-campus-partner"
+      ? collegeCampusPartnerData
+      : activeType === "promotional-partner"
+        ? promotionalPartnerData
+        : null;
 
-  const hasUnassigned = isCollegeCampusPartner
-    ? collegeCampusPartnerData.some((p) => !p.collegeName)
+  const hasUnassigned = simpleListData
+    ? simpleListData.some((p) => !p.collegeName)
     : data.some((p) => !p.collegeName);
 
   const filteredPartners = data.filter((p) => {
@@ -65,14 +80,14 @@ export function PartnerOverviewTable({
     return p.collegeName === collegeFilter;
   });
 
-  const filteredCollegeCampusPartners = collegeCampusPartnerData.filter((p) => {
+  const filteredSimpleList = (simpleListData ?? []).filter((p) => {
     if (collegeFilter === "all") return true;
     if (collegeFilter === UNASSIGNED_COLLEGE) return !p.collegeName;
     return p.collegeName === collegeFilter;
   });
 
-  const filteredCount = isCollegeCampusPartner
-    ? filteredCollegeCampusPartners.length
+  const filteredCount = simpleListData
+    ? filteredSimpleList.length
     : filteredPartners.length;
 
   return (
@@ -89,6 +104,7 @@ export function PartnerOverviewTable({
               <SelectItem value="campus">YCC Partner</SelectItem>
               <SelectItem value="class">YCC Co-Partner</SelectItem>
               <SelectItem value="college-campus-partner">YCC College Campus Partner</SelectItem>
+              <SelectItem value="promotional-partner">YCC Promotional Partner</SelectItem>
             </SelectContent>
           </Select>
           <SearchableSelect
@@ -108,7 +124,7 @@ export function PartnerOverviewTable({
         </p>
       </div>
       <div className="overflow-x-auto">
-        {isCollegeCampusPartner ? (
+        {simpleListData ? (
           <Table className="min-w-[560px]">
             <TableHeader className="bg-muted/10">
               <TableRow className="hover:bg-transparent">
@@ -120,11 +136,15 @@ export function PartnerOverviewTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCollegeCampusPartners.map((p) => (
+              {filteredSimpleList.map((p) => (
                 <TableRow key={p.id} className="hover:bg-primary/5 transition-colors">
                   <TableCell className="pl-6 font-medium">
                     <Link
-                      href={`/admin/college-campus-partners/${p.id}`}
+                      href={
+                        activeType === "promotional-partner"
+                          ? `/admin/promotional-partners/${p.id}`
+                          : `/admin/college-campus-partners/${p.id}`
+                      }
                       className="text-primary hover:underline"
                     >
                       {p.name}
@@ -136,7 +156,7 @@ export function PartnerOverviewTable({
                   <TableCell className="text-right pr-6 font-mono text-xs">{p.code ?? "—"}</TableCell>
                 </TableRow>
               ))}
-              {filteredCollegeCampusPartners.length === 0 ? (
+              {filteredSimpleList.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-muted-foreground text-center py-12">
                     No {TYPE_LABEL[activeType]}s yet.

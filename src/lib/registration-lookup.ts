@@ -91,6 +91,34 @@ export async function lookupCollegeCampusPartnerCertificate(
   return null;
 }
 
+export async function lookupPromotionalPartnerCertificate(
+  query: string,
+): Promise<{ applicationId: string } | null> {
+  const admin = createAdminClient();
+
+  const { data: byCode } = await admin
+    .from("promotional_partner_applications")
+    .select("id")
+    .eq("code", query.toUpperCase())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (byCode) return { applicationId: byCode.id };
+
+  if (MOBILE_RE.test(query)) {
+    const { data: byMobile } = await admin
+      .from("promotional_partner_applications")
+      .select("id")
+      .eq("mobile", query)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (byMobile) return { applicationId: byMobile.id };
+  }
+
+  return null;
+}
+
 export async function lookupSchoolCertificate(
   query: string,
 ): Promise<{ registrationId: string } | null> {
@@ -151,6 +179,7 @@ export type LookupFlow =
   | "tournament-receipt"
   | "partner-program-certificate"
   | "college-campus-partner-certificate"
+  | "promotional-partner-certificate"
   | "school-certificate"
   | "individual-free-certificate";
 
@@ -197,6 +226,15 @@ export async function findAnyRegistrationOrCertificate(
       flow: "college-campus-partner-certificate",
       id: ccp.applicationId,
       downloadUrl: `/api/college-campus-partner/certificate/${ccp.applicationId}/download?view=true`,
+    };
+  }
+
+  const pp = await lookupPromotionalPartnerCertificate(trimmed);
+  if (pp) {
+    return {
+      flow: "promotional-partner-certificate",
+      id: pp.applicationId,
+      downloadUrl: `/api/promotional-partner/certificate/${pp.applicationId}/download?view=true`,
     };
   }
 

@@ -5,6 +5,7 @@ import {
   getEventOverview,
   getPartnerSquadReadiness,
   getCollegeCampusPartnerOverview,
+  getPromotionalPartnerOverview,
   getRegistrationsOverTime,
   type DateRange,
 } from "@/lib/admin-stats";
@@ -107,12 +108,19 @@ async function DashboardData({
   eventId?: string;
   range?: DateRange;
 }) {
-  const [overview, trend, squadReadiness, collegeCampusPartnerOverview, { data: colleges }] =
-    await Promise.all([
+  const [
+    overview,
+    trend,
+    squadReadiness,
+    collegeCampusPartnerOverview,
+    promotionalPartnerOverview,
+    { data: colleges },
+  ] = await Promise.all([
       getEventOverview(eventId || undefined, range),
       getRegistrationsOverTime(eventId || undefined, range),
       getPartnerSquadReadiness(),
       getCollegeCampusPartnerOverview(),
+      getPromotionalPartnerOverview(),
       createAdminClient().from("colleges").select("id, name, initials").eq("is_public", true).order("name"),
     ]);
 
@@ -252,6 +260,7 @@ async function DashboardData({
         <PartnerOverviewTable
           data={squadReadiness}
           collegeCampusPartnerData={collegeCampusPartnerOverview}
+          promotionalPartnerData={promotionalPartnerOverview}
           colleges={colleges ?? []}
         />
       </Card>

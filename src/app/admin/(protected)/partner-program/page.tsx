@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 
 export default async function AdminPartnerProgramPage() {
   const admin = createAdminClient();
-  const [{ data: applications }, { data: colleges }, { data: campusPartnerApplications }] = await Promise.all([
+  const [
+    { data: applications },
+    { data: colleges },
+    { data: campusPartnerApplications },
+    { data: promotionalPartnerApplications },
+  ] = await Promise.all([
     admin
       .from("partner_program_applications")
       .select(
@@ -16,6 +21,12 @@ export default async function AdminPartnerProgramPage() {
     admin.from("colleges").select("id, name, initials").eq("is_public", true).order("name"),
     admin
       .from("college_campus_partner_applications")
+      .select(
+        "id, name, email, mobile, age, gender, instagram_handle, stream, year, semester, code, agreed_to_terms, college_id, created_at",
+      )
+      .order("created_at", { ascending: false }),
+    admin
+      .from("promotional_partner_applications")
       .select(
         "id, name, email, mobile, age, gender, instagram_handle, stream, year, semester, code, agreed_to_terms, college_id, created_at",
       )
@@ -32,6 +43,11 @@ export default async function AdminPartnerProgramPage() {
   }));
 
   const campusPartnerApplicationsWithCollege = (campusPartnerApplications ?? []).map((a) => ({
+    ...a,
+    collegeName: collegeNameById.get(a.college_id) ?? null,
+  }));
+
+  const promotionalPartnerApplicationsWithCollege = (promotionalPartnerApplications ?? []).map((a) => ({
     ...a,
     collegeName: collegeNameById.get(a.college_id) ?? null,
   }));
@@ -53,6 +69,7 @@ export default async function AdminPartnerProgramPage() {
         applications={applicationsWithReferrer}
         colleges={colleges ?? []}
         collegeCampusPartnerApplications={campusPartnerApplicationsWithCollege}
+        promotionalPartnerApplications={promotionalPartnerApplicationsWithCollege}
       />
     </div>
   );

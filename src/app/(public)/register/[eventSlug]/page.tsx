@@ -26,7 +26,7 @@ export default async function RegisterPage({
     { data: campusPartners },
     { data: classPartners },
     { data: schools },
-    { data: collegeCampusPartners },
+    { data: promotionalPartners },
   ] = await Promise.all([
       supabase
         .from("events")
@@ -60,7 +60,7 @@ export default async function RegisterPage({
       // field (see GoGoaGoneIndividualForm) — fetched unconditionally here
       // like colleges/schools above, rather than branching on eventSlug.
       supabase
-        .from("college_campus_partner_applications")
+        .from("promotional_partner_applications")
         .select("id, name, code")
         .order("name"),
     ]);
@@ -216,7 +216,7 @@ export default async function RegisterPage({
                       payAtVenue={event.pay_at_venue}
                       gstExempt={event.gst_exempt}
                       colleges={colleges ?? []}
-                      collegeCampusPartners={collegeCampusPartners ?? []}
+                      promotionalPartners={promotionalPartners ?? []}
                     />
                   ) : (
                     <SelfTeamRegistrationForm

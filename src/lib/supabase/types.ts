@@ -196,6 +196,7 @@ export interface Database {
           status: RegistrationStatus;
           referred_by_partner_id: string | null;
           referred_by_college_campus_partner_id: string | null;
+          referred_by_promotional_partner_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -212,6 +213,7 @@ export interface Database {
           status?: RegistrationStatus;
           referred_by_partner_id?: string | null;
           referred_by_college_campus_partner_id?: string | null;
+          referred_by_promotional_partner_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -521,6 +523,48 @@ export interface Database {
         };
         Update: Partial<
           Database["public"]["Tables"]["college_campus_partner_applications"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      promotional_partner_applications: {
+        Row: {
+          id: string;
+          college_id: string;
+          stream: string;
+          year: number;
+          semester: number;
+          name: string;
+          mobile: string;
+          email: string | null;
+          instagram_handle: string | null;
+          age: number;
+          gender: string;
+          agreed_to_terms: boolean;
+          whatsapp_joined_at: string | null;
+          instagram_joined_at: string | null;
+          code: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          college_id: string;
+          stream: string;
+          year: number;
+          semester: number;
+          name: string;
+          mobile: string;
+          email?: string | null;
+          instagram_handle?: string | null;
+          age: number;
+          gender: string;
+          agreed_to_terms?: boolean;
+          whatsapp_joined_at?: string | null;
+          instagram_joined_at?: string | null;
+          code?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["promotional_partner_applications"]["Insert"]
         >;
         Relationships: [];
       };

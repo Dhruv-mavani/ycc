@@ -38,7 +38,7 @@ interface CollegeOption {
   initials: string;
 }
 
-interface CollegeCampusPartnerOption {
+interface PromotionalPartnerOption {
   id: string;
   name: string;
   code: string | null;
@@ -56,7 +56,7 @@ export function GoGoaGoneIndividualForm({
   payAtVenue = false,
   gstExempt = false,
   colleges,
-  collegeCampusPartners,
+  promotionalPartners,
 }: {
   eventId: string;
   eventName: string;
@@ -65,7 +65,7 @@ export function GoGoaGoneIndividualForm({
   payAtVenue?: boolean;
   gstExempt?: boolean;
   colleges: CollegeOption[];
-  collegeCampusPartners: CollegeCampusPartnerOption[];
+  promotionalPartners: PromotionalPartnerOption[];
 }) {
   const router = useRouter();
   const [redirecting, setRedirecting] = useState(false);
@@ -91,7 +91,7 @@ export function GoGoaGoneIndividualForm({
       name: "",
       phone: "",
       email: "",
-      referredByCollegeCampusPartnerId: "",
+      referredByPromotionalPartnerId: "",
     },
   });
 
@@ -231,19 +231,19 @@ export function GoGoaGoneIndividualForm({
           </Field>
 
           <Field
-            label="YCC College Campus Partner code"
-            error={errors.referredByCollegeCampusPartnerId?.message}
+            label="Enter YCC Promotional Code"
+            error={errors.referredByPromotionalPartnerId?.message}
           >
             <Controller
               control={control}
-              name="referredByCollegeCampusPartnerId"
+              name="referredByPromotionalPartnerId"
               render={({ field }) => (
                 <SearchableSelect
                   value={field.value || null}
                   onChange={(v) => field.onChange(v ?? "")}
                   placeholder="Search by name or code — leave blank if none"
                   emptyText="No match found."
-                  options={collegeCampusPartners.map((p) => ({
+                  options={promotionalPartners.map((p) => ({
                     value: p.id,
                     label: p.name,
                     sublabel: p.code ?? undefined,

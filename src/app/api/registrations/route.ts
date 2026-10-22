@@ -52,6 +52,7 @@ export async function POST(request: Request) {
       phone: input.phone,
       email: input.email,
       referredByCollegeCampusPartnerId: input.referredByCollegeCampusPartnerId,
+      referredByPromotionalPartnerId: input.referredByPromotionalPartnerId,
     });
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: result.status });

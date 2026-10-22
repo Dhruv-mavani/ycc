@@ -45,6 +45,7 @@ export function SiteHeader({ forcePill = false }: { forcePill?: boolean } = {}) 
     pathname.startsWith("/register") ||
     pathname.startsWith("/partner-program") ||
     pathname.startsWith("/college-campus-partner") ||
+    pathname.startsWith("/promotional-partner") ||
     pathname.startsWith("/ycc-club");
   const [mobileOpen, setMobileOpen] = useState(false);
 

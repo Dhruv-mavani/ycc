@@ -79,8 +79,12 @@ export const selfIndividualRegistrationSchema = z.object({
   phone: phoneSchema,
   // "" by default in RHF (see captainEmail above), hence the .or(z.literal("")).
   email: emailSchema.optional().or(z.literal("")),
-  // Optional YCC College Campus Partner who referred them.
+  // Optional YCC College Campus Partner who referred them. Kept for
+  // historical registrations — the form itself now collects
+  // referredByPromotionalPartnerId instead (see GoGoaGoneIndividualForm).
   referredByCollegeCampusPartnerId: z.string().uuid().optional().or(z.literal("")),
+  // Optional YCC Promotional Partner who referred them.
+  referredByPromotionalPartnerId: z.string().uuid().optional().or(z.literal("")),
 });
 
 export const registrationRequestSchema = z.discriminatedUnion("type", [

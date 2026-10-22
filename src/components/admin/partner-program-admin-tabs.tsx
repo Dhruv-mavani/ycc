@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PartnerProgramApplicationsList } from "@/components/admin/partner-program-applications-list";
 import { CollegeCampusPartnerApplicationsList } from "@/components/admin/college-campus-partner-applications-list";
+import { PromotionalPartnerApplicationsList } from "@/components/admin/promotional-partner-applications-list";
 import type { PartnerApplicationStatus, PartnerType } from "@/lib/supabase/types";
 
 interface PartnerProgramApplication {
@@ -43,6 +44,8 @@ interface CollegeCampusPartnerApplication {
   created_at: string;
 }
 
+type PromotionalPartnerApplication = CollegeCampusPartnerApplication;
+
 interface CollegeOption {
   id: string;
   name: string;
@@ -54,6 +57,7 @@ const PARTNER_TYPES = [
   { id: "class", label: "YCC Co-Partner" },
   { id: "classmate", label: "Squad" },
   { id: "college-campus-partner", label: "YCC College Campus Partner" },
+  { id: "promotional-partner", label: "YCC Promotional Partner" },
 ] as const;
 
 const HIERARCHY_NOTE: Record<(typeof PARTNER_TYPES)[number]["id"], string> = {
@@ -61,6 +65,7 @@ const HIERARCHY_NOTE: Record<(typeof PARTNER_TYPES)[number]["id"], string> = {
   class: "YCC Co-Partners are normally approved by the YCC Partner who referred them — you can override that below.",
   classmate: "Squad members are normally approved by the YCC Co-Partner who referred them — you can override that below.",
   "college-campus-partner": "YCC College Campus Partners apply through their own separate form — no referral or approval hierarchy.",
+  "promotional-partner": "YCC Promotional Partners apply through their own separate form — no referral or approval hierarchy.",
 };
 
 // Groups a partner's directly-recruited children by referred_by_id, so the
@@ -84,10 +89,12 @@ export function PartnerProgramAdminTabs({
   applications,
   colleges,
   collegeCampusPartnerApplications,
+  promotionalPartnerApplications,
 }: {
   applications: PartnerProgramApplication[];
   colleges: CollegeOption[];
   collegeCampusPartnerApplications: CollegeCampusPartnerApplication[];
+  promotionalPartnerApplications: PromotionalPartnerApplication[];
 }) {
   const [activeId, setActiveId] =
     useState<(typeof PARTNER_TYPES)[number]["id"]>("campus");
@@ -153,6 +160,12 @@ export function PartnerProgramAdminTabs({
         <CollegeCampusPartnerApplicationsList
           key={activeId}
           applications={collegeCampusPartnerApplications}
+          colleges={colleges}
+        />
+      ) : activeId === "promotional-partner" ? (
+        <PromotionalPartnerApplicationsList
+          key={activeId}
+          applications={promotionalPartnerApplications}
           colleges={colleges}
         />
       ) : (
