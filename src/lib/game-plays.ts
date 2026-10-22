@@ -145,6 +145,10 @@ async function partnerRoster(
     teamRefId: captain.id,
     teamLabel: players.length > 1 ? `${captain.name}'s Squad` : captain.name,
     players,
+    // Only set for the standing forcedTier test identities (see
+    // TEST_PLAYER_FLAGS) — a real Partner code has no event of its own,
+    // same as before.
+    eventSlug: getForcedEventSlug("partner", captain.id),
   };
 }
 
@@ -290,6 +294,13 @@ export function lookupGameTeamById(
 //     admin insights. Quiz Champion is skill-based, not a random draw —
 //     this flag has no effect there, answers still have to actually be
 //     correct.
+//   - forcedEventSlug: a Partner-sourced lookup never resolves an eventSlug
+//     on its own (see GameTeamLookup.eventSlug — only "registration"
+//     rosters carry one), so without this a forcedTier identity's Level Up
+//     run would never hit Kismat Ke Khiladi's own prize-tier UI (the
+//     actual full-win/partial-win/full-loss screens these test codes exist
+//     to preview) — it'd just fall back to the generic win/lose summary
+//     with no ResultPanel at all. Set only alongside a forcedTier.
 // Three standing Partner codes (all approved, non-self-serve applications
 // under the founder's own name — not one-off test rows):
 //   - ABHISHEK2801 / YCCPP041 — full win
@@ -300,11 +311,26 @@ export function lookupGameTeamById(
 // since that id gets reused for its real result once their actual
 // registration is checked in.
 const TEST_PLAYER_FLAGS: Readonly<
-  Record<string, { unlimitedPlays?: boolean; forcedTier?: ForcedResultTier }>
+  Record<
+    string,
+    { unlimitedPlays?: boolean; forcedTier?: ForcedResultTier; forcedEventSlug?: string }
+  >
 > = {
-  "partner:e897e102-ad8f-440e-beaa-8a22965b7e2d": { unlimitedPlays: true, forcedTier: "full" }, // ABHISHEK2801
-  "partner:e2daf778-f43a-4a63-9958-2aa9636f8072": { unlimitedPlays: true, forcedTier: "partial" }, // ABHISHEK2802
-  "partner:f114a47c-6f2e-4afd-9465-ccfbdb718ed7": { unlimitedPlays: true, forcedTier: "loss" }, // ABHISHEK2803
+  "partner:e897e102-ad8f-440e-beaa-8a22965b7e2d": {
+    unlimitedPlays: true,
+    forcedTier: "full",
+    forcedEventSlug: "kismat-ke-khiladi",
+  }, // ABHISHEK2801
+  "partner:e2daf778-f43a-4a63-9958-2aa9636f8072": {
+    unlimitedPlays: true,
+    forcedTier: "partial",
+    forcedEventSlug: "kismat-ke-khiladi",
+  }, // ABHISHEK2802
+  "partner:f114a47c-6f2e-4afd-9465-ccfbdb718ed7": {
+    unlimitedPlays: true,
+    forcedTier: "loss",
+    forcedEventSlug: "kismat-ke-khiladi",
+  }, // ABHISHEK2803
 };
 
 export type ForcedResultTier = "full" | "partial" | "loss";
@@ -312,6 +338,11 @@ export type ForcedResultTier = "full" | "partial" | "loss";
 /** undefined for a real player — a real random draw happens as normal. */
 function getForcedTier(source: GameTeamSource, playerRefId: string): ForcedResultTier | undefined {
   return TEST_PLAYER_FLAGS[`${source}:${playerRefId}`]?.forcedTier;
+}
+
+/** See forcedEventSlug above — undefined for a real player. */
+function getForcedEventSlug(source: GameTeamSource, playerRefId: string): string | undefined {
+  return TEST_PLAYER_FLAGS[`${source}:${playerRefId}`]?.forcedEventSlug;
 }
 
 // Exported for public-leaderboard.ts — a test play recorded under this

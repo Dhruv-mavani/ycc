@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
-import { Loader2, Phone, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Loader2, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
@@ -350,21 +350,29 @@ export function LevelUpGame() {
   );
 }
 
-// Official YCC contact number, reused as-is from every other place it
-// already appears on the site (/contact, /faq, /about) — not a new number
-// invented for this screen.
-const CONTACT_PHONE_DISPLAY = "+91 84878 32810";
-const CONTACT_PHONE_HREF = "tel:+918487832810";
-
-function ContactCallout() {
+// Shown on both the full-win (PrizePicker) and partial-win (mid-tier)
+// result panels — same letter either way, since both tiers are "among the
+// 100 Lucky Winners" regardless of which prize they land.
+function InvitationLetter() {
   return (
-    <a
-      href={CONTACT_PHONE_HREF}
-      className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white sm:text-sm"
-    >
-      <Phone className="size-4 shrink-0" />
-      <span className="min-w-0">Call or WhatsApp {CONTACT_PHONE_DISPLAY} for details</span>
-    </a>
+    <div className="mt-4 rounded-xl border border-amber-300/30 bg-black/20 p-4 text-left">
+      <p className="text-center text-xs font-bold uppercase tracking-widest text-amber-300">
+        Special Invitation Letter
+      </p>
+      <p className="mt-3 text-sm font-semibold text-white">Congratulations, Dear Winner!</p>
+      <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-sm">
+        You are among the 100 Lucky winners of Kismat Ke Khiladi and are invited to our
+        exclusive Winners&apos; Special Meetup to receive your Gifts &amp; Prizes.
+      </p>
+      <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-sm">
+        Stay tuned and stay active. The YCC Team will contact you soon with further details.
+      </p>
+      <p className="mt-3 text-xs leading-relaxed text-white/70 sm:text-sm">
+        Warm Regards,
+        <br />
+        Team YCC
+      </p>
+    </div>
   );
 }
 
@@ -411,10 +419,7 @@ function ResultPanel({
         <p className="mt-1 text-xs text-white/70 sm:text-sm">
           Show this screen to our staff at the venue to claim it.
         </p>
-        <ContactCallout />
-        <p className="mt-3 text-xs text-white/60 sm:text-sm">
-          We&apos;ll reach out to you soon with the details — keep an eye on your phone.
-        </p>
+        <InvitationLetter />
       </div>
     );
   }
@@ -505,7 +510,7 @@ function PrizePicker({
   return (
     <div className="mt-8 w-full max-w-sm rounded-2xl border border-violet-300/40 bg-violet-400/10 p-5 text-center">
       <p className="text-3xl">🏆</p>
-      <p className="mt-2 text-lg font-bold text-violet-100 sm:text-xl">
+      <p className="mt-2 text-lg font-bold text-amber-200 sm:text-xl">
         Congratulations — You Won Both Levels!
       </p>
 
@@ -546,10 +551,7 @@ function PrizePicker({
         </>
       )}
 
-      <ContactCallout />
-      <p className="mt-3 text-xs text-white/60 sm:text-sm">
-        We&apos;ll reach out to you soon with the details — keep an eye on your phone.
-      </p>
+      <InvitationLetter />
     </div>
   );
 }
