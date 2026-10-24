@@ -40,7 +40,6 @@ interface CollegeOption {
 
 interface PromotionalPartnerOption {
   id: string;
-  name: string;
   code: string | null;
 }
 
@@ -241,13 +240,16 @@ export function GoGoaGoneIndividualForm({
                 <SearchableSelect
                   value={field.value || null}
                   onChange={(v) => field.onChange(v ?? "")}
-                  placeholder="Search by name or code — leave blank if none"
+                  placeholder="Search by code — leave blank if none"
                   emptyText="No match found."
+                  // Code only — never the partner's name. This field is
+                  // visible to every registrant, not just the partner
+                  // themselves, so showing names here would expose one
+                  // partner's identity to every other visitor browsing the
+                  // list.
                   options={promotionalPartners.map((p) => ({
                     value: p.id,
-                    label: p.name,
-                    sublabel: p.code ?? undefined,
-                    searchText: p.code ?? undefined,
+                    label: p.code ?? "—",
                   }))}
                 />
               )}

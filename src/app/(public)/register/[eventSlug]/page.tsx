@@ -59,10 +59,13 @@ export default async function RegisterPage({
       // Only actually used on the Go Goa Gone form's optional "referred by"
       // field (see GoGoaGoneIndividualForm) — fetched unconditionally here
       // like colleges/schools above, rather than branching on eventSlug.
+      // No `name` here deliberately — this list is visible to every
+      // registrant, not just the partner themselves, so the dropdown shows
+      // only the code, never who it belongs to.
       supabase
         .from("promotional_partner_applications")
-        .select("id, name, code")
-        .order("name"),
+        .select("id, code")
+        .order("code"),
     ]);
 
   if (!event) notFound();
