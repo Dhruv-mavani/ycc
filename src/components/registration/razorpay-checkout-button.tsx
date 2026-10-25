@@ -87,6 +87,20 @@ export function RazorpayCheckoutButton({
           contact: data.captainPhone ?? undefined,
         },
         handler: () => {
+          // Razorpay's own checkout overlay sets document.body.style to
+          // "overflow: hidden; contain: initial;" while open (confirmed by
+          // inspecting the live DOM — nothing in our code sets this), and
+          // doesn't reliably clear it in sync with this callback. Next's
+          // own scroll-to-top-on-push can fire while that lock is still in
+          // effect, so the scroll silently has no effect; once Razorpay
+          // removes the lock afterward, nothing re-triggers another
+          // scroll-to-top, so /payment/success renders stuck at whatever
+          // offset the old, now-replaced page had — often far down a long
+          // registration form. Clearing the lock and forcing the scroll
+          // ourselves, right before navigating, fixes this at the source
+          // for every paid event (this button is shared by all of them).
+          document.body.removeAttribute("style");
+          window.scrollTo(0, 0);
           router.push(`/payment/success?registration=${registrationId}`);
         },
         modal: {

@@ -38,6 +38,18 @@ export function PaymentStatusPoller({
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const hasTriggeredDownload = useRef(false);
 
+  // Safety net for every paid event's booking flow, not just Razorpay's
+  // own success handler (which already does this at the source — see
+  // razorpay-checkout-button.tsx): this page is the one shared landing
+  // spot every registration flow pushes to, so clearing any residual
+  // body scroll-lock style and forcing scroll to top here guarantees a
+  // clean landing regardless of what left the lock behind (a third-party
+  // checkout overlay, a dialog that didn't tear down in time, etc.).
+  useEffect(() => {
+    document.body.removeAttribute("style");
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
