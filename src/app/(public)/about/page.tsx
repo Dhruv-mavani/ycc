@@ -1,6 +1,37 @@
 import Link from "next/link";
 import { BackButton } from "@/components/site/back-button";
-import { Trophy, Target, Smartphone, Sparkles, PhoneCall } from "lucide-react";
+import { Trophy, Gamepad2, Mic, Music, UserRound, PhoneCall } from "lucide-react";
+
+const categories = [
+  {
+    title: "Cricket Tournaments",
+    detail: "Tennis Ball • Plastic Ball • Box Cricket",
+    emoji: "🏏",
+    icon: Trophy,
+    tone: "from-blue-100 to-blue-50 text-blue-600",
+  },
+  {
+    title: "E-Gaming",
+    detail: "PUBG • BGMI • Free Fire • 8 Ball Pool",
+    emoji: "🎮",
+    icon: Gamepad2,
+    tone: "from-indigo-100 to-indigo-50 text-indigo-600",
+  },
+  {
+    title: "Stand-Up Comedy",
+    detail: "Gujarati • Hindi • Crowd Work",
+    emoji: "🎤",
+    icon: Mic,
+    tone: "from-emerald-100 to-emerald-50 text-emerald-600",
+  },
+  {
+    title: "Music Fest",
+    detail: "Pop Music • Concerts • DJ Parties",
+    emoji: "🎵",
+    icon: Music,
+    tone: "from-pink-100 to-pink-50 text-pink-600",
+  },
+];
 
 export default function AboutPage() {
   return (
@@ -13,15 +44,15 @@ export default function AboutPage() {
 
         <div className="mb-10 sm:mb-16 text-center">
           <h1 className="text-3xl min-[320px]:text-4xl sm:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 mb-4">
-            About YCC
+            What is YCC?
           </h1>
           <p className="text-muted-foreground text-sm min-[320px]:text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            Yuva Champions Cricket — A modern, youth-first sports platform built by the youth, for the youth.
+            Yuva Champions Cricket — a sports, entertainment &amp; youth-focused platform.
           </p>
         </div>
 
         <div className="space-y-6 sm:space-y-8">
-          {/* Card 1: Platform */}
+          {/* Card 1: What is YCC */}
           <div className="group relative overflow-hidden rounded-3xl bg-white/60 dark:bg-card/40 backdrop-blur-md border border-border/50 p-6 min-[320px]:p-8 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
             <div className="flex flex-col sm:flex-row gap-5 min-[320px]:gap-6 items-start">
               <div className="rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 p-4 text-blue-600 shadow-inner group-hover:scale-110 group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white transition-all duration-300 shrink-0">
@@ -29,62 +60,68 @@ export default function AboutPage() {
               </div>
               <div>
                 <h2 className="text-xl min-[320px]:text-2xl font-bold text-foreground tracking-tight mb-3">
-                  The Platform
+                  What is YCC?
                 </h2>
                 <p className="text-muted-foreground text-sm min-[320px]:text-base leading-relaxed">
-                  We bring college students together through exciting cricket tournaments and quiz competitions, delivering unforgettable experiences, exclusive rewards, and opportunities to become tomorrow&apos;s champions.
+                  YCC (Yuva Champions Cricket) is a sports, entertainment &amp; youth-focused platform with a primary focus on organizing and managing cricket tournaments across multiple formats like Tennis Ball &amp; Plastic Ball Tournaments, Box Cricket Tournaments, and more.
+                </p>
+                <p className="text-muted-foreground text-sm min-[320px]:text-base leading-relaxed mt-3">
+                  While cricket is YCC&apos;s core focus, we also cater to other popular categories.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Card 2: Mission */}
-          <div className="group relative overflow-hidden rounded-3xl bg-white/60 dark:bg-card/40 backdrop-blur-md border border-border/50 p-6 min-[320px]:p-8 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300">
-            <div className="flex flex-col sm:flex-row gap-5 min-[320px]:gap-6 items-start">
-              <div className="rounded-2xl bg-gradient-to-br from-indigo-100 to-indigo-50 p-4 text-indigo-600 shadow-inner group-hover:scale-110 group-hover:from-indigo-600 group-hover:to-purple-600 group-hover:text-white transition-all duration-300 shrink-0">
-                <Target className="size-6 min-[320px]:size-8" />
-              </div>
-              <div>
-                <h2 className="text-xl min-[320px]:text-2xl font-bold text-foreground tracking-tight mb-3">
-                  Our Mission
-                </h2>
-                <p className="text-muted-foreground text-sm min-[320px]:text-base leading-relaxed">
-                  Our mission is simple: give college students a genuine platform to compete, showcase their talent, and build a name for themselves — on the field and off it. From tennis-ball and box cricket formats to general knowledge and sports quizzes, YCC events are designed to be accessible, competitive, and fun.
-                </p>
-              </div>
+          {/* Categories */}
+          <div>
+            <p className="mb-4 text-center text-xs min-[320px]:text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              YCC Categories • Upcoming Events
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {categories.map(({ title, detail, emoji, icon: Icon, tone }) => (
+                <div
+                  key={title}
+                  className="group rounded-3xl bg-white/60 dark:bg-card/40 backdrop-blur-md border border-border/50 p-6 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`rounded-2xl bg-gradient-to-br ${tone} p-3 shadow-inner group-hover:scale-110 transition-all duration-300 shrink-0`}>
+                      <Icon className="size-6" />
+                    </div>
+                    <h3 className="text-lg min-[320px]:text-xl font-bold text-foreground tracking-tight">
+                      <span aria-hidden="true">{emoji} </span>
+                      {title}
+                    </h3>
+                  </div>
+                  <p className="mt-3 text-muted-foreground text-sm min-[320px]:text-base leading-relaxed">
+                    {detail}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Card 3: Experience */}
+          {/* Founder & Team */}
           <div className="group relative overflow-hidden rounded-3xl bg-white/60 dark:bg-card/40 backdrop-blur-md border border-border/50 p-6 min-[320px]:p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300">
             <div className="flex flex-col sm:flex-row gap-5 min-[320px]:gap-6 items-start">
               <div className="rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-50 p-4 text-emerald-600 shadow-inner group-hover:scale-110 group-hover:from-emerald-500 group-hover:to-teal-600 group-hover:text-white transition-all duration-300 shrink-0">
-                <Smartphone className="size-6 min-[320px]:size-8" />
+                <UserRound className="size-6 min-[320px]:size-8" />
               </div>
               <div>
                 <h2 className="text-xl min-[320px]:text-2xl font-bold text-foreground tracking-tight mb-3">
-                  The Experience
+                  Founder &amp; Team
                 </h2>
-                <p className="text-muted-foreground text-sm min-[320px]:text-base leading-relaxed">
-                  Every team and participant that registers with YCC gets a smooth, mobile-first registration experience, instant digital receipts with a unique participant ID and QR code, and fair, transparent verification at the venue.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Future */}
-          <div className="group relative overflow-hidden rounded-3xl bg-white/60 dark:bg-card/40 backdrop-blur-md border border-border/50 p-6 min-[320px]:p-8 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300">
-            <div className="flex flex-col sm:flex-row gap-5 min-[320px]:gap-6 items-start">
-              <div className="rounded-2xl bg-gradient-to-br from-pink-100 to-pink-50 p-4 text-pink-600 shadow-inner group-hover:scale-110 group-hover:from-pink-500 group-hover:to-rose-600 group-hover:text-white transition-all duration-300 shrink-0">
-                <Sparkles className="size-6 min-[320px]:size-8" />
-              </div>
-              <div>
-                <h2 className="text-xl min-[320px]:text-2xl font-bold text-foreground tracking-tight mb-3">
-                  What&apos;s Next
-                </h2>
-                <p className="text-muted-foreground text-sm min-[320px]:text-base leading-relaxed">
-                  We&apos;re just getting started — more tournaments, more colleges, and more formats are on the way. Follow our official channels for schedules, fixtures, and updates.
-                </p>
+                <div className="space-y-3 text-muted-foreground text-sm min-[320px]:text-base leading-relaxed">
+                  <p>
+                    Abhishek N. Chaudhari (Abhi) is a 25-year-old entrepreneur from Bardoli, Gujarat, and the Founder of YCC. His entrepreneurial journey began in 2019 with e-commerce, followed by ventures in media and advertising.
+                  </p>
+                  <p>
+                    In 2024, he began organizing local cricket tournaments across Bardoli and Tapi District. As participation grew significantly in 2025, he envisioned a more structured and scalable platform for grassroots sports.
+                  </p>
+                  <p>
+                    This vision led to the establishment of YCC in 2026, with an expanding focus on cricket, e-gaming, media, and entertainment.
+                  </p>
+                </div>
+                <p className="mt-4 font-bold text-foreground">And the journey continues.</p>
               </div>
             </div>
           </div>
@@ -103,14 +140,14 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="flex flex-col gap-3 w-full sm:w-auto">
-              <a 
-                href="tel:+918487832810" 
+              <a
+                href="tel:+918487832810"
                 className="w-full sm:w-auto text-center bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 font-bold py-3 px-8 rounded-full shadow-md transition-all duration-300 text-sm min-[320px]:text-base"
               >
                 Call +91 84878 32810
               </a>
-              <Link 
-                href="/contact" 
+              <Link
+                href="/contact"
                 className="w-full sm:w-auto text-center bg-white/20 text-white border border-white/20 hover:bg-white/30 hover:scale-105 font-bold py-3 px-8 rounded-full shadow-sm transition-all duration-300 text-sm min-[320px]:text-base"
               >
                 Message Us
