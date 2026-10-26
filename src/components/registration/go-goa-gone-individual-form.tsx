@@ -75,6 +75,20 @@ export function GoGoaGoneIndividualForm({
     name: string;
     phone: string;
   } | null>(null);
+  // Raw text the visitor types for the promotional code — separate from
+  // the form's own referredByPromotionalPartnerId field (which holds the
+  // matched partner's id, not the typed text) since there's no longer a
+  // dropdown to pick a real option from. Matched/invalid state is derived
+  // from this on every render rather than stored separately, so it can
+  // never drift out of sync with what's actually typed.
+  const [promoCodeText, setPromoCodeText] = useState("");
+  const trimmedPromoCode = promoCodeText.trim();
+  const promoCodeMatch = trimmedPromoCode
+    ? promotionalPartners.find(
+        (p) => (p.code ?? "").toLowerCase() === trimmedPromoCode.toLowerCase(),
+      )
+    : undefined;
+  const promoCodeInvalid = trimmedPromoCode.length > 0 && !promoCodeMatch;
 
   const {
     control,
@@ -231,26 +245,40 @@ export function GoGoaGoneIndividualForm({
 
           <Field
             label="Enter YCC Promotional Code"
-            error={errors.referredByPromotionalPartnerId?.message}
+            error={
+              promoCodeInvalid
+                ? "Invalid code — please check and try again."
+                : errors.referredByPromotionalPartnerId?.message
+            }
           >
             <Controller
               control={control}
               name="referredByPromotionalPartnerId"
               render={({ field }) => (
-                <SearchableSelect
-                  value={field.value || null}
-                  onChange={(v) => field.onChange(v ?? "")}
-                  placeholder="Search by code — leave blank if none"
-                  emptyText="No match found."
-                  // Code only — never the partner's name. This field is
-                  // visible to every registrant, not just the partner
-                  // themselves, so showing names here would expose one
-                  // partner's identity to every other visitor browsing the
-                  // list.
-                  options={promotionalPartners.map((p) => ({
-                    value: p.id,
-                    label: p.code ?? "—",
-                  }))}
+                <Input
+                  value={promoCodeText}
+                  onChange={(e) => {
+                    const text = e.target.value;
+                    setPromoCodeText(text);
+                    const trimmed = text.trim();
+                    // Plain text, no dropdown — this field is visible to
+                    // every registrant, not just the partner themselves,
+                    // so listing every code (even without a name attached)
+                    // would let anyone browse/harvest the full list.
+                    const match = trimmed
+                      ? promotionalPartners.find(
+                          (p) => (p.code ?? "").toLowerCase() === trimmed.toLowerCase(),
+                        )
+                      : undefined;
+                    field.onChange(match ? match.id : "");
+                  }}
+                  placeholder="Enter your code — leave blank if none"
+                  aria-invalid={promoCodeInvalid}
+                  className={
+                    promoCodeMatch
+                      ? "border-emerald-500 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20 dark:border-emerald-500"
+                      : undefined
+                  }
                 />
               )}
             />
