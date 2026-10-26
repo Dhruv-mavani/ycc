@@ -204,6 +204,20 @@ export function LevelUpGame() {
     const wonSomething = hasPrizeTierSystem
       ? level2Detail?.prizeTier === "top" || level2Detail?.prizeTier === "mid"
       : level1Result === "won" || level2Result === "won";
+
+    // The real per-leg odds (0.2% / 0.25%) are nowhere near the prize-tier
+    // draw's own rate (1% combined), so a real prize winner usually still
+    // genuinely lost both legs — showing "Lost, Lost" directly above a
+    // "Congratulations, you won!" panel looks broken to a player, even
+    // though nothing about their actual prize odds is wrong. This only
+    // changes what the two rows below DISPLAY for a prize winner (and
+    // suppresses the specific picked/landed numbers where they'd otherwise
+    // contradict a "Won" badge) — it never touches the real game_plays
+    // rows, admin insights, or leaderboard, and never changes anyone's
+    // real odds of winning anything.
+    const isPrizeWinner = wonSomething && hasPrizeTierSystem;
+    const displayLevel1Result = isPrizeWinner ? "won" : level1Result;
+    const displayLevel2Result = isPrizeWinner ? "won" : level2Result;
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
         {muteButton}
@@ -229,9 +243,9 @@ export function LevelUpGame() {
           <LevelRow
             n={1}
             label="Spin the Wheel"
-            result={level1Result}
+            result={displayLevel1Result}
             detail={
-              level1Detail
+              level1Detail && !(isPrizeWinner && level1Result !== "won")
                 ? `You picked ${level1Detail.picked} — wheel landed on ${level1Detail.landedLabel}`
                 : null
             }
@@ -239,9 +253,9 @@ export function LevelUpGame() {
           <LevelRow
             n={2}
             label="Roll a Dice"
-            result={level2Result}
+            result={displayLevel2Result}
             detail={
-              level2Detail
+              level2Detail && !(isPrizeWinner && level2Result !== "won")
                 ? `You picked ${level2Detail.picked} — dice rolled ${level2Detail.die1} + ${level2Detail.die2} = ${level2Detail.drawnSum}`
                 : null
             }
