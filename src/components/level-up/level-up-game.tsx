@@ -216,6 +216,12 @@ export function LevelUpGame() {
     // rows, admin insights, or leaderboard, and never changes anyone's
     // real odds of winning anything.
     const isPrizeWinner = wonSomething && hasPrizeTierSystem;
+    // Genuinely lost both legs and didn't land a prize tier either (or
+    // this event has no prize-tier system at all, where !wonSomething on
+    // its own already means a clean double loss). Shown under ResultPanel
+    // below as a small "come to Goa with us?" opt-in.
+    const isCleanDoubleLoss =
+      !wonSomething && level1Result === "lost" && level2Result === "lost";
     const displayLevel1Result = isPrizeWinner ? "won" : level1Result;
     const displayLevel2Result = isPrizeWinner ? "won" : level2Result;
     return (
@@ -269,6 +275,10 @@ export function LevelUpGame() {
             selection={selection}
             levelUpSessionId={sessionId}
           />
+        ) : null}
+
+        {isCleanDoubleLoss && selection ? (
+          <GoaTripPrompt selection={selection} />
         ) : null}
 
         {/* Derived straight from the server-authoritative attemptNumber
@@ -451,6 +461,84 @@ function ResultPanel({
   }
 
   return <PrizePicker selection={selection} levelUpSessionId={levelUpSessionId} />;
+}
+
+// Shown only for a genuine double loss (see isCleanDoubleLoss above) — a
+// small, low-stakes goodwill opt-in, not a prize. Saying yes re-verifies
+// the player server-side and records their real contact details (never
+// anything from this component itself) — see goa-trip-interest.ts.
+function GoaTripPrompt({ selection }: { selection: GameTeamSelection }) {
+  const [status, setStatus] = useState<"asking" | "submitting" | "yes" | "no">("asking");
+
+  async function respond(wantsToJoin: boolean) {
+    if (!wantsToJoin) {
+      setStatus("no");
+      return;
+    }
+    setStatus("submitting");
+    try {
+      const res = await fetch("/api/games/goa-trip-interest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: selection.source,
+          teamRefId: selection.teamRefId,
+          playerRefId: selection.playerRefId,
+        }),
+      });
+      if (!res.ok) {
+        toast.error("Could not save your response — please try again.");
+        setStatus("asking");
+        return;
+      }
+      setStatus("yes");
+    } catch {
+      toast.error("Network error — please try again.");
+      setStatus("asking");
+    }
+  }
+
+  if (status === "no") return null;
+
+  if (status === "yes") {
+    return (
+      <div className="mt-8 w-full max-w-sm rounded-2xl border border-sky-300/30 bg-sky-400/10 p-5 text-center">
+        <p className="text-3xl">🏖️</p>
+        <p className="mt-2 text-base font-bold text-sky-200 sm:text-lg">
+          Awesome — we&apos;ll be in touch!
+        </p>
+        <p className="mt-1 text-xs text-white/60 sm:text-sm">
+          Keep an eye on your phone for details about the trip.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-8 w-full max-w-sm rounded-2xl border border-white/15 bg-white/5 p-5 text-center">
+      <p className="text-base font-semibold text-white sm:text-lg">
+        Don&apos;t be sad — do you want to come to Goa with us?
+      </p>
+      <div className="mt-4 flex items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={() => respond(true)}
+          disabled={status === "submitting"}
+          className="flex min-w-20 items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 px-6 py-2 text-sm font-bold text-black shadow-lg transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
+        >
+          {status === "submitting" ? <Loader2 className="size-4 animate-spin" /> : "Yes"}
+        </button>
+        <button
+          type="button"
+          onClick={() => respond(false)}
+          disabled={status === "submitting"}
+          className="min-w-20 rounded-xl border border-white/15 bg-white/5 px-6 py-2 text-sm font-bold text-white/70 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
+        >
+          No
+        </button>
+      </div>
+    </div>
+  );
 }
 
 interface PrizeSlotView {

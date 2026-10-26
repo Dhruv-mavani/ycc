@@ -658,6 +658,32 @@ export interface Database {
         >;
         Relationships: [];
       };
+      goa_trip_interest: {
+        Row: {
+          id: string;
+          source: string;
+          player_ref_id: string;
+          team_ref_id: string;
+          player_name: string;
+          team_label: string;
+          phone: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          source: string;
+          player_ref_id: string;
+          team_ref_id: string;
+          player_name: string;
+          team_label: string;
+          phone?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["goa_trip_interest"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
