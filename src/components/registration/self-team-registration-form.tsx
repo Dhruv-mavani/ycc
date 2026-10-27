@@ -29,7 +29,6 @@ import {
   type TeamRegistrationInput,
 } from "@/lib/validations/registration";
 import { RazorpayCheckoutButton } from "@/components/registration/razorpay-checkout-button";
-import { GstBreakdown } from "@/components/registration/gst-breakdown";
 import { BoxCricketTermsContent } from "@/components/registration/box-cricket-terms-content";
 
 interface CollegeOption {
@@ -240,40 +239,31 @@ export function SelfTeamRegistrationForm({
   }
 
   if (submitted) {
+    // No "Review & pay" step — registering goes straight into Razorpay's
+    // own payment widget (autoOpen below), which already shows the real
+    // amount itself. The button still renders underneath as a manual
+    // fallback if the auto-open fails or gets dismissed.
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Review & pay</CardTitle>
-          <CardDescription>
-            {gstExempt ? "No GST on this event" : "18% GST applies at payment"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {gstExempt ? (
-            submitted.amountPaise > 0 ? (
-              <div className="flex justify-between text-sm font-semibold">
-                <span>Total payable</span>
-                <span>
-                  ₹
-                  {(submitted.amountPaise / 100).toLocaleString("en-IN", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-            ) : null
-          ) : (
-            <GstBreakdown basePaise={feePaise} />
-          )}
+      <div className="flex flex-col items-center gap-4 py-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          Opening payment for your ₹
+          {(submitted.amountPaise / 100).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}{" "}
+          registration...
+        </p>
+        <div className="w-full max-w-xs">
           <RazorpayCheckoutButton
             registrationId={submitted.registrationId}
             eventName={eventName}
             prefillName={submitted.captainName}
             prefillEmail={null}
             prefillPhone={submitted.captainPhone}
+            autoOpen
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
