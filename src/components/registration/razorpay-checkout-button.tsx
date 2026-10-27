@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -38,15 +38,23 @@ function loadRazorpayScript(): Promise<boolean> {
 // the verification subtly wrong.
 export function RazorpayCheckoutButton({
   registrationId,
+  autoOpen = false,
 }: {
   registrationId: string;
   eventName: string;
   prefillName?: string | null;
   prefillEmail?: string | null;
   prefillPhone?: string | null;
+  /** Opens Razorpay the moment this mounts, no click needed — skips the
+   * registration form's own "Review & pay" step so filling the form goes
+   * straight into payment. The button underneath still renders and still
+   * works, purely as a manual retry if the auto-attempt fails (script
+   * didn't load, network blip) or the visitor dismisses the modal. */
+  autoOpen?: boolean;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const hasAutoOpened = useRef(false);
 
   async function handlePay() {
     setLoading(true);
@@ -113,6 +121,13 @@ export function RazorpayCheckoutButton({
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!autoOpen || hasAutoOpened.current) return;
+    hasAutoOpened.current = true;
+    handlePay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
 
   return (
     <Button className="w-full" disabled={loading} onClick={handlePay}>
