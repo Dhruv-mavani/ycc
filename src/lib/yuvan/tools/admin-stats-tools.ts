@@ -6,6 +6,7 @@ import {
   getCashCollectionDetail,
   getRegistrationsOverTime,
   getPartnerSquadReadiness,
+  getPartnerProgramApplications,
   getCollegeCampusPartnerOverview,
   getCollegeCampusPartnerInsights,
   getCollegeDetail,
@@ -86,6 +87,31 @@ export const adminTools = {
       "Per-YCC-Partner/Co-Partner rollup: people directly recruited (split Co-Partners vs Squad), teams actually registered and paid for, and revenue (paise). Covers the referral-based Partner Program only, not College Campus Partners.",
     inputSchema: z.object({}),
     execute: async () => getPartnerSquadReadiness(),
+  }),
+
+  partnerProgramApplications: tool({
+    description:
+      "Raw list + counts of Partner Program applications (YCC Partner = partner_type 'campus', YCC Co-Partner = partner_type 'class'). Use this — not partnerSquadReadiness — for any question scoped to a specific date/date-range, a status (including pending/rejected, not just approved), or a name/mobile/email search, e.g. 'who applied on 16 Aug 2026' or 'how many pending Co-Partner applications are there'. partnerSquadReadiness is an all-time rollup of approved partners' recruiting + revenue only — it has no date filter and will not answer date-scoped questions.",
+    inputSchema: z.object({
+      startDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional()
+        .describe("First IST calendar date to include, as YYYY-MM-DD. Omit for no lower bound."),
+      endDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional()
+        .describe("Last IST calendar date to include (inclusive), as YYYY-MM-DD. For a single day, pass the same value as startDate. Omit for no upper bound."),
+      partnerType: z
+        .enum(["campus", "class"])
+        .optional()
+        .describe("'campus' = YCC Partner, 'class' = YCC Co-Partner. Omit for both."),
+      status: z.enum(["pending", "approved", "rejected"]).optional(),
+      search: z.string().optional().describe("Matches against name, mobile, or email."),
+    }),
+    execute: async ({ startDate, endDate, partnerType, status, search }) =>
+      getPartnerProgramApplications(startDate, endDate, partnerType, status, search),
   }),
 
   collegeCampusPartnerOverview: tool({

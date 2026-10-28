@@ -570,6 +570,107 @@ export async function getPartnerSquadReadiness(): Promise<PartnerSquadReadiness[
   });
 }
 
+export interface PartnerProgramApplicationRow {
+  id: string;
+  name: string;
+  partnerType: "campus" | "class";
+  status: "pending" | "approved" | "rejected";
+  mobile: string;
+  email: string | null;
+  referredBy: string | null;
+  collegeName: string | null;
+  createdAt: string;
+}
+
+export interface PartnerProgramApplicationsResult {
+  totalCount: number;
+  partnerCount: number;
+  coPartnerCount: number;
+  approvedCount: number;
+  pendingCount: number;
+  rejectedCount: number;
+  /** Capped at 50 rows (newest first) so a broad query doesn't blow up the
+   * response — the counts above always reflect the full filtered set, not
+   * just this list. */
+  applications: PartnerProgramApplicationRow[];
+  truncated: boolean;
+}
+
+const PARTNER_APPLICATIONS_LIST_CAP = 50;
+
+/** IST calendar-day bounds, as UTC ISO timestamps, for filtering
+ * created_at (a timestamptz). IST is a fixed UTC+5:30 offset (no DST), so a
+ * literal offset suffix is enough — no timezone library needed. */
+function istDayBoundsUtc(date: string): { startIso: string; endIsoExclusive: string } {
+  const startIso = new Date(`${date}T00:00:00+05:30`).toISOString();
+  const endDate = new Date(`${date}T00:00:00+05:30`);
+  endDate.setUTCDate(endDate.getUTCDate() + 1);
+  return { startIso, endIsoExclusive: endDate.toISOString() };
+}
+
+/**
+ * Raw list + counts of Partner Program applications (YCC Partner =
+ * partner_type "campus", YCC Co-Partner = "class"), optionally scoped to an
+ * IST calendar date/date-range, partner type, status, and/or a
+ * name/mobile/email search string. Unlike getPartnerSquadReadiness (an
+ * all-time rollup of approved partners' recruiting + revenue), this answers
+ * "who applied on/between these dates" and includes pending/rejected
+ * applications too, not just approved ones.
+ */
+export async function getPartnerProgramApplications(
+  startDate?: string,
+  endDate?: string,
+  partnerType?: "campus" | "class",
+  status?: "pending" | "approved" | "rejected",
+  search?: string,
+): Promise<PartnerProgramApplicationsResult> {
+  const admin = createAdminClient();
+
+  let query = admin
+    .from("partner_program_applications")
+    .select("id, name, partner_type, status, mobile, email, referred_by, college_id, created_at")
+    .order("created_at", { ascending: false });
+
+  if (startDate) query = query.gte("created_at", istDayBoundsUtc(startDate).startIso);
+  if (endDate) query = query.lt("created_at", istDayBoundsUtc(endDate).endIsoExclusive);
+  if (partnerType) query = query.eq("partner_type", partnerType);
+  if (status) query = query.eq("status", status);
+  if (search) query = query.or(`name.ilike.%${search}%,mobile.ilike.%${search}%,email.ilike.%${search}%`);
+
+  const { data } = await query;
+  const rows = data ?? [];
+
+  const collegeIds = [
+    ...new Set(rows.map((r) => r.college_id).filter((id): id is string => !!id)),
+  ];
+  const { data: colleges } =
+    collegeIds.length > 0
+      ? await admin.from("colleges").select("id, name").in("id", collegeIds)
+      : { data: [] as { id: string; name: string }[] };
+  const collegeNameById = new Map((colleges ?? []).map((c) => [c.id, c.name]));
+
+  return {
+    totalCount: rows.length,
+    partnerCount: rows.filter((r) => r.partner_type === "campus").length,
+    coPartnerCount: rows.filter((r) => r.partner_type === "class").length,
+    approvedCount: rows.filter((r) => r.status === "approved").length,
+    pendingCount: rows.filter((r) => r.status === "pending").length,
+    rejectedCount: rows.filter((r) => r.status === "rejected").length,
+    applications: rows.slice(0, PARTNER_APPLICATIONS_LIST_CAP).map((r) => ({
+      id: r.id,
+      name: r.name,
+      partnerType: r.partner_type as "campus" | "class",
+      status: r.status as "pending" | "approved" | "rejected",
+      mobile: r.mobile,
+      email: r.email,
+      referredBy: r.referred_by,
+      collegeName: r.college_id ? (collegeNameById.get(r.college_id) ?? null) : null,
+      createdAt: r.created_at,
+    })),
+    truncated: rows.length > PARTNER_APPLICATIONS_LIST_CAP,
+  };
+}
+
 export interface CollegeCampusPartnerOverviewRow {
   id: string;
   name: string;
