@@ -114,6 +114,50 @@ export const adminTools = {
       getPartnerProgramApplications(startDate, endDate, partnerType, status, search),
   }),
 
+  exportPartnerProgramApplicationsPdf: tool({
+    description:
+      "Generates a downloadable PDF of Partner Program applications for the given filters (same filters as partnerProgramApplications — date range, partner type, status, search) and returns a download link, which the chat UI renders as its own button. Call this when the admin asks to export, download, save, or get a PDF/file of a Partner Program applications list — do not try to answer that kind of request with partnerProgramApplications's JSON alone. Do not restate or link the raw downloadUrl in your reply; just confirm how many rows are in it.",
+    inputSchema: z.object({
+      startDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional()
+        .describe("First IST calendar date to include, as YYYY-MM-DD. Omit for no lower bound."),
+      endDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional()
+        .describe("Last IST calendar date to include (inclusive), as YYYY-MM-DD. For a single day, pass the same value as startDate. Omit for no upper bound."),
+      partnerType: z
+        .enum(["campus", "class"])
+        .optional()
+        .describe("'campus' = YCC Partner, 'class' = YCC Co-Partner. Omit for both."),
+      status: z.enum(["pending", "approved", "rejected"]).optional(),
+      search: z.string().optional().describe("Matches against name, mobile, or email."),
+    }),
+    execute: async ({ startDate, endDate, partnerType, status, search }) => {
+      // A cheap pre-check (default 50-row cap, counts only matter here) so
+      // we never hand back a download link for an empty PDF.
+      const preview = await getPartnerProgramApplications(startDate, endDate, partnerType, status, search);
+      if (preview.totalCount === 0) {
+        return { generated: false as const, message: "No applications match those filters — nothing to export." };
+      }
+
+      const params = new URLSearchParams();
+      if (startDate) params.set("startDate", startDate);
+      if (endDate) params.set("endDate", endDate);
+      if (partnerType) params.set("partnerType", partnerType);
+      if (status) params.set("status", status);
+      if (search) params.set("search", search);
+
+      return {
+        generated: true as const,
+        count: preview.totalCount,
+        downloadUrl: `/api/yuvan/admin/partner-program-pdf?${params.toString()}`,
+      };
+    },
+  }),
+
   collegeCampusPartnerOverview: tool({
     description:
       "Flat list of every YCC College Campus Partner (name, college, stream, year/semester, code). Use this to resolve a College Campus Partner's name to their id before calling collegeCampusPartnerInsights.",

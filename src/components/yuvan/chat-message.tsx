@@ -62,6 +62,28 @@ function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
     );
   }
 
+  // Generic case for any other tool that hands back a downloadable file
+  // (e.g. a generated PDF export) — any tool output with a string
+  // downloadUrl gets a download button, no per-tool special-casing needed.
+  if (typeof output?.downloadUrl === "string") {
+    const count = typeof output?.count === "number" ? output.count : null;
+    return (
+      <Button
+        key={callId}
+        size="sm"
+        variant="outline"
+        nativeButton={false}
+        className="mt-1"
+        render={
+          <a href={output.downloadUrl} target="_blank" rel="noreferrer">
+            <Download className="size-3.5" />
+            {count !== null ? `Download PDF (${count} rows)` : "Download PDF"}
+          </a>
+        }
+      />
+    );
+  }
+
   return (
     <details key={callId} className="mt-1 max-w-full text-xs text-muted-foreground">
       <summary className="cursor-pointer select-none hover:text-foreground">

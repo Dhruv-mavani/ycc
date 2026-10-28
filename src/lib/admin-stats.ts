@@ -623,6 +623,9 @@ export async function getPartnerProgramApplications(
   partnerType?: "campus" | "class",
   status?: "pending" | "approved" | "rejected",
   search?: string,
+  /** Overrides PARTNER_APPLICATIONS_LIST_CAP — the PDF export route passes
+   * a much higher limit so the downloaded file isn't truncated at 50 rows. */
+  limit: number = PARTNER_APPLICATIONS_LIST_CAP,
 ): Promise<PartnerProgramApplicationsResult> {
   const admin = createAdminClient();
 
@@ -656,7 +659,7 @@ export async function getPartnerProgramApplications(
     approvedCount: rows.filter((r) => r.status === "approved").length,
     pendingCount: rows.filter((r) => r.status === "pending").length,
     rejectedCount: rows.filter((r) => r.status === "rejected").length,
-    applications: rows.slice(0, PARTNER_APPLICATIONS_LIST_CAP).map((r) => ({
+    applications: rows.slice(0, limit).map((r) => ({
       id: r.id,
       name: r.name,
       partnerType: r.partner_type as "campus" | "class",
@@ -667,7 +670,7 @@ export async function getPartnerProgramApplications(
       collegeName: r.college_id ? (collegeNameById.get(r.college_id) ?? null) : null,
       createdAt: r.created_at,
     })),
-    truncated: rows.length > PARTNER_APPLICATIONS_LIST_CAP,
+    truncated: rows.length > limit,
   };
 }
 
