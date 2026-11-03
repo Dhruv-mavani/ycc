@@ -345,16 +345,6 @@ export default async function EventDetailPage({
                               5th November 2026
                             </p>
                           </div>
-                          <div className="pt-4 border-t border-amber-200/70">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
-                              Fee Payment Date
-                            </p>
-                            <p className="text-lg font-bold text-slate-900">25th October 2026</p>
-                            <p className="mt-1 text-sm leading-relaxed text-amber-900/80">
-                              Team Entry Fee &amp; Player Fee must be paid in advance to
-                              confirm your registration.
-                            </p>
-                          </div>
                           <p className="pt-4 border-t border-amber-200/70 text-sm leading-relaxed text-amber-900/80">
                             Match Schedule, Team Groups, Match Dates, Venues &amp; Other
                             Tournament Updates will be shared before the tournament starts.
