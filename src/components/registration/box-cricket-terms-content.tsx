@@ -18,7 +18,7 @@ const SECTIONS: TermsSection[] = [
       },
       {
         type: "p",
-        text: "A team's registration shall be considered confirmed only after the applicable Team Entry Fee and Player Fee have been paid in full within the prescribed deadline.",
+        text: "A team's registration shall be considered confirmed only after the applicable Team Entry Fee has been paid in full within the prescribed deadline.",
       },
       {
         type: "p",
