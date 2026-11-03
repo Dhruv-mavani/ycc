@@ -1,5 +1,5 @@
 // Box Cricket (cricket-championship-2026) charges a flat ₹29/player fee on
-// top of the ₹999 team entry fee — covers each player's digital ID card +
+// top of the ₹1,200 team entry fee — covers each player's digital ID card +
 // registration form (see the poster). Folded into the single Razorpay
 // charge (and the registration's amount_paise) alongside the team fee, so
 // there's one payment, not a separate cash collection for this part.

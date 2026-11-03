@@ -608,7 +608,7 @@ export default async function EventDetailPage({
                         <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
                         <span className="text-slate-500 mb-0.5 text-sm sm:text-base">Team Entry Fee</span>
                       </div>
-                      {/* Separate from the ₹999 team fee — a flat ₹29/player
+                      {/* Separate from the team fee — a flat ₹29/player
                           charge covering each player's digital ID card and
                           registration form (see the poster). Not stored on
                           the event row since it isn't collected through the

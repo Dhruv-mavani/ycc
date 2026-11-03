@@ -4,7 +4,7 @@ import { PaymentLinkForm } from "./payment-link-form";
 
 export const metadata: Metadata = {
   title: "Pay Team Entry Fee | YCC Box Cricket",
-  description: "Scan to pay the ₹999 Box Cricket Team Entry Fee via UPI and submit your payment for verification.",
+  description: "Scan to pay the ₹1,200 Box Cricket Team Entry Fee via UPI and submit your payment for verification.",
   robots: { index: false, follow: false },
 };
 
@@ -22,7 +22,7 @@ export default function BoxCricketPaymentLinkPage() {
             YCC Box Cricket — Pay Entry Fee
           </h1>
           <p className="mt-2 text-sm sm:text-base text-slate-600">
-            Pay your ₹999 Team Entry Fee online and submit proof for
+            Pay your ₹1,200 Team Entry Fee online and submit proof for
             verification.
           </p>
         </div>

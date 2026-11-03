@@ -120,8 +120,8 @@ export function PaymentLinkForm() {
         <CardContent className="flex flex-col items-center gap-3 py-8">
           <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
             <Image
-              src="/999-QR.png"
-              alt="Scan to pay ₹999 via UPI"
+              src="/1200-QR.png"
+              alt="Scan to pay ₹1,200 via UPI"
               width={280}
               height={280}
               className="h-auto w-56 sm:w-64"
@@ -129,7 +129,7 @@ export function PaymentLinkForm() {
           </div>
           <p className="text-center text-sm font-medium text-slate-600">
             Scan with any UPI app (Google Pay, PhonePe, Paytm...) to pay the{" "}
-            <span className="font-bold text-slate-900">₹999 Team Entry Fee</span>
+            <span className="font-bold text-slate-900">₹1,200 Team Entry Fee</span>
           </p>
         </CardContent>
       </Card>
