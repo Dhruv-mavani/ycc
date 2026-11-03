@@ -20,7 +20,7 @@ function formatRupees(paise: number) {
 // default OG image (see root layout) when an event has none of its own.
 function posterFor(slug: string): string | undefined {
   if (isKismatKeKhiladiEvent(slug)) return "/go-goa-gone/golden-emblem.png";
-  if (slug === "cricket-championship-2026") return "/box-cricket/poster-999.png";
+  if (slug === "cricket-championship-2026") return "/box-cricket/poster-1200.png";
   if (slug === "ycc-jackpot-heist") return "/jackpot-heist/poster.png";
   return undefined;
 }
@@ -322,7 +322,7 @@ export default async function EventDetailPage({
                     {!isGoGoaGone ? (
                       <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                         <Image
-                          src={isBoxCricket ? "/box-cricket/poster-999.png" : "/jackpot-heist/poster.png"}
+                          src={isBoxCricket ? "/box-cricket/poster-1200.png" : "/jackpot-heist/poster.png"}
                           alt={`${event.name} poster`}
                           width={1024}
                           height={1536}
@@ -342,7 +342,7 @@ export default async function EventDetailPage({
                               Tournament Starts
                             </p>
                             <p className="text-xl sm:text-2xl font-bold text-slate-900">
-                              2nd November 2026
+                              5th November 2026
                             </p>
                           </div>
                           <div className="pt-4 border-t border-amber-200/70">
