@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BackButton } from "@/components/site/back-button";
 import {
   getQuizLeaderboard,
+  getLakhpatiLeaderboard,
   getMysteryBoxWinners,
   getLevelUpWinners,
   type QuizLeaderboardRow,
@@ -28,7 +29,8 @@ import {
 
 export const metadata: Metadata = {
   title: "Leaderboard | YCC",
-  description: "See who's topping Quiz Champion, and who's won Mystery Box and Kismat Ke Khiladi.",
+  description:
+    "See who's topping Quiz Champion and Kaun Banega Lakhpati, and who's won Mystery Box and Kismat Ke Khiladi.",
 };
 
 function sourceLabel(source: WinnerRow["source"] | QuizLeaderboardRow["source"]) {
@@ -50,8 +52,9 @@ function formatWhen(iso: string) {
 }
 
 export default async function LeaderboardPage() {
-  const [quizRows, mysteryBoxWinners, levelUpWinners] = await Promise.all([
+  const [quizRows, lakhpatiRows, mysteryBoxWinners, levelUpWinners] = await Promise.all([
     getQuizLeaderboard(),
+    getLakhpatiLeaderboard(),
     getMysteryBoxWinners(),
     getLevelUpWinners(),
   ]);
@@ -70,70 +73,16 @@ export default async function LeaderboardPage() {
           </div>
           <h1 className="mb-3 text-3xl font-extrabold tracking-tight sm:text-5xl">Leaderboard</h1>
           <p className="max-w-2xl text-muted-foreground text-xs sm:text-base md:text-lg leading-relaxed">
-            Quiz Champion ranked by score. Mystery Box and Kismat Ke Khiladi
-            have no running score to rank by — just who&apos;s won so far.
+            Quiz Champion and Kaun Banega Lakhpati ranked by score. Mystery
+            Box and Kismat Ke Khiladi have no running score to rank by —
+            just who&apos;s won so far.
           </p>
         </div>
 
         <div className="space-y-8">
-          <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
-            <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="size-5 text-amber-500" /> Quiz Champion
-              </CardTitle>
-              <CardDescription>Top {quizRows.length > 0 ? quizRows.length : ""} by score, earliest to reach it first on a tie.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table className="min-w-[500px]">
-                <TableHeader className="bg-muted/10">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="font-semibold text-foreground/80 pl-6">#</TableHead>
-                    <TableHead className="font-semibold text-foreground/80">Player</TableHead>
-                    <TableHead className="font-semibold text-foreground/80">Team</TableHead>
-                    <TableHead className="font-semibold text-foreground/80 text-right pr-6">Score</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {quizRows.map((row) => (
-                    <TableRow key={`${row.source}-${row.rank}`} className="hover:bg-primary/5 transition-colors">
-                      <TableCell className="pl-6 font-semibold text-muted-foreground">
-                        {row.rank <= 3 ? (
-                          <Crown
-                            className={
-                              row.rank === 1
-                                ? "size-4 text-amber-500"
-                                : row.rank === 2
-                                  ? "size-4 text-slate-400"
-                                  : "size-4 text-amber-700"
-                            }
-                          />
-                        ) : (
-                          row.rank
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{row.playerName}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {row.teamLabel}
-                        <span className="ml-1.5 text-xs text-muted-foreground/60">
-                          ({sourceLabel(row.source)})
-                        </span>
-                      </TableCell>
-                      <TableCell className="pr-6 text-right font-semibold">
-                        {row.questionsCorrect}/{row.totalQuestions}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {quizRows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-muted-foreground text-center py-10">
-                        No one&apos;s cracked the quiz yet — be the first!
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <QuizStyleLeaderboardCard title="Quiz Champion" rows={quizRows} />
+
+          <QuizStyleLeaderboardCard title="Kaun Banega Lakhpati" rows={lakhpatiRows} />
 
           <WinnersCard
             title="Mystery Box"
@@ -146,6 +95,72 @@ export default async function LeaderboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Shared by Quiz Champion and Kaun Banega Lakhpati — same mechanics, same
+// scoring, just two independently-tracked game_slugs (see
+// getQuizStyleLeaderboardUncached in public-leaderboard.ts).
+function QuizStyleLeaderboardCard({ title, rows }: { title: string; rows: QuizLeaderboardRow[] }) {
+  return (
+    <Card className="overflow-hidden border-border/50 shadow-sm p-0 gap-0">
+      <CardHeader className="bg-muted/30 border-b border-border/50 p-4 sm:p-6">
+        <CardTitle className="flex items-center gap-2">
+          <Trophy className="size-5 text-amber-500" /> {title}
+        </CardTitle>
+        <CardDescription>Top {rows.length > 0 ? rows.length : ""} by score, earliest to reach it first on a tie.</CardDescription>
+      </CardHeader>
+      <CardContent className="p-0 overflow-x-auto">
+        <Table className="min-w-[500px]">
+          <TableHeader className="bg-muted/10">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="font-semibold text-foreground/80 pl-6">#</TableHead>
+              <TableHead className="font-semibold text-foreground/80">Player</TableHead>
+              <TableHead className="font-semibold text-foreground/80">Team</TableHead>
+              <TableHead className="font-semibold text-foreground/80 text-right pr-6">Score</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow key={`${row.source}-${row.rank}`} className="hover:bg-primary/5 transition-colors">
+                <TableCell className="pl-6 font-semibold text-muted-foreground">
+                  {row.rank <= 3 ? (
+                    <Crown
+                      className={
+                        row.rank === 1
+                          ? "size-4 text-amber-500"
+                          : row.rank === 2
+                            ? "size-4 text-slate-400"
+                            : "size-4 text-amber-700"
+                      }
+                    />
+                  ) : (
+                    row.rank
+                  )}
+                </TableCell>
+                <TableCell className="font-medium">{row.playerName}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {row.teamLabel}
+                  <span className="ml-1.5 text-xs text-muted-foreground/60">
+                    ({sourceLabel(row.source)})
+                  </span>
+                </TableCell>
+                <TableCell className="pr-6 text-right font-semibold">
+                  {row.questionsCorrect}/{row.totalQuestions}
+                </TableCell>
+              </TableRow>
+            ))}
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-muted-foreground text-center py-10">
+                  No one&apos;s cracked the quiz yet — be the first!
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 

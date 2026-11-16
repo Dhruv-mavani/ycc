@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState } from "react";
+import Image from "next/image";
 import Confetti from "react-confetti";
 import {
   Users,
@@ -19,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { TeamPlayerGate, type GameTeamSelection } from "@/components/games/team-player-gate";
+import { TeamPlayerGate, type GameIdentifier, type GameTeamSelection } from "@/components/games/team-player-gate";
 
 // ---------------------------------------------------------------------------
 // Solo, self-serve quiz styled to match https://github.com/devxprite/kbc as
@@ -83,6 +84,42 @@ function playSound(src: string) {
   const audio = new Audio(src);
   audio.play().catch(() => {});
 }
+
+// This whole component is shared by every KBC-style (15-question,
+// 4-lifeline) game — Quiz Champion (/quiz-game2) and Kaun Banega Lakhpati
+// (/kaun-banega-lakhpati) today, identical mechanics and question bank
+// (quiz-session.ts), differing only in branding, which game_slug their
+// plays/leaderboard are tracked under, and which API route mints their
+// session token. Only `startUrl` differs server-side — /api/games/quiz/
+// answer and /lifeline are shared as-is since the signed token itself
+// already carries the game_slug (see quiz-session.ts).
+export interface QuizGameBranding {
+  gameId: GameIdentifier;
+  title: string;
+  startUrl: string;
+  leaderboardUrl: string;
+  /** Small brand mark shown above the "Welcome to ..." heading, in place
+   * of the plain 🧠 emoji. */
+  logoSrc?: string;
+  /** Wider promo poster shown at the top of the start screen. */
+  posterSrc?: string;
+}
+
+export const QUIZ_CHAMPION_BRANDING: QuizGameBranding = {
+  gameId: "quiz-champion",
+  title: "Quiz Champion",
+  startUrl: "/api/games/quiz/start",
+  leaderboardUrl: "/api/games/quiz-leaderboard",
+};
+
+export const KAUN_BANEGA_LAKHPATI_BRANDING: QuizGameBranding = {
+  gameId: "kaun-banega-lakhpati",
+  title: "Kaun Banega Lakhpati",
+  startUrl: "/api/games/lakhpati/start",
+  leaderboardUrl: "/api/games/lakhpati-leaderboard",
+  logoSrc: "/kaun-banega-lakhpati/logo.png",
+  posterSrc: "/ycc_quiz_banner1.png",
+};
 
 interface QuizQuestionView {
   text: string;
@@ -254,7 +291,7 @@ function reducer(state: GameState, action: Action): GameState {
   }
 }
 
-export function SoloQuizGame() {
+export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?: QuizGameBranding } = {}) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(muted);
@@ -279,7 +316,7 @@ export function SoloQuizGame() {
     startingRef.current = true;
     dispatch({ type: "START_REQUEST" });
     try {
-      const res = await fetch("/api/games/quiz/start", {
+      const res = await fetch(branding.startUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -456,6 +493,7 @@ export function SoloQuizGame() {
   if (state.phase === "start" || state.phase === "requesting") {
     return (
       <StartScreen
+        branding={branding}
         onStart={startGame}
         muted={muted}
         onToggleMute={() => setMuted((m) => !m)}
@@ -468,6 +506,7 @@ export function SoloQuizGame() {
   if (state.phase === "won" || state.phase === "lost") {
     return (
       <EndScreen
+        branding={branding}
         phase={state.phase}
         questionsCorrect={state.finalQuestionsCorrect}
         totalQuestions={TOTAL_LEVELS}
@@ -489,7 +528,7 @@ export function SoloQuizGame() {
     <div className="relative min-h-screen overflow-hidden px-4 pb-10 pt-16">
       <CheatDisclaimerWatermark />
       <MuteButton muted={muted} onToggle={() => setMuted((m) => !m)} />
-      <QuizLeaderboardWidget />
+      <QuizLeaderboardWidget branding={branding} />
 
       <AudiencePollDialog
         poll={state.audiencePoll}
@@ -703,7 +742,7 @@ interface LeaderboardRow {
 // each time it's opened — cheap, since that's already cached server-side
 // for 15s, and simpler than threading shared state through three
 // otherwise-independent screens for something that doesn't need to be.
-function QuizLeaderboardWidget() {
+function QuizLeaderboardWidget({ branding }: { branding: QuizGameBranding }) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<LeaderboardRow[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -712,7 +751,7 @@ function QuizLeaderboardWidget() {
     setOpen(true);
     setLoading(true);
     try {
-      const res = await fetch("/api/games/quiz-leaderboard");
+      const res = await fetch(branding.leaderboardUrl);
       const data = await res.json().catch(() => null);
       setRows(Array.isArray(data?.rows) ? data.rows : []);
     } catch {
@@ -733,7 +772,7 @@ function QuizLeaderboardWidget() {
         <Trophy className="size-7 md:size-9" />
       </button>
 
-      <DialogShell open={open} onClose={() => setOpen(false)} title="Quiz Champion Leaderboard">
+      <DialogShell open={open} onClose={() => setOpen(false)} title={`${branding.title} Leaderboard`}>
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="size-6 animate-spin text-white/70" />
@@ -777,6 +816,7 @@ function QuizLeaderboardWidget() {
 }
 
 function StartScreen({
+  branding,
   onStart,
   muted,
   onToggleMute,
@@ -784,6 +824,7 @@ function StartScreen({
   busy,
   onSelectionChange,
 }: {
+  branding: QuizGameBranding;
   onStart: () => void;
   muted: boolean;
   onToggleMute: () => void;
@@ -794,11 +835,31 @@ function StartScreen({
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       <MuteButton muted={muted} onToggle={onToggleMute} />
-      <QuizLeaderboardWidget />
+      <QuizLeaderboardWidget branding={branding} />
       <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-violet-400/30 blur-3xl sm:size-72" />
-      <span className="text-5xl sm:text-6xl">🧠</span>
+      {branding.posterSrc ? (
+        <Image
+          src={branding.posterSrc}
+          alt={`${branding.title} poster`}
+          width={1054}
+          height={1492}
+          className="mb-6 w-full max-w-xs rounded-xl border border-white/10 shadow-2xl sm:max-w-sm"
+          priority
+        />
+      ) : null}
+      {branding.logoSrc ? (
+        <Image
+          src={branding.logoSrc}
+          alt={`${branding.title} logo`}
+          width={200}
+          height={200}
+          className="size-20 sm:size-24"
+        />
+      ) : (
+        <span className="text-5xl sm:text-6xl">🧠</span>
+      )}
       <h1 className="mt-6 tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000 text-4xl font-black md:text-6xl">
-        Welcome to Quiz Champion
+        Welcome to {branding.title}
       </h1>
       <ol
         style={{ animationDelay: "400ms" }}
@@ -827,11 +888,11 @@ function StartScreen({
         </li>
         <li>
           Enter your code below to confirm who&apos;s playing, then it&apos;s
-          just you against the quiz. Ready to become Quiz Champion?
+          just you against the quiz. Ready to become {branding.title}?
         </li>
       </ol>
 
-      <TeamPlayerGate game="quiz-champion" onSelectionChange={onSelectionChange} />
+      <TeamPlayerGate game={branding.gameId} onSelectionChange={onSelectionChange} />
 
       <button
         type="button"
@@ -852,6 +913,7 @@ function StartScreen({
 }
 
 function EndScreen({
+  branding,
   phase,
   questionsCorrect,
   totalQuestions,
@@ -861,6 +923,7 @@ function EndScreen({
   muted,
   onToggleMute,
 }: {
+  branding: QuizGameBranding;
   phase: "won" | "lost";
   questionsCorrect: number;
   totalQuestions: number;
@@ -881,7 +944,7 @@ function EndScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const heading = phase === "won" ? "🎉 Quiz Champion!" : "Game Over";
+  const heading = phase === "won" ? `🎉 ${branding.title}!` : "Game Over";
   const message =
     phase === "won"
       ? `You answered all ${totalQuestions} questions correctly!`
@@ -890,7 +953,7 @@ function EndScreen({
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       <MuteButton muted={muted} onToggle={onToggleMute} />
-      <QuizLeaderboardWidget />
+      <QuizLeaderboardWidget branding={branding} />
       {phase === "won" && dimensions ? (
         <Confetti width={dimensions.width} height={dimensions.height} numberOfPieces={250} recycle={false} />
       ) : null}

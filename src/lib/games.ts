@@ -40,6 +40,14 @@ export const GAMES: GameLink[] = [
       "Two levels, one code: Spin the Wheel, then Roll a Dice. Win or lose, you always move on to the next level.",
     emoji: "🏆",
   },
+  {
+    slug: "kaun-banega-lakhpati",
+    href: "/kaun-banega-lakhpati",
+    title: "Kaun Banega Lakhpati",
+    description:
+      "The classic KBC format — 15 escalating questions, four lifelines, one code. How far up the ladder can you climb?",
+    emoji: "💰",
+  },
 ];
 
 // Selectable games for the admin Games insights page and its game filter.
@@ -52,4 +60,5 @@ export const GAME_SLUG_LABELS: { slug: string; title: string }[] = [
   { slug: "mystry-box", title: "Mystery Box" },
   { slug: "level-up", title: "Kismat Ke Khiladi" },
   { slug: "quiz-champion", title: "Quiz Champion" },
+  { slug: "kaun-banega-lakhpati", title: "Kaun Banega Lakhpati" },
 ];

@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { lookupGameTeamById, getPlayStatus, MAX_PLAYS_PER_CODE, type GameTeamSource } from "@/lib/game-plays";
+import { lookupGameTeamById, getPlayStatus, MAX_PLAYS_PER_CODE, type GameTeamSource, type GameSlug } from "@/lib/game-plays";
 import {
   QUESTION_TIERS,
   AI_TRAP_QUESTIONS,
@@ -44,8 +44,15 @@ const TRAP_LEVELS_FROM = TOTAL_LEVELS - 3;
 
 const OPTION_LABELS = ["A", "B", "C", "D"] as const;
 
+// This session lib is shared by every KBC-style (15-question, 4-lifeline)
+// game — Quiz Champion and Kaun Banega Lakhpati today, both running the
+// exact same question bank and mechanics, differing only in branding and
+// which game_slug their plays/leaderboard are tracked under.
+export type QuizGameSlug = Extract<GameSlug, "quiz-champion" | "kaun-banega-lakhpati">;
+
 interface QuizTokenPayload {
   v: 1;
+  gameSlug: QuizGameSlug;
   source: GameTeamSource;
   teamRefId: string;
   playerRefId: string;
@@ -180,7 +187,7 @@ async function recordQuizResult(
 
   const admin = createAdminClient();
   const { error } = await admin.from("game_plays").insert({
-    game_slug: "quiz-champion",
+    game_slug: payload.gameSlug,
     source: payload.source,
     team_ref_id: roster.teamRefId,
     player_ref_id: player.id,
@@ -200,6 +207,7 @@ export type StartQuizResult =
   | { ok: false; error: string };
 
 export async function startQuizSession(input: {
+  gameSlug: QuizGameSlug;
   source: GameTeamSource;
   teamRefId: string;
   playerRefId: string;
@@ -209,7 +217,7 @@ export async function startQuizSession(input: {
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
 
-  const status = await getPlayStatus(["quiz-champion"], input.source, player.id);
+  const status = await getPlayStatus([input.gameSlug], input.source, player.id);
   if (!status.allowed) {
     return {
       ok: false,
@@ -222,6 +230,7 @@ export async function startQuizSession(input: {
 
   const payload: QuizTokenPayload = {
     v: 1,
+    gameSlug: input.gameSlug,
     source: input.source,
     teamRefId: roster.teamRefId,
     playerRefId: player.id,

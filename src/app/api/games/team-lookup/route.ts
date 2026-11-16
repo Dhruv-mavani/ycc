@@ -11,6 +11,7 @@ const GAME_SLUG_GROUPS: Record<string, readonly GameSlug[]> = {
   "level-up": ["spin-wheel"],
   "mystry-box": ["mystry-box"],
   "quiz-champion": ["quiz-champion"],
+  "kaun-banega-lakhpati": ["kaun-banega-lakhpati"],
 };
 
 function getClientIp(request: Request) {

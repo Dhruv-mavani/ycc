@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid team/player" }, { status: 400 });
   }
 
-  const outcome = await startQuizSession({ source, teamRefId, playerRefId });
+  const outcome = await startQuizSession({ gameSlug: "quiz-champion", source, teamRefId, playerRefId });
   if (!outcome.ok) {
     return NextResponse.json({ error: outcome.error }, { status: 400 });
   }

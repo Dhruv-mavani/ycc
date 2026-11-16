@@ -26,7 +26,7 @@ import { Crown, Loader2, Search } from "lucide-react";
 
 export type GameTeamSource = "registration" | "partner" | "school" | "individual_free";
 
-export type GameIdentifier = "level-up" | "mystry-box" | "quiz-champion";
+export type GameIdentifier = "level-up" | "mystry-box" | "quiz-champion" | "kaun-banega-lakhpati";
 
 export interface GameTeamSelection {
   source: GameTeamSource;

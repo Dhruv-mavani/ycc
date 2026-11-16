@@ -55,12 +55,14 @@ export interface LevelUpWinnerRow {
 const QUIZ_LEADERBOARD_LIMIT = 50;
 const LEVEL_UP_LEADERBOARD_LIMIT = 10;
 
-async function getQuizLeaderboardUncached(): Promise<QuizLeaderboardRow[]> {
+async function getQuizStyleLeaderboardUncached(
+  gameSlug: "quiz-champion" | "kaun-banega-lakhpati",
+): Promise<QuizLeaderboardRow[]> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("game_plays")
     .select("source, player_ref_id, player_name, team_label, detail, created_at")
-    .eq("game_slug", "quiz-champion")
+    .eq("game_slug", gameSlug)
     .order("created_at", { ascending: true });
 
   // Rows arrive oldest-first, so only overwriting on a strictly higher
@@ -199,8 +201,14 @@ async function getLevelUpWinnersUncached(): Promise<LevelUpWinnerRow[]> {
 const CACHE_OPTS = { revalidate: 15, tags: ["game-plays"] };
 
 export const getQuizLeaderboard = unstable_cache(
-  getQuizLeaderboardUncached,
+  () => getQuizStyleLeaderboardUncached("quiz-champion"),
   ["quiz-leaderboard"],
+  CACHE_OPTS,
+);
+
+export const getLakhpatiLeaderboard = unstable_cache(
+  () => getQuizStyleLeaderboardUncached("kaun-banega-lakhpati"),
+  ["lakhpati-leaderboard"],
   CACHE_OPTS,
 );
 

@@ -34,7 +34,13 @@ async function getEventPrizeTierConfig(
   };
 }
 
-export const GAME_SLUGS = ["spin-wheel", "mystry-box", "roll-a-dice", "quiz-champion"] as const;
+export const GAME_SLUGS = [
+  "spin-wheel",
+  "mystry-box",
+  "roll-a-dice",
+  "quiz-champion",
+  "kaun-banega-lakhpati",
+] as const;
 export type GameSlug = (typeof GAME_SLUGS)[number];
 
 // One entry per code per game. Level Up's two legs (spin-wheel, roll-a-dice)
