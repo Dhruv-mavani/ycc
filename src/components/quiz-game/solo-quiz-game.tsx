@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { TeamPlayerGate, type GameIdentifier, type GameTeamSelection } from "@/components/games/team-player-gate";
+import { QUIZ_LANGUAGES, QUIZ_UI_STRINGS, type QuizLang, type QuizUiStrings } from "@/lib/quiz-ui-strings";
 
 // ---------------------------------------------------------------------------
 // Solo, self-serve quiz styled to match https://github.com/devxprite/kbc as
@@ -54,17 +55,6 @@ import { TeamPlayerGate, type GameIdentifier, type GameTeamSelection } from "@/c
 const OPTION_LABELS = ["A", "B", "C", "D"] as const;
 const TIMER_SECONDS = 45;
 const TOTAL_LEVELS = 15; // mirrors the server's own TOTAL_LEVELS (quiz-game-questions.ts) — just a display fact, not a secret, so it's simplest to keep this one small constant duplicated here rather than import anything from the now server-only question bank.
-
-const GENIUS_PHRASES = [
-  "Haha, I don't know... but try option {answer}!",
-  "I'm no expert, but my gut says option {answer}.",
-  "Honestly? No clue. Going with option {answer} anyway.",
-  "Genius mode activated. The answer is option {answer}, trust me.",
-  "I skipped class that day, but I'm pretty sure it's option {answer}.",
-  "Let me consult my crystal ball... it says option {answer}.",
-  "Ask a genius, get a genius answer: option {answer}.",
-  "I googled it in my head. Option {answer}, final answer.",
-];
 
 // Same sound files and trigger points as devxprite/kbc (public/quiz-game2/
 // audio/ — added by the project owner, who owns the redistribution call
@@ -118,7 +108,6 @@ export const KAUN_BANEGA_LAKHPATI_BRANDING: QuizGameBranding = {
   startUrl: "/api/games/lakhpati/start",
   leaderboardUrl: "/api/games/lakhpati-leaderboard",
   logoSrc: "/kaun-banega-lakhpati/logo.png",
-  posterSrc: "/ycc_quiz_banner1.png",
 };
 
 interface QuizQuestionView {
@@ -304,6 +293,31 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
   // so a replay doesn't need the code re-entered.
   const [selection, setSelection] = useState<GameTeamSelection | null>(null);
 
+  // Chosen once, on the start screen, and fixed for the rest of that run —
+  // switching mid-question would mean re-rendering the CURRENT question's
+  // text in a new language, which the client has no copy of (only the
+  // server does). Persisted per-visitor so returning players don't have to
+  // re-pick it. Reading localStorage can throw (private browsing, blocked
+  // storage) — fails open to English rather than breaking the start screen.
+  const [lang, setLang] = useState<QuizLang>(() => {
+    try {
+      const stored = localStorage.getItem("quiz-lang");
+      if (stored === "en" || stored === "hi" || stored === "gu") return stored;
+    } catch {
+      // ignore
+    }
+    return "en";
+  });
+  function changeLang(next: QuizLang) {
+    setLang(next);
+    try {
+      localStorage.setItem("quiz-lang", next);
+    } catch {
+      // ignore
+    }
+  }
+  const t = QUIZ_UI_STRINGS[lang];
+
   function play(src: string) {
     if (!mutedRef.current) playSound(src);
   }
@@ -323,6 +337,7 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
           source: selection.source,
           teamRefId: selection.teamRefId,
           playerRefId: selection.playerRefId,
+          lang,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -399,7 +414,8 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
       } else if (lifeline === "audiencePoll") {
         dispatch({ type: "LIFELINE_OK", lifeline, token: data.token, poll: data.audiencePoll.poll });
       } else if (lifeline === "askGenius") {
-        const template = GENIUS_PHRASES[Math.floor(Math.random() * GENIUS_PHRASES.length)];
+        const phrases = t.geniusPhrases;
+        const template = phrases[Math.floor(Math.random() * phrases.length)];
         const phrase = template.replace("{answer}", data.askGenius.correctLabel);
         dispatch({ type: "LIFELINE_OK", lifeline, token: data.token, phrase });
       } else {
@@ -494,6 +510,8 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
     return (
       <StartScreen
         branding={branding}
+        lang={lang}
+        onLangChange={changeLang}
         onStart={startGame}
         muted={muted}
         onToggleMute={() => setMuted((m) => !m)}
@@ -507,6 +525,7 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
     return (
       <EndScreen
         branding={branding}
+        t={t}
         phase={state.phase}
         questionsCorrect={state.finalQuestionsCorrect}
         totalQuestions={TOTAL_LEVELS}
@@ -526,31 +545,33 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
 
   return (
     <div className="relative min-h-screen overflow-hidden px-4 pb-10 pt-16">
-      <CheatDisclaimerWatermark />
+      <CheatDisclaimerWatermark text={t.cheatWatermark} />
       <MuteButton muted={muted} onToggle={() => setMuted((m) => !m)} />
-      <QuizLeaderboardWidget branding={branding} />
+      <QuizLeaderboardWidget branding={branding} t={t} />
 
       <AudiencePollDialog
         poll={state.audiencePoll}
         onClose={() => dispatch({ type: "CLOSE_AUDIENCE_POLL" })}
         hidden={state.hiddenSlots}
+        title={t.audiencePollResultsTitle}
       />
       <AskGeniusDialog
         phrase={state.geniusPhrase}
         onClose={() => dispatch({ type: "CLOSE_ASK_GENIUS" })}
+        title={t.askGeniusTitle}
       />
 
       <div className="relative z-10 mx-auto w-full max-w-4xl">
         <p className="mb-2 text-center text-sm font-semibold uppercase tracking-widest text-orange-400">
-          Question {state.levelIndex + 1} of {TOTAL_LEVELS}
-          {selection ? ` · Chance ${selection.attemptNumber} of 2` : ""}
+          {t.questionOf(state.levelIndex + 1, TOTAL_LEVELS)}
+          {selection ? t.chanceOf(selection.attemptNumber) : ""}
         </p>
 
         <TimerRing seconds={state.timer} running={!timerPaused} />
 
         <QuestionBox text={state.question.text} questionKey={state.levelIndex} />
         <p className="mx-auto mt-3 max-w-xl text-center text-sm font-bold uppercase tracking-wide text-yellow-200 md:text-base">
-          AI assistance is not allowed during this quiz — answer it yourself.
+          {t.aiNotAllowed}
         </p>
 
         <div className="mt-8 grid grid-cols-1 gap-4 md:mt-12 md:grid-cols-2 md:gap-x-16 md:gap-y-6">
@@ -595,10 +616,11 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
           })}
         </div>
         <p className="mt-4 text-center text-sm font-bold uppercase tracking-wide text-yellow-200 md:text-base">
-          Answer honestly — no AI, no outside help.
+          {t.answerHonestly}
         </p>
 
         <Lifelines
+          t={t}
           lifelinesUsed={state.lifelinesUsed}
           disabled={state.stage !== "idle"}
           onFiftyFifty={() => requestLifeline("fiftyFifty")}
@@ -616,14 +638,14 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
 // (there's no way for a web page to detect or block someone photographing
 // the screen for a second device). pointer-events-none + aria-hidden so it
 // never interferes with clicking real options or with screen readers.
-function CheatDisclaimerWatermark() {
+function CheatDisclaimerWatermark({ text }: { text: string }) {
   const repeats = Array.from({ length: 24 }, (_, i) => i);
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden">
       <div className="absolute inset-0 flex -rotate-12 flex-wrap content-center items-center justify-center gap-x-10 gap-y-6 opacity-[0.05]">
         {repeats.map((i) => (
           <span key={i} className="whitespace-nowrap text-3xl font-black uppercase tracking-widest md:text-5xl">
-            AI is not allowed here
+            {text}
           </span>
         ))}
       </div>
@@ -668,6 +690,7 @@ function TimerRing({ seconds, running }: { seconds: number; running: boolean }) 
 }
 
 function Lifelines({
+  t,
   lifelinesUsed,
   disabled,
   onFiftyFifty,
@@ -675,6 +698,7 @@ function Lifelines({
   onAskGenius,
   onFlip,
 }: {
+  t: QuizUiStrings;
   lifelinesUsed: { fiftyFifty: boolean; audiencePoll: boolean; askGenius: boolean; flip: boolean };
   disabled: boolean;
   onFiftyFifty: () => void;
@@ -683,10 +707,10 @@ function Lifelines({
   onFlip: () => void;
 }) {
   const items = [
-    { key: "fiftyFifty", label: "Fifty-Fifty", icon: <span className="text-base font-black md:text-xl">50:50</span>, onClick: onFiftyFifty },
-    { key: "audiencePoll", label: "Audience Poll", icon: <Users className="size-5 md:size-7" />, onClick: onAudiencePoll },
-    { key: "askGenius", label: "Ask a Genius", icon: <Brain className="size-5 md:size-7" />, onClick: onAskGenius },
-    { key: "flip", label: "Flip Question", icon: <Shuffle className="size-5 md:size-7" />, onClick: onFlip },
+    { key: "fiftyFifty", label: t.lifelineFiftyFifty, icon: <span className="text-base font-black md:text-xl">50:50</span>, onClick: onFiftyFifty },
+    { key: "audiencePoll", label: t.lifelineAudiencePoll, icon: <Users className="size-5 md:size-7" />, onClick: onAudiencePoll },
+    { key: "askGenius", label: t.lifelineAskGenius, icon: <Brain className="size-5 md:size-7" />, onClick: onAskGenius },
+    { key: "flip", label: t.lifelineFlip, icon: <Shuffle className="size-5 md:size-7" />, onClick: onFlip },
   ] as const;
 
   return (
@@ -742,7 +766,7 @@ interface LeaderboardRow {
 // each time it's opened — cheap, since that's already cached server-side
 // for 15s, and simpler than threading shared state through three
 // otherwise-independent screens for something that doesn't need to be.
-function QuizLeaderboardWidget({ branding }: { branding: QuizGameBranding }) {
+function QuizLeaderboardWidget({ branding, t }: { branding: QuizGameBranding; t: QuizUiStrings }) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<LeaderboardRow[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -772,15 +796,13 @@ function QuizLeaderboardWidget({ branding }: { branding: QuizGameBranding }) {
         <Trophy className="size-7 md:size-9" />
       </button>
 
-      <DialogShell open={open} onClose={() => setOpen(false)} title={`${branding.title} Leaderboard`}>
+      <DialogShell open={open} onClose={() => setOpen(false)} title={t.leaderboardTitle(branding.title)}>
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="size-6 animate-spin text-white/70" />
           </div>
         ) : !rows || rows.length === 0 ? (
-          <p className="py-6 text-center text-sm text-white/70">
-            No one&apos;s cracked the top of the leaderboard yet — be the first!
-          </p>
+          <p className="py-6 text-center text-sm text-white/70">{t.leaderboardEmpty}</p>
         ) : (
           <div className="max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
             {rows.map((r) => (
@@ -808,7 +830,7 @@ function QuizLeaderboardWidget({ branding }: { branding: QuizGameBranding }) {
           rel="noopener noreferrer"
           className="mt-2 block text-center text-xs font-semibold text-violet-300 underline-offset-2 hover:underline"
         >
-          View full leaderboard (+ Mystery Box &amp; Kismat Ke Khiladi winners) ↗
+          {t.leaderboardFooterLink}
         </a>
       </DialogShell>
     </>
@@ -817,6 +839,8 @@ function QuizLeaderboardWidget({ branding }: { branding: QuizGameBranding }) {
 
 function StartScreen({
   branding,
+  lang,
+  onLangChange,
   onStart,
   muted,
   onToggleMute,
@@ -825,6 +849,8 @@ function StartScreen({
   onSelectionChange,
 }: {
   branding: QuizGameBranding;
+  lang: QuizLang;
+  onLangChange: (lang: QuizLang) => void;
   onStart: () => void;
   muted: boolean;
   onToggleMute: () => void;
@@ -832,10 +858,12 @@ function StartScreen({
   busy: boolean;
   onSelectionChange: (selection: GameTeamSelection | null) => void;
 }) {
+  const t = QUIZ_UI_STRINGS[lang];
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       <MuteButton muted={muted} onToggle={onToggleMute} />
-      <QuizLeaderboardWidget branding={branding} />
+      <QuizLeaderboardWidget branding={branding} t={t} />
+      <LanguageToggle lang={lang} onChange={onLangChange} />
       <div className="animate-mystery-box-glow absolute -z-10 size-52 rounded-full bg-violet-400/30 blur-3xl sm:size-72" />
       {branding.posterSrc ? (
         <Image
@@ -851,45 +879,41 @@ function StartScreen({
         <Image
           src={branding.logoSrc}
           alt={`${branding.title} logo`}
-          width={200}
-          height={200}
-          className="size-20 sm:size-24"
+          width={320}
+          height={320}
+          className="mb-2 size-36 drop-shadow-[0_0_25px_rgba(167,139,250,0.5)] sm:size-48"
+          priority
         />
       ) : (
         <span className="text-5xl sm:text-6xl">🧠</span>
       )}
       <h1 className="mt-6 tw-animate-in tw-fade-in tw-slide-in-from-bottom-8 tw-duration-1000 text-4xl font-black md:text-6xl">
-        Welcome to {branding.title}
+        {t.welcomeTo} {branding.title}
       </h1>
       <ol
         style={{ animationDelay: "400ms" }}
         className="tw-animate-in tw-fade-in tw-slide-in-from-bottom-4 tw-duration-1000 tw-fill-mode-both mt-8 max-w-2xl list-decimal space-y-3 px-2 text-left text-base leading-relaxed text-white/80 marker:font-bold marker:text-amber-400 md:text-lg"
       >
+        <li>{t.introQuestions(TOTAL_LEVELS)}</li>
+        <li>{t.introTimer(TIMER_SECONDS)}</li>
         <li>
-          {`${TOTAL_LEVELS} thrilling questions — cricket trivia, general knowledge, and riddles — each one a little tougher than the last.`}
-        </li>
-        <li>{`${TIMER_SECONDS} seconds per question, four options (A, B, C, D) every time.`}</li>
-        <li>
-          Four lifelines are here to help:
+          {t.introLifelinesHeading}
           <ul className="mt-2 list-[circle] space-y-1.5 pl-5 marker:text-amber-300/70">
             <li>
-              <b>Audience Poll</b> — taps into the wisdom of the crowd
+              <b>{t.lifelineAudiencePoll}</b> — {t.lifelineAudiencePollDesc}
             </li>
             <li>
-              <b>Ask a Genius</b> — gives you an expert opinion
+              <b>{t.lifelineAskGenius}</b> — {t.lifelineAskGeniusDesc}
             </li>
             <li>
-              <b>Fifty-Fifty</b> — removes two wrong options
+              <b>{t.lifelineFiftyFifty}</b> — {t.lifelineFiftyFiftyDesc}
             </li>
             <li>
-              <b>Flip Question</b> — trades the current question for a new one
+              <b>{t.lifelineFlip}</b> — {t.lifelineFlipDesc}
             </li>
           </ul>
         </li>
-        <li>
-          Enter your code below to confirm who&apos;s playing, then it&apos;s
-          just you against the quiz. Ready to become {branding.title}?
-        </li>
+        <li>{t.introEnterCode(branding.title)}</li>
       </ol>
 
       <TeamPlayerGate game={branding.gameId} onSelectionChange={onSelectionChange} />
@@ -906,14 +930,41 @@ function StartScreen({
             : "cursor-not-allowed border border-white/10 bg-white/5 text-white/40",
         )}
       >
-        {busy ? "Starting…" : "Start New Game"}
+        {busy ? t.starting : t.startNewGame}
       </button>
+    </div>
+  );
+}
+
+// Shown once, on the start screen only — see the `lang` state's own
+// comment in SoloQuizGame for why it's locked in before a run starts
+// rather than switchable mid-question.
+function LanguageToggle({ lang, onChange }: { lang: QuizLang; onChange: (lang: QuizLang) => void }) {
+  return (
+    <div
+      style={{ animationDelay: "200ms" }}
+      className="tw-animate-in tw-fade-in tw-duration-1000 tw-fill-mode-both absolute right-4 top-16 z-10 flex gap-1 rounded-full border border-white/15 bg-white/5 p-1 backdrop-blur-sm sm:top-4"
+    >
+      {QUIZ_LANGUAGES.map((option) => (
+        <button
+          key={option.code}
+          type="button"
+          onClick={() => onChange(option.code)}
+          className={cn(
+            "rounded-full px-2.5 py-1 text-xs font-semibold transition-colors sm:px-3 sm:text-sm",
+            lang === option.code ? "bg-violet-600 text-white" : "text-white/60 hover:text-white",
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }
 
 function EndScreen({
   branding,
+  t,
   phase,
   questionsCorrect,
   totalQuestions,
@@ -924,6 +975,7 @@ function EndScreen({
   onToggleMute,
 }: {
   branding: QuizGameBranding;
+  t: QuizUiStrings;
   phase: "won" | "lost";
   questionsCorrect: number;
   totalQuestions: number;
@@ -944,16 +996,13 @@ function EndScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const heading = phase === "won" ? `🎉 ${branding.title}!` : "Game Over";
-  const message =
-    phase === "won"
-      ? `You answered all ${totalQuestions} questions correctly!`
-      : `That one was wrong — got ${questionsCorrect} question${questionsCorrect === 1 ? "" : "s"} correct.`;
+  const heading = phase === "won" ? t.wonHeading(branding.title) : t.gameOver;
+  const message = phase === "won" ? t.wonMessage(totalQuestions) : t.lostMessage(questionsCorrect);
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
       <MuteButton muted={muted} onToggle={onToggleMute} />
-      <QuizLeaderboardWidget branding={branding} />
+      <QuizLeaderboardWidget branding={branding} t={t} />
       {phase === "won" && dimensions ? (
         <Confetti width={dimensions.width} height={dimensions.height} numberOfPieces={250} recycle={false} />
       ) : null}
@@ -963,7 +1012,7 @@ function EndScreen({
       <p className="mt-4 max-w-sm text-base text-white/80 md:text-lg">{message}</p>
       {showCorrectAnswer && correctAnswer ? (
         <p className="mt-2 max-w-sm text-sm text-emerald-400 md:text-base">
-          Correct answer: <span className="font-bold">{correctAnswer}</span>
+          {t.correctAnswerLabel} <span className="font-bold">{correctAnswer}</span>
         </p>
       ) : null}
       <button
@@ -972,7 +1021,7 @@ function EndScreen({
         style={{ animationDelay: "1000ms" }}
         className="tw-animate-in tw-fade-in tw-zoom-in-50 tw-duration-1000 tw-fill-mode-both mt-10 rounded-lg bg-violet-700 px-8 py-3 text-xl font-bold shadow-lg transition-colors hover:bg-violet-600"
       >
-        Start New Game
+        {t.startNewGame}
       </button>
     </div>
   );
@@ -1005,13 +1054,15 @@ function AudiencePollDialog({
   poll,
   hidden,
   onClose,
+  title,
 }: {
   poll: number[] | null;
   hidden: number[];
   onClose: () => void;
+  title: string;
 }) {
   return (
-    <DialogShell open={poll !== null} onClose={onClose} title="Audience Poll Results">
+    <DialogShell open={poll !== null} onClose={onClose} title={title}>
       {poll ? <AudiencePollBars poll={poll} hidden={hidden} /> : null}
     </DialogShell>
   );
@@ -1053,9 +1104,17 @@ function AudiencePollBars({ poll, hidden }: { poll: number[]; hidden: number[] }
   );
 }
 
-function AskGeniusDialog({ phrase, onClose }: { phrase: string | null; onClose: () => void }) {
+function AskGeniusDialog({
+  phrase,
+  onClose,
+  title,
+}: {
+  phrase: string | null;
+  onClose: () => void;
+  title: string;
+}) {
   return (
-    <DialogShell open={phrase !== null} onClose={onClose} title="Ask a Genius">
+    <DialogShell open={phrase !== null} onClose={onClose} title={title}>
       <p className="py-2 text-center text-lg font-bold">{phrase}</p>
     </DialogShell>
   );

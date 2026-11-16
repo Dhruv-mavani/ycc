@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { source, teamRefId, playerRefId } = body as Record<string, unknown>;
+  const { source, teamRefId, playerRefId, lang } = body as Record<string, unknown>;
 
   if (
     source !== "registration" &&
@@ -24,8 +24,11 @@ export async function POST(request: Request) {
   if (typeof teamRefId !== "string" || typeof playerRefId !== "string") {
     return NextResponse.json({ error: "Invalid team/player" }, { status: 400 });
   }
+  if (lang !== "en" && lang !== "hi" && lang !== "gu") {
+    return NextResponse.json({ error: "Invalid language" }, { status: 400 });
+  }
 
-  const outcome = await startQuizSession({ gameSlug: "quiz-champion", source, teamRefId, playerRefId });
+  const outcome = await startQuizSession({ gameSlug: "quiz-champion", lang, source, teamRefId, playerRefId });
   if (!outcome.ok) {
     return NextResponse.json({ error: outcome.error }, { status: 400 });
   }

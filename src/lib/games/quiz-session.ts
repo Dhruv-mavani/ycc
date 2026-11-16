@@ -9,6 +9,9 @@ import {
   TOTAL_LEVELS,
   type QuizQuestion,
 } from "@/lib/quiz-game-questions";
+import type { QuizLang } from "@/lib/quiz-ui-strings";
+import * as hiTranslations from "@/lib/quiz-translations/hi";
+import * as guTranslations from "@/lib/quiz-translations/gu";
 
 // The last 3 questions of every run (levels 12-14 of 15) are drawn from
 // AI_TRAP_QUESTIONS instead of the normal escalating tiers — see that
@@ -53,6 +56,7 @@ export type QuizGameSlug = Extract<GameSlug, "quiz-champion" | "kaun-banega-lakh
 interface QuizTokenPayload {
   v: 1;
   gameSlug: QuizGameSlug;
+  lang: QuizLang;
   source: GameTeamSource;
   teamRefId: string;
   playerRefId: string;
@@ -119,6 +123,25 @@ function questionPoolFor(levelIndex: number): QuizQuestion[] {
     : QUESTION_TIERS[tierForLevel(levelIndex)].questions;
 }
 
+// Hindi/Gujarati text for a question, falling back to the English entry
+// whenever the translation file doesn't (yet) have that index — bounds-
+// checked, not a try/catch, so a translation file can be filled in
+// incrementally (tier by tier) without ever showing a blank/broken
+// question in the meantime. correctIndex always comes from the English
+// QuizQuestion regardless of language; only question/options text differs.
+function localizedText(levelIndex: number, poolIndex: number, lang: QuizLang): { question: string; options: [string, string, string, string] } {
+  const english = questionPoolFor(levelIndex)[poolIndex];
+  if (lang === "en") return english;
+
+  const translations = lang === "hi" ? hiTranslations : guTranslations;
+  const translated =
+    levelIndex >= TRAP_LEVELS_FROM
+      ? translations.TRAP[poolIndex]
+      : translations.TIERS[tierForLevel(levelIndex)]?.[poolIndex];
+
+  return translated ?? english;
+}
+
 function pickIndexExcluding(poolLength: number, exclude: number[]): number {
   const candidates = Array.from({ length: poolLength }, (_, i) => i).filter((i) => !exclude.includes(i));
   const pool = candidates.length > 0 ? candidates : Array.from({ length: poolLength }, (_, i) => i);
@@ -147,17 +170,18 @@ function assignAllLevels(): Record<number, number> {
 // the shuffle happens fresh per question (unlike the old client-side
 // version, which shuffled once for the whole game) since there's no
 // downside to it now that the server controls it.
-function buildQuestion(levelIndex: number, poolIndex: number): { view: QuizQuestionView; correctSlot: number } {
-  const q = questionPoolFor(levelIndex)[poolIndex];
+function buildQuestion(levelIndex: number, poolIndex: number, lang: QuizLang): { view: QuizQuestionView; correctSlot: number } {
+  const correctIndex = questionPoolFor(levelIndex)[poolIndex].correctIndex;
+  const text = localizedText(levelIndex, poolIndex, lang);
   const slotOrder = [0, 1, 2, 3].sort(() => Math.random() - 0.5); // slotOrder[slot] = true option index shown at that slot
-  const options = slotOrder.map((trueIndex) => q.options[trueIndex]) as [string, string, string, string];
-  const correctSlot = slotOrder.indexOf(q.correctIndex);
-  return { view: { text: q.question, options }, correctSlot };
+  const options = slotOrder.map((trueIndex) => text.options[trueIndex]) as [string, string, string, string];
+  const correctSlot = slotOrder.indexOf(correctIndex);
+  return { view: { text: text.question, options }, correctSlot };
 }
 
-function correctAnswerTextFor(levelIndex: number, poolIndex: number): string {
-  const q = questionPoolFor(levelIndex)[poolIndex];
-  return q.options[q.correctIndex];
+function correctAnswerTextFor(levelIndex: number, poolIndex: number, lang: QuizLang): string {
+  const correctIndex = questionPoolFor(levelIndex)[poolIndex].correctIndex;
+  return localizedText(levelIndex, poolIndex, lang).options[correctIndex];
 }
 
 function generateAudiencePoll(correctSlot: number, hidden: number[]): number[] {
@@ -208,6 +232,7 @@ export type StartQuizResult =
 
 export async function startQuizSession(input: {
   gameSlug: QuizGameSlug;
+  lang: QuizLang;
   source: GameTeamSource;
   teamRefId: string;
   playerRefId: string;
@@ -239,11 +264,12 @@ export async function startQuizSession(input: {
   }
 
   const assignedIndexByLevel = assignAllLevels();
-  const { view, correctSlot } = buildQuestion(0, assignedIndexByLevel[0]);
+  const { view, correctSlot } = buildQuestion(0, assignedIndexByLevel[0], input.lang);
 
   const payload: QuizTokenPayload = {
     v: 1,
     gameSlug: input.gameSlug,
+    lang: input.lang,
     source: input.source,
     teamRefId: roster.teamRefId,
     playerRefId: player.id,
@@ -283,7 +309,7 @@ export async function answerQuizQuestion(input: {
   const isCorrect = input.selectedSlot !== null && input.selectedSlot === payload.correctSlot;
 
   if (!isCorrect) {
-    const correctAnswerText = correctAnswerTextFor(payload.levelIndex, poolIndex);
+    const correctAnswerText = correctAnswerTextFor(payload.levelIndex, poolIndex, payload.lang);
     const recorded = await recordQuizResult(payload, "lost", payload.questionsCorrect);
     if (!recorded.ok) return { ok: false, error: recorded.error };
     return {
@@ -305,7 +331,7 @@ export async function answerQuizQuestion(input: {
     return { ok: true, correct: true, gameOver: true, result: "won", questionsCorrect };
   }
 
-  const { view, correctSlot } = buildQuestion(nextLevelIndex, payload.assignedIndexByLevel[nextLevelIndex]);
+  const { view, correctSlot } = buildQuestion(nextLevelIndex, payload.assignedIndexByLevel[nextLevelIndex], payload.lang);
   const newPayload: QuizTokenPayload = {
     ...payload,
     levelIndex: nextLevelIndex,
@@ -369,7 +395,7 @@ export async function applyQuizLifeline(input: { token: string; lifeline: Lifeli
         })();
   const usedInPool = sameSourceLevels.map((lvl) => payload.assignedIndexByLevel[lvl]);
   const newPoolIndex = pickIndexExcluding(pool.length, usedInPool);
-  const { view, correctSlot } = buildQuestion(levelIndex, newPoolIndex);
+  const { view, correctSlot } = buildQuestion(levelIndex, newPoolIndex, payload.lang);
   const newPayload: QuizTokenPayload = {
     ...payload,
     assignedIndexByLevel: { ...payload.assignedIndexByLevel, [payload.levelIndex]: newPoolIndex },
