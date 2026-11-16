@@ -107,7 +107,7 @@ export const KAUN_BANEGA_LAKHPATI_BRANDING: QuizGameBranding = {
   title: "Kaun Banega Lakhpati",
   startUrl: "/api/games/lakhpati/start",
   leaderboardUrl: "/api/games/lakhpati-leaderboard",
-  logoSrc: "/kaun-banega-lakhpati/logo.png",
+  logoSrc: "/kaun-banega-lakhpati/logo_bgless.png",
 };
 
 interface QuizQuestionView {
