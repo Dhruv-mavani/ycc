@@ -42,7 +42,7 @@ export async function GET(
   }
 
   const [{ data: event }, { data: college }] = await Promise.all([
-    admin.from("events").select("type").eq("id", registration.event_id).single(),
+    admin.from("events").select("type, slug").eq("id", registration.event_id).single(),
     admin.from("colleges").select("name, city").eq("id", registration.college_id).single(),
   ]);
 
@@ -52,8 +52,14 @@ export async function GET(
 
   const qrDataUrl = await generateQrDataUrl(participant.unique_id);
 
+  // Kaun Banega Lakhpati keeps its own Yuva Lakhpati-themed card even
+  // though its registration is now team-based (event.type "cricket") —
+  // the quiz card design is tied to this event's branding, not strictly
+  // to the "quiz" registration type it started out as.
+  const useQuizCard = event.type === "quiz" || event.slug === "kaun-banega-lakhpati";
+
   const pdfBuffer =
-    event.type === "quiz"
+    useQuizCard
       ? await renderQuizIdCardPdf({
           playerName: participant.name,
           collegeName: college.name,

@@ -32,7 +32,10 @@ export interface QuizUiStrings {
   startNewGame: string;
   starting: string;
   questionOf: (current: number, total: number) => string;
-  chanceOf: (attempt: number) => string;
+  // No "of {max}" suffix when max is 1 — "Chance 1 of 1" is redundant
+  // noise when there was never a second chance to begin with (Kaun
+  // Banega Lakhpati). Quiz Champion's max of 2 still shows it.
+  chanceOf: (attempt: number, max: number) => string;
   aiNotAllowed: string;
   answerHonestly: string;
   cheatWatermark: string;
@@ -70,7 +73,7 @@ export const QUIZ_UI_STRINGS: Record<QuizLang, QuizUiStrings> = {
     startNewGame: "Start New Game",
     starting: "Starting…",
     questionOf: (current, total) => `Question ${current} of ${total}`,
-    chanceOf: (attempt) => ` · Chance ${attempt} of 2`,
+    chanceOf: (attempt, max) => (max <= 1 ? "" : ` · Chance ${attempt} of ${max}`),
     aiNotAllowed: "AI assistance is not allowed during this quiz — answer it yourself.",
     answerHonestly: "Answer honestly — no AI, no outside help.",
     cheatWatermark: "AI is not allowed here",
@@ -116,7 +119,7 @@ export const QUIZ_UI_STRINGS: Record<QuizLang, QuizUiStrings> = {
     startNewGame: "नया गेम शुरू करें",
     starting: "शुरू हो रहा है…",
     questionOf: (current, total) => `सवाल ${current} / ${total}`,
-    chanceOf: (attempt) => ` · मौका ${attempt} / 2`,
+    chanceOf: (attempt, max) => (max <= 1 ? "" : ` · मौका ${attempt} / ${max}`),
     aiNotAllowed: "इस क्विज़ के दौरान AI की मदद लेना मना है — खुद जवाब दें।",
     answerHonestly: "ईमानदारी से जवाब दें — न AI, न किसी और की मदद।",
     cheatWatermark: "यहाँ AI का इस्तेमाल मना है",
@@ -161,7 +164,7 @@ export const QUIZ_UI_STRINGS: Record<QuizLang, QuizUiStrings> = {
     startNewGame: "નવી ગેમ શરૂ કરો",
     starting: "શરૂ થઈ રહ્યું છે…",
     questionOf: (current, total) => `સવાલ ${current} / ${total}`,
-    chanceOf: (attempt) => ` · તક ${attempt} / 2`,
+    chanceOf: (attempt, max) => (max <= 1 ? "" : ` · તક ${attempt} / ${max}`),
     aiNotAllowed: "આ ક્વિઝ દરમિયાન AI ની મદદ લેવી મનાઈ છે — જાતે જવાબ આપો.",
     answerHonestly: "પ્રામાણિકપણે જવાબ આપો — ન AI, ન કોઈ બહારની મદદ.",
     cheatWatermark: "અહીં AI વાપરવાની મનાઈ છે",

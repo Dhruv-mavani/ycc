@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { lookupGameTeamById, getPlayStatus, MAX_PLAYS_PER_CODE, type GameTeamSource, type GameSlug } from "@/lib/game-plays";
+import { lookupGameTeamById, getPlayStatus, maxPlaysFor, isUnlimitedTestPlayer, type GameTeamSource, type GameSlug } from "@/lib/game-plays";
 import {
   QUESTION_TIERS,
   AI_TRAP_QUESTIONS,
@@ -244,10 +244,13 @@ export async function startQuizSession(input: {
 
   // Kaun Banega Lakhpati is a paid, ticketed competition — the real,
   // unbypassable gate (team-lookup's own check is just the earlier,
-  // friendlier failure). Quiz Champion has no such restriction.
+  // friendlier failure). Quiz Champion has no such restriction. The
+  // standing unlimited-play test identities bypass this, same reasoning
+  // as team-lookup's own copy of this check.
   if (
     input.gameSlug === "kaun-banega-lakhpati" &&
-    !(roster.source === "registration" && roster.eventSlug === "kaun-banega-lakhpati")
+    !(roster.source === "registration" && roster.eventSlug === "kaun-banega-lakhpati") &&
+    !isUnlimitedTestPlayer(roster.source, player.id)
   ) {
     return {
       ok: false,
@@ -257,9 +260,13 @@ export async function startQuizSession(input: {
 
   const status = await getPlayStatus([input.gameSlug], input.source, player.id);
   if (!status.allowed) {
+    const max = maxPlaysFor([input.gameSlug]);
     return {
       ok: false,
-      error: `You've already used both your chances with this code — ${MAX_PLAYS_PER_CODE} plays per code.`,
+      error:
+        max === 1
+          ? "You've already used your one chance with this code."
+          : `You've already used both your chances with this code — ${max} plays per code.`,
     };
   }
 

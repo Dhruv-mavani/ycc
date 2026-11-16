@@ -99,7 +99,11 @@ export async function buildReceiptPdf(
   const pdfBuffer = await renderReceiptPdf({
     registrationId: registration.id,
     eventName: event.name,
-    eventType: event.type,
+    // Kaun Banega Lakhpati keeps its own Yuva Lakhpati-themed ID card even
+    // though its registration became team-based (event.type "cricket") —
+    // the quiz card is tied to this event's branding, not to the
+    // registration-type plumbing it originally rode in on.
+    eventType: event.slug === "kaun-banega-lakhpati" ? "quiz" : event.type,
     collegeName: college.name,
     collegeCity: college.city,
     teamName: registration.team_name,

@@ -564,7 +564,7 @@ export function SoloQuizGame({ branding = QUIZ_CHAMPION_BRANDING }: { branding?:
       <div className="relative z-10 mx-auto w-full max-w-4xl">
         <p className="mb-2 text-center text-sm font-semibold uppercase tracking-widest text-orange-400">
           {t.questionOf(state.levelIndex + 1, TOTAL_LEVELS)}
-          {selection ? t.chanceOf(selection.attemptNumber) : ""}
+          {selection ? t.chanceOf(selection.attemptNumber, selection.maxPlays) : ""}
         </p>
 
         <TimerRing seconds={state.timer} running={!timerPaused} />

@@ -36,8 +36,14 @@ export interface GameTeamSelection {
   playerName: string;
   /** Only set for "registration" source — see GameTeamLookup.eventSlug. */
   eventSlug?: string;
-  /** Which of this code's MAX_PLAYS_PER_CODE (2) chances this run is. */
+  /** Which of this code's chances (see maxPlaysFor in game-plays.ts —
+   * usually 2, but some games, like Kaun Banega Lakhpati, allow only 1)
+   * this run is. */
   attemptNumber: number;
+  /** The real per-game limit attemptNumber counts up to (see maxPlaysFor
+   * in game-plays.ts) — so a game can render "Chance 1 of 2" correctly
+   * without hardcoding a number that's wrong for a 1-chance game. */
+  maxPlays: number;
   /** The code that resolved to this selection — kept so a game that lets
    * the same player go again (Level Up's "Play again") can re-look-up a
    * fresh attemptNumber without making the player retype it. */
@@ -63,6 +69,12 @@ interface Roster {
 
 type Status = "idle" | "loading" | "found" | "error";
 
+function playedSuffix(p: RosterPlayer, maxPlays: number): string {
+  if (p.alreadyPlayed) return maxPlays === 1 ? " — already played" : " — both chances used";
+  if (p.playCount) return ` — ${p.playCount} of ${maxPlays} used`;
+  return "";
+}
+
 export function TeamPlayerGate({
   game,
   onSelectionChange,
@@ -75,6 +87,7 @@ export function TeamPlayerGate({
   const [error, setError] = useState<string | null>(null);
   const [roster, setRoster] = useState<Roster | null>(null);
   const [playerId, setPlayerId] = useState<string>("");
+  const [maxPlays, setMaxPlays] = useState(2);
 
   function reset() {
     setStatus("idle");
@@ -105,14 +118,20 @@ export function TeamPlayerGate({
       }
 
       const team: Roster = data.team;
+      const limit: number = typeof data.maxPlays === "number" ? data.maxPlays : 2;
       setRoster(team);
+      setMaxPlays(limit);
       setStatus("found");
 
       // The headline "alert" the one-entry-per-code rule needs — fires
       // once per successful lookup, before anyone picks a number, so it's
       // seen regardless of whether this roster auto-selects below.
       if (!team.players.every((p) => p.alreadyPlayed)) {
-        toast.info("You can play this game up to 2 times with this code.");
+        toast.info(
+          limit === 1
+            ? "You can play this game once with this code."
+            : `You can play this game up to ${limit} times with this code.`,
+        );
       }
 
       // Single-player rosters normally auto-select straight into Play —
@@ -129,6 +148,7 @@ export function TeamPlayerGate({
           playerName: only.name,
           eventSlug: team.eventSlug,
           attemptNumber: only.attemptNumber ?? 1,
+          maxPlays: limit,
           code: trimmed,
         });
       }
@@ -150,6 +170,7 @@ export function TeamPlayerGate({
       playerName: player.name,
       eventSlug: roster.eventSlug,
       attemptNumber: player.attemptNumber ?? 1,
+      maxPlays,
       code: code.trim(),
     });
   }
@@ -199,7 +220,9 @@ export function TeamPlayerGate({
           {roster.players.length > 1 ? (
             roster.players.every((p) => p.alreadyPlayed) ? (
               <p className="text-sm font-medium text-rose-300">
-                Everyone on this team has used both their chances — 2 plays per code.
+                {maxPlays === 1
+                  ? "Everyone on this team has already played — 1 play per code."
+                  : "Everyone on this team has used both their chances — 2 plays per code."}
               </p>
             ) : (
               <select
@@ -214,18 +237,15 @@ export function TeamPlayerGate({
                   <option key={p.id} value={p.id} disabled={p.alreadyPlayed}>
                     {p.name}
                     {p.isCaptain ? " (Captain)" : ""}
-                    {p.alreadyPlayed
-                      ? " — both chances used"
-                      : p.playCount
-                        ? " — 1 chance used, 1 left"
-                        : ""}
+                    {playedSuffix(p, maxPlays)}
                   </option>
                 ))}
               </select>
             )
           ) : roster.players[0]?.alreadyPlayed ? (
             <p className="text-sm font-medium text-rose-300">
-              {roster.players[0].name} has used both chances — 2 plays per code.
+              {roster.players[0].name}{" "}
+              {maxPlays === 1 ? "has already played — 1 play per code." : "has used both chances — 2 plays per code."}
             </p>
           ) : (
             <p className="flex items-center gap-1.5 text-sm font-semibold text-white">
@@ -234,7 +254,9 @@ export function TeamPlayerGate({
               ) : null}
               {roster.players[0]?.name}
               {roster.players[0]?.playCount ? (
-                <span className="text-xs font-normal text-white/50">(1 chance used, 1 left)</span>
+                <span className="text-xs font-normal text-white/50">
+                  ({roster.players[0].playCount} of {maxPlays} used)
+                </span>
               ) : null}
             </p>
           )}

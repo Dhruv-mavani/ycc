@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { lookupGameTeamByCode, playCountsByPlayerId, MAX_PLAYS_PER_CODE, type GameSlug } from "@/lib/game-plays";
+import { lookupGameTeamByCode, playCountsByPlayerId, maxPlaysFor, isUnlimitedTestPlayer, type GameSlug } from "@/lib/game-plays";
 import { isRateLimited } from "@/lib/rate-limit";
 
 // Maps the public game identifier (sent by TeamPlayerGate's `game` prop) to
@@ -59,8 +59,15 @@ export async function GET(request: Request) {
   // which game asked), so this is the one place that enforces it isn't
   // also a free backdoor into a paid event. Re-enforced server-side at the
   // actual session-start call too (see quiz-session.ts) — this is just the
-  // early, friendlier failure.
-  if (game === "kaun-banega-lakhpati" && !(team.source === "registration" && team.eventSlug === "kaun-banega-lakhpati")) {
+  // early, friendlier failure. The standing unlimited-play test identities
+  // (TEST_PLAYER_FLAGS in game-plays.ts) bypass this — they exist
+  // specifically so the team/app owner can QA every game, this one
+  // included, without a real paid registration.
+  if (
+    game === "kaun-banega-lakhpati" &&
+    !(team.source === "registration" && team.eventSlug === "kaun-banega-lakhpati") &&
+    !isUnlimitedTestPlayer(team.source, team.teamRefId)
+  ) {
     return NextResponse.json(
       { error: "That code isn't a Kaun Banega Lakhpati registration — register and pay first, then use the code from your receipt." },
       { status: 404 },
@@ -70,6 +77,7 @@ export async function GET(request: Request) {
   const slugGroup = GAME_SLUG_GROUPS[game];
   if (!slugGroup) return NextResponse.json({ team });
 
+  const maxPlays = maxPlaysFor(slugGroup);
   const counts = await playCountsByPlayerId(
     slugGroup,
     team.source,
@@ -82,11 +90,12 @@ export async function GET(request: Request) {
         const playCount = counts.get(p.id) ?? 0;
         return {
           ...p,
-          alreadyPlayed: playCount >= MAX_PLAYS_PER_CODE,
+          alreadyPlayed: playCount >= maxPlays,
           playCount,
-          attemptNumber: Math.min(playCount + 1, MAX_PLAYS_PER_CODE),
+          attemptNumber: Math.min(playCount + 1, maxPlays),
         };
       }),
     },
+    maxPlays,
   });
 }

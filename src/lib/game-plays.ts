@@ -368,6 +368,24 @@ export function isAlwaysWinPlayer(source: GameTeamSource, playerRefId: string): 
 // not legs; counting both slugs would double every run's real count.
 export const MAX_PLAYS_PER_CODE = 2;
 
+// Kaun Banega Lakhpati is a paid, ticketed competition (₹499/team) — one
+// real shot per registered player, not two, so a second attempt can't be
+// used to "practice" the ladder before a real run. Every other game here
+// keeps the standard MAX_PLAYS_PER_CODE. Looked up by the first slug in a
+// gameSlugs group (Level Up's pair is never affected by this — neither of
+// its slugs is in this map, so it always falls through to the default).
+const MAX_PLAYS_OVERRIDE: Partial<Record<GameSlug, number>> = {
+  "kaun-banega-lakhpati": 1,
+};
+
+/** The effective per-code play limit for a game (or Level Up's paired
+ * slugs) — most games share MAX_PLAYS_PER_CODE; see MAX_PLAYS_OVERRIDE
+ * for the exceptions. Exported so team-lookup's route can tell the client
+ * the real limit instead of assuming the default. */
+export function maxPlaysFor(gameSlugs: readonly GameSlug[]): number {
+  return MAX_PLAYS_OVERRIDE[gameSlugs[0]] ?? MAX_PLAYS_PER_CODE;
+}
+
 /** How many of the given game_slugs this exact code (source + player) has
  * already played — pass a single run-counting slug for Level Up (just
  * "spin-wheel", never both legs) so a completed run counts as 1, not 2. */
@@ -396,7 +414,7 @@ export async function getPlayStatus(
   playerRefId: string,
 ): Promise<{ allowed: boolean; attemptNumber: number; playCount: number }> {
   const playCount = await getPlayCount(gameSlugs, source, playerRefId);
-  return { allowed: playCount < MAX_PLAYS_PER_CODE, attemptNumber: playCount + 1, playCount };
+  return { allowed: playCount < maxPlaysFor(gameSlugs), attemptNumber: playCount + 1, playCount };
 }
 
 /** Same count as getPlayCount, batched across a whole roster — used by the

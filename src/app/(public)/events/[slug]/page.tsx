@@ -645,10 +645,10 @@ export default async function EventDetailPage({
                     <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
                       <div className="flex flex-wrap items-end gap-2 mb-4">
                         <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
-                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per person</span>
+                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">Team Entry Fee</span>
                       </div>
                       <p className="text-xs sm:text-sm text-slate-500 mb-4">
-                        Includes your unique play code, ID card &amp; receipt — all auto-generated the moment payment is confirmed.
+                        Every team member gets their own play code, ID card &amp; receipt — all auto-generated the moment payment is confirmed.
                       </p>
                       {event.gst_exempt ? null : (
                         <>
