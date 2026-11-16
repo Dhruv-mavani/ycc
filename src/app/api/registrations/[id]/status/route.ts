@@ -54,6 +54,7 @@ export async function GET(
   return NextResponse.json({
     status: registration.status,
     eventName: event?.name ?? "",
+    eventSlug: event?.slug ?? null,
     teamName: registration.team_name,
     amountPaise: registration.amount_paise,
     paymentDue,

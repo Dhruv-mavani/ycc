@@ -217,6 +217,19 @@ export async function startQuizSession(input: {
   const player = roster.players.find((p) => p.id === input.playerRefId);
   if (!player) return { ok: false, error: "Player not found on this team" };
 
+  // Kaun Banega Lakhpati is a paid, ticketed competition — the real,
+  // unbypassable gate (team-lookup's own check is just the earlier,
+  // friendlier failure). Quiz Champion has no such restriction.
+  if (
+    input.gameSlug === "kaun-banega-lakhpati" &&
+    !(roster.source === "registration" && roster.eventSlug === "kaun-banega-lakhpati")
+  ) {
+    return {
+      ok: false,
+      error: "This code isn't a Kaun Banega Lakhpati registration — register and pay first, then use the code from your receipt.",
+    };
+  }
+
   const status = await getPlayStatus([input.gameSlug], input.source, player.id);
   if (!status.allowed) {
     return {

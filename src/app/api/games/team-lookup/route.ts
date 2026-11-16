@@ -50,7 +50,24 @@ export async function GET(request: Request) {
     );
   }
 
-  const slugGroup = GAME_SLUG_GROUPS[searchParams.get("game") ?? ""];
+  const game = searchParams.get("game") ?? "";
+
+  // Kaun Banega Lakhpati is a paid, ticketed competition (unlike every
+  // other self-serve game here) — only a code from an actual confirmed
+  // registration for this specific event may unlock it. A cricket/partner/
+  // school code otherwise resolves fine (lookupGameTeamByCode doesn't know
+  // which game asked), so this is the one place that enforces it isn't
+  // also a free backdoor into a paid event. Re-enforced server-side at the
+  // actual session-start call too (see quiz-session.ts) — this is just the
+  // early, friendlier failure.
+  if (game === "kaun-banega-lakhpati" && !(team.source === "registration" && team.eventSlug === "kaun-banega-lakhpati")) {
+    return NextResponse.json(
+      { error: "That code isn't a Kaun Banega Lakhpati registration — register and pay first, then use the code from your receipt." },
+      { status: 404 },
+    );
+  }
+
+  const slugGroup = GAME_SLUG_GROUPS[game];
   if (!slugGroup) return NextResponse.json({ team });
 
   const counts = await playCountsByPlayerId(

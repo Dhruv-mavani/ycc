@@ -19,6 +19,7 @@ import { downloadFileOrThrow } from "@/lib/download-file";
 interface StatusResponse {
   status: "pending_payment" | "confirmed" | "failed" | "cancelled";
   eventName: string;
+  eventSlug: string | null;
   teamName: string | null;
   amountPaise: number;
   /** True for a confirmed registration with no online payment on record —
@@ -203,6 +204,9 @@ export function PaymentStatusPoller({
             </div>
             <Separator />
             <div className="space-y-2">
+              {data.eventSlug === "kaun-banega-lakhpati" ? (
+                <Button className="w-full" nativeButton={false} render={<Link href="/kaun-banega-lakhpati">Play Kaun Banega Lakhpati now</Link>} />
+              ) : null}
               <Button
                 variant="outline"
                 className="w-full"

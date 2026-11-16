@@ -108,7 +108,8 @@ export default async function RegisterPage({
   const requiresCommunityGate =
     event.type === "individual_free" ||
     isKismatKeKhiladiEvent(event.slug) ||
-    event.slug === "cricket-championship-2026";
+    event.slug === "cricket-championship-2026" ||
+    event.slug === "kaun-banega-lakhpati";
 
   const partnerOptions = [
     ...(campusPartners ?? []).map((p) => ({ ...p, type: "campus" as const })),

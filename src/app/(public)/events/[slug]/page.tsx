@@ -83,6 +83,11 @@ export default async function EventDetailPage({
   // events below rather than the two-column paid-tournament layout.
   const isGoGoaGone = isKismatKeKhiladiEvent(event.slug);
   const isBoxCricket = event.slug === "cricket-championship-2026";
+  // Gets Box Cricket's centered, poster-led treatment (see the layout
+  // branch below) instead of the generic two-column paid-tournament
+  // layout — a solo quiz entry has no squad/team-size info to justify two
+  // columns, same reasoning as Go Goa Gone/Box Cricket opting in above.
+  const isKaunBanegaLakhpati = event.slug === "kaun-banega-lakhpati";
 
   // BreadcrumbList — helps search/AI crawlers place this event within the
   // site hierarchy without inferring it from nav markup. No full Event
@@ -121,7 +126,7 @@ export default async function EventDetailPage({
           href={
             event.type === "school"
               ? "/super-champs/certificate"
-              : isGoGoaGone || isBoxCricket
+              : isGoGoaGone || isBoxCricket || isKaunBanegaLakhpati
                 ? "/receipt"
                 : "/jackpot-heist/certificate"
           }
@@ -202,16 +207,16 @@ export default async function EventDetailPage({
 
         <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl shadow-slate-200/50">
           
-          {/* Banner Image for Quiz */}
-          {isQuiz && (
-            <div className="w-full relative border-b border-slate-100 bg-slate-100 flex">
-
+          {/* Banner Image for Quiz — Kaun Banega Lakhpati shows this same
+              poster, larger, inside its own centered section below instead. */}
+          {isQuiz && !isKaunBanegaLakhpati && (
+            <div className="w-full relative border-b border-slate-100 bg-slate-100 flex justify-center p-4 sm:p-6">
               <Image
                 src="/ycc_quiz_banner1.png"
                 alt={`${event.name} Banner`}
-                width={1200}
-                height={600}
-                className="w-full h-auto"
+                width={1054}
+                height={1492}
+                className="h-auto w-full max-w-[260px] sm:max-w-xs"
                 priority
               />
             </div>
@@ -296,7 +301,7 @@ export default async function EventDetailPage({
           </div>
 
           {/* Event Details */}
-          {event.type === "school" || event.type === "individual_free" || isGoGoaGone || isBoxCricket ? (
+          {event.type === "school" || event.type === "individual_free" || isGoGoaGone || isBoxCricket || isKaunBanegaLakhpati ? (
             // Single, centered column — this free/solo event has no team
             // requirements or tournament rules to justify the two-column
             // layout the paid cricket events use, so the fee card and CTA
@@ -307,12 +312,13 @@ export default async function EventDetailPage({
             // wide two-column split just looks inconsistent underneath it.
             <div className="flex justify-center p-6 sm:p-12 bg-slate-50">
               <div className="w-full max-w-md space-y-8 text-center">
-                {event.type === "individual_free" || isGoGoaGone || isBoxCricket ? (
+                {event.type === "individual_free" || isGoGoaGone || isBoxCricket || isKaunBanegaLakhpati ? (
                   // A ₹0 fee breakdown is dead weight here for the two free
                   // events — the event's own poster plus the actual steps to
                   // register are far more useful than an all-zero GST table.
-                  // Box Cricket isn't free, so it keeps its own Registration
-                  // Details card further down, after these steps.
+                  // Box Cricket and Kaun Banega Lakhpati aren't free, so they
+                  // keep their own Registration Details card further down,
+                  // after these steps.
                   <div>
                     {/* The golden emblem now renders up top, between the
                         back button and this card (see below) — not
@@ -321,7 +327,13 @@ export default async function EventDetailPage({
                     {!isGoGoaGone ? (
                       <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                         <Image
-                          src={isBoxCricket ? "/box-cricket/poster-1200.png" : "/jackpot-heist/poster.png"}
+                          src={
+                            isBoxCricket
+                              ? "/box-cricket/poster-1200.png"
+                              : isKaunBanegaLakhpati
+                                ? "/ycc_quiz_banner1.png"
+                                : "/jackpot-heist/poster.png"
+                          }
                           alt={`${event.name} poster`}
                           width={1024}
                           height={1536}
@@ -445,7 +457,20 @@ export default async function EventDetailPage({
                   </div>
                 ) : null}
 
-                {event.type === "individual_free" || isGoGoaGone || isBoxCricket ? (
+                {isKaunBanegaLakhpati && event.rules ? (
+                  <div className="text-left">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                      <ScrollText className="w-5 h-5 text-amber-600" /> Contest Rules
+                    </h3>
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                      <p className="whitespace-pre-line text-slate-600 leading-relaxed">
+                        {event.rules}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {event.type === "individual_free" || isGoGoaGone || isBoxCricket || isKaunBanegaLakhpati ? (
                   <div className="mt-6 text-left">
                     <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
                       <ScrollText className="w-5 h-5 text-indigo-600" /> How to Register
@@ -599,6 +624,31 @@ export default async function EventDetailPage({
                       </div>
                       <p className="text-xs sm:text-sm text-slate-500 mb-4">
                         Includes Team Pass &amp; Player ID Card for every player.
+                      </p>
+                      {event.gst_exempt ? null : (
+                        <>
+                          <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">+ 18% GST applicable</p>
+                          <div className="pt-5 sm:pt-6 border-t border-slate-100">
+                            <GstBreakdown basePaise={event.fee_paise} />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {isKaunBanegaLakhpati ? (
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center justify-center gap-2">
+                      <Banknote className="w-5 h-5 text-indigo-600" /> Registration Details
+                    </h3>
+                    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm text-left">
+                      <div className="flex flex-wrap items-end gap-2 mb-4">
+                        <span className="text-3xl sm:text-4xl font-bold text-slate-900 leading-none">{formatRupees(event.fee_paise)}</span>
+                        <span className="text-slate-500 mb-0.5 text-sm sm:text-base">per person</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-500 mb-4">
+                        Includes your unique play code, ID card &amp; receipt — all auto-generated the moment payment is confirmed.
                       </p>
                       {event.gst_exempt ? null : (
                         <>
